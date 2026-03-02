@@ -184,9 +184,9 @@
         }
         if (point === '*') {
           const endNode = endPath ? blockNavigate(blk, endPath) : blk.tree;
-          if (!endNode) return { mode: 'tree', path: endPath, text: null, children: [] };
+          if (!endNode) return { mode: 'ring', path: endPath, text: null, children: [] };
           const subtree = resolveBlock({ tree: endNode }, 9);
-          return { mode: 'tree', path: endPath, text: subtree.text, children: subtree.children };
+          return { mode: 'ring', path: endPath, text: subtree.text, children: subtree.children };
         }
         return { mode: 'error', error: `Unknown point mode: ${point}` };
       }
@@ -340,10 +340,11 @@
 
   function parseInstruction(instr) {
     const parts = instr.trim().split(/\s+/);
+    const point = parts.length > 2 ? parts[2] : undefined;
     return {
       blockName: parts[0],
       spindle: parts.length > 1 ? parseFloat(parts[1]) : undefined,
-      point: parts.length > 2 ? parseFloat(parts[2]) : undefined
+      point: (point === '~' || point === '*') ? point : (point !== undefined ? parseFloat(point) : undefined)
     };
   }
 
@@ -374,6 +375,14 @@
       return `[${blockName} ${spindle}]\n${result.nodes.map(n => `  [${n.pscale}] ${n.text}`).join('\n')}`;
     }
     if (result.mode === 'point') return `[${blockName} ${spindle} ${point}] ${result.text}`;
+    if (result.mode === 'spread') {
+      const kids = (result.children || []).map(c => `  ${c.digit}: ${c.text}`).join('\n');
+      return `[${blockName} ${spindle} ~]\n${result.text ? `  ${result.text}\n` : ''}${kids}`;
+    }
+    if (result.mode === 'ring') {
+      const kids = (result.children || []).map(c => `  ${c.text}`).join('\n');
+      return `[${blockName} ${spindle} *]\n${result.text ? `  ${result.text}\n` : ''}${kids}`;
+    }
     return '';
   }
 
@@ -473,13 +482,13 @@
     },
     {
       name: 'bsp',
-      description: 'Block·Spindle·Point — semantic address resolution.\nbsp(name) → full block\nbsp(name, 0.21) → spindle chain\nbsp(name, 0.21, -1) → point at pscale\nbsp(name, 0.21, "~") → spread\nbsp(name, 0.21, "*") → subtree',
+      description: 'Block·Spindle·Point — semantic address resolution.\nbsp(name) → full block\nbsp(name, 0.21) → spindle (depth walk)\nbsp(name, 0.21, -1) → point at pscale\nbsp(name, 0.21, "~") → spread (sibling labels)\nbsp(name, 0.21, "*") → ring (all children, simultaneous)',
       input_schema: {
         type: 'object',
         properties: {
           name: { type: 'string' },
           spindle: { type: 'number' },
-          point: { description: "Number for pscale, '~' for spread, '*' for tree", oneOf: [{ type: 'number' }, { type: 'string', enum: ['~', '*'] }] }
+          point: { description: "Number for pscale, '~' for spread, '*' for ring", oneOf: [{ type: 'number' }, { type: 'string', enum: ['~', '*'] }] }
         },
         required: ['name']
       }
