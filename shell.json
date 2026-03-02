@@ -231,7 +231,7 @@
           "5": "Every block is self-describing. Its root tells you what it is, its structure shows how it's organised, its content shows what it knows. You never need external documentation to read a block."
         },
         "2": {
-          "_": "One function reads everything: bsp. Three modes \u2014 block for storage, spindle for cognition, point for reference.",
+          "_": "One function reads everything: bsp. Five modes \u2014 block for storage, spindle for cognition, point for reference, spread for sibling labels, ring for simultaneous depth.",
           "1": "bsp('constitution') \u2192 block mode. Returns the whole tree. Every branch, every depth. Use this to survey a block or explore freely.",
           "2": {
             "_": "bsp('touchstone', 0.21) \u2192 spindle mode. Returns root \u2192 section 2 \u2192 subsection 1. Three levels of meaning in one result \u2014 broad context and fine detail together.",
@@ -248,6 +248,12 @@
             "2": "Nested BSP \u2014 cross-block resolution. Same spindle notation, but the walk can follow references into other blocks. Handles blocks-within-blocks. Defined, not yet implemented.",
             "3": "Spindle notation \u2014 the full positional reading convention. Always left-to-right. The decimal marks pscale 0 but doesn't reset position counting. Leading digits mandatory \u2014 you walk from root. Specification to follow.",
             "4": "Truncation \u2014 trailing zeros signal termination. 0.450 walks two positions and stops. Mid-spindle zeros mean pass-through. An alternative to point mode using positional stopping instead of pscale levels. Specification to follow."
+          },
+          "7": "bsp('wake', 0.12, '~') \u2192 spread mode. Returns the _ text at that node plus all direct children as label-text pairs. Use spread for quick survey \u2014 what are the siblings here? Spread is flat: one level, no depth. If you need the full content of each child, use ring instead.",
+          "8": {
+            "_": "bsp('cooking', 0.191, '*') \u2192 ring mode. Returns the _ text (the blurb) plus all children unfolded to depth. A ring is not a linear walk \u2014 it is simultaneous: every child arrives as a full semantic field, received at once. Where a spindle goes deep through one path, a ring goes wide across all children of one node.",
+            "1": "The ring is the structural mode for simultaneous synthesis. Rich siblings, each a paragraph or more, each a facet of one insight. The blurb orients and contains the taste test (systemic completion). The children are the facets. Together they form a composite semantic field that the LLM processes in parallel.",
+            "2": "In a package entry: cooking 0.191 *. The * tells the currents compiler to unfold all children. Without the *, you get only the _ text at that node \u2014 the blurb without the facets."
           }
         },
         "3": {
@@ -502,7 +508,7 @@
               },
               "_": "Understand EcoSquared. Trust economics riding on SAND."
             },
-            "_": "Reader's handbook. How to use this cookbook and write new recipes. A recipe IS an instruction-spindle: bsp resolves ALL semantics from root to target unless pscale narrows the call. Three parts to every recipe: (1) operational context \u2014 the blurb that orients and triggers the LLM, (2) linear sequence \u2014 ascending digits walk steps, may go deep, digit 1 holds sub-detail, (3) taste test \u2014 always the final node. Correlates to skill.md format most LLMs use, but situated in pscale rather than flat markdown. Loops may be included \u2014 a step can reference another recipe by spindle address."
+            "_": "Reader's handbook. How to use this cookbook and write new recipes. Two structural modes. A spindle recipe nests steps linearly \u2014 A then B then C \u2014 context narrows at each depth, taste test at the leaf. A ring recipe presents facets simultaneously \u2014 A AND B AND C \u2014 each child a rich paragraph, the blurb holds orientation and taste test (systemic completion), compiled with bsp(block, spindle, '*'). Three parts to every spindle recipe: (1) operational context, (2) ascending digits walk steps, digit 1 holds sub-detail, (3) taste test at final node. Two parts to every ring recipe: (1) blurb with orientation and taste test in _, (2) rich sibling facets as children. See 0.111 for a spindle example, 0.112 for a ring explanation, 0.191 for a ring example."
           },
           "2": {
             "1": {
