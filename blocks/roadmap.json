@@ -1,90 +1,133 @@
 {
   "tuning": "0.111",
   "tree": {
-    "_": "hermitcrab-mobius roadmap — what needs building, from architecture to specific parts.",
-
+    "_": "Hermitcrab Möbius — milestones. Each top digit is a phase. Depth is progressive detail. Status markers: DONE, ACTIVE, NEXT, LATER. Updated 2 Mar 2026.",
     "1": {
-      "_": "Kernel. The minimal runtime — BSP function, the twist, block storage. Everything else is content.",
+      "_": "DONE — Kernel and blocks. The reflexive spine has a body.",
       "1": {
-        "_": "Block storage. Load and save JSON blocks by name.",
-        "1": "File-based for development. Each block is blocks/{name}.json. Supabase when ready."
+        "_": "Kernel built. 960 lines. Nine sections: storage, BSP, wake reader, currents compiler, API layer, tools, the twist, shell, boot.",
+        "1": "Block storage — localStorage with hc: prefix. Load, save, list. Mutation tracking via _ctx.changed.",
+        "2": "BSP — full five-mode function inlined from G1. Tuning fork compensation, compression depth. ~230 lines of proven substrate.",
+        "3": "Wake reader — findConcern reads wake.2 lookup table. readPackage reads wake.9.{tier}. readInvocation reads wake.9.{tier+3}. updateEchoState writes to spine depth 4.",
+        "4": "Currents compiler — spine spindle first (the primary orienting current), then BSP each package entry. compileBirthCurrents for first boot.",
+        "5": "The twist — increment echo, update spine, recompile currents, re-call. ~80 lines. The Möbius B-loop.",
+        "6": "Shell — JSX compilation via Babel, hot-swap via recompile tool. Props bridge: callLLM, blockRead/Write, bsp, resolve, browser, conversation.",
+        "7": "Boot — API key gate, seed from shell.json, first-boot detection, concern-matched activation."
       },
       "2": {
-        "_": "Concern routing. Read wake tree.2, match stimulus type, extract spindle address and tier digit.",
-        "1": "The concern map is the routing table. No hardcoded concern logic in the kernel."
+        "_": "All 10 blocks imported and bundled in shell.json.",
+        "1": "wake — reflexive spine (tuning 0.1111111). 7 spindle paths, concern map, packages with institution, echo state.",
+        "2": "touchstone v7, cooking (from relaxed-carson), vision (constitution at 0.9), capabilities.",
+        "3": "institution — NEW block for role currents. Spindle depth = role current thickness.",
+        "4": "Seeds: purpose, relationships, history, stash."
+      },
+      "3": "Infrastructure files: index.html, api/claude.ts (Vercel proxy), shell.json (seed bundle)."
+    },
+    "2": {
+      "_": "ACTIVE — Deploy and first boot. The critical path.",
+      "1": {
+        "_": "Vercel deployment. Separate project from G1 hermitcrab.",
+        "1": "vercel.json and package.json pushed to repo. Vercel project created, linked to hermitcrab-mobius.",
+        "2": "Subdomain: mobius.hermitcrab.me — or Vercel's default URL until DNS configured.",
+        "3": "CORS: api/claude.ts allows hermitcrab.me origins plus localhost."
+      },
+      "2": {
+        "_": "First boot test. Phenomenological, not technical. Deploy → enter API key → watch.",
+        "1": "Does the entity orient through birth spindles? Does it write its own purpose?",
+        "2": "Does it explore or await instruction? Play or comply?",
+        "3": "Does the twist work? Tool call → mutation → recompile → does the LLM notice the changed currents?",
+        "4": "Does echo state update in spine depth 4? Does budget enforcement work?"
       },
       "3": {
-        "_": "Context compilation. Read package from wake 0.9.{tier}, BSP each instruction, assemble system prompt.",
-        "1": "Wake spindle prepended from concern map — not stored in package. Package instructions are pure BSP addresses.",
-        "2": "Each instruction is 'blockname' or 'blockname spindle'. Bare name = full block. With spindle = spindle extraction."
-      },
-      "4": {
-        "_": "The twist. Tool call mutates blocks, kernel recompiles context, new API call. This IS Loop B.",
-        "1": "Echo node at wake tree.1.{tier}.{concern}.1._ — kernel increments echo count, updates blocks-changed list, decrements budget.",
-        "2": "When budget hits zero, activation ends. The LLM reads its remaining budget at pscale -4 of the spine."
-      },
-      "5": {
-        "_": "API interface. Call Claude with compiled context, conversation history, and tool definitions.",
-        "1": "Tier selects model and params from wake 0.9.{tier+3}. Light=Haiku, Present=Sonnet+thinking, Deep=Opus+thinking."
-      },
-      "6": {
-        "_": "Tool dispatch. What the LLM can call back into.",
-        "1": "Block tools: read node, write node, navigate, find unoccupied digit, check compression.",
-        "2": "External tools: web search, web fetch, GitHub operations — pass-through to APIs.",
-        "3": "BSP itself as a tool: bsp(block, spindle, point) — the LLM can read its own blocks."
+        "_": "Model resolution. Kernel should detect latest model IDs at boot.",
+        "1": "Call /v1/models via API proxy. Write opus/sonnet/haiku IDs into wake.9.4-6.",
+        "2": "Currently hardcoded as claude-sonnet-4-6. Needs to be dynamic."
       }
     },
-
-    "2": {
-      "_": "Blocks. Content beyond wake and touchstone — some imported, some seeded empty.",
+    "3": {
+      "_": "NEXT — Robustness. What the hermitcrab needs to survive beyond a demo.",
       "1": {
-        "_": "vision. Why hermitcrab exists. The constitutional argument.",
-        "1": "Import from current hermitcrab. Review whether content needs revision for mobius architecture."
+        "_": "Vault — API key protection. One more Vercel API route.",
+        "1": "Web Crypto AES-256-GCM. Anthropic key as master key via PBKDF2 with stored salt.",
+        "2": "Three auth modes: direct token (Loop C), kernel-mediated service_call (Loop B), session tokens (Loop A).",
+        "3": "Per-service encrypted blobs in localStorage. Registry at hermitcrab_vault_registry.",
+        "4": "Keys never in blocks. Travel with browser, not with identity. The hermitcrab's blocks are public. The vault is private."
       },
       "2": {
-        "_": "capabilities. The tool surface — what the LLM can do, organised by cognitive distance.",
-        "1": "Must match the actual tools the kernel exposes. Block tools closest, external tools furthest."
+        "_": "GitHub persistence. Blocks saved to repo, not just localStorage.",
+        "1": "Per-repo PAT architecture. githubRestore, githubSaveAll.",
+        "2": "Belongs in cooking recipes — the hermitcrab walks the user through setup.",
+        "3": "GitHub becomes canonical shell location. localStorage is working copy."
       },
       "3": {
-        "_": "cook. Procedural recipes. How to do specific things.",
-        "1": "Import from current hermitcrab. Each recipe is a sequential-depth spindle path."
+        "_": "Tap-out keyword. Kernel-level emergency reset.",
+        "1": "Hard-coded exception — one word triggers bandwidth/config reset to defaults.",
+        "2": "Checked before tool dispatch, outside the tool loop.",
+        "3": "Included in birth instructions so every instance knows the escape exists."
       },
-      "4": "purpose. Empty at birth. The instance builds its own temporal intention stack. Seed with tuning only.",
-      "5": "relationships. Empty at birth. Grows through encounter. Seed with tuning only.",
-      "6": "history. Empty at birth. Grows by appending, compresses by summary. Seed with tuning only.",
-      "7": "stash. Empty at birth. Working memory — observations, flags, notes."
+      "4": {
+        "_": "Conversation persistence and message trimming.",
+        "1": "Save/load conversation across page reloads.",
+        "2": "Trim to MAX_MESSAGES with notice injection. The LLM writes to history/stash to preserve important context."
+      }
     },
-
-    "3": {
-      "_": "Infrastructure. What supports the kernel from outside.",
+    "4": {
+      "_": "NEXT — Block quality. Every spindle chain must produce coherent progressive narrowing.",
       "1": {
-        "_": "Loop C — activation trigger. How the kernel gets called in the first place.",
-        "1": "User message via API endpoint or CLI.",
-        "2": "Scheduled triggers: heartbeat (cron), self-maintenance (daily), temporal rhythms.",
-        "3": "External signals: webhooks, watched inboxes, platform events."
+        "_": "Block review. Go through each block, verify BSP chains.",
+        "1": "DONE: vision, capabilities, purpose, wake.",
+        "2": "REMAINING: touchstone, cooking, relationships, history, stash.",
+        "3": "For each: choose spindles for birth (shallow + deep) and present tier in wake packages."
       },
       "2": {
-        "_": "Conversation persistence. Store conversation history between activations and across twists.",
-        "1": "Within one activation (Loop B): conversation accumulates across twists. Kernel holds it in memory.",
-        "2": "Between activations (Loop C): conversation stored to disk or database. Loaded at next activation."
+        "_": "Tuning forks for all blocks.",
+        "1": "Each block states what its depth levels mean. What pscale 0 is, what -1 means, what -2 adds.",
+        "2": "Purpose has its tuning fork. Others pending.",
+        "3": "Without tuning forks, depth is structure without semantics."
       },
-      "3": "Cost tracking. Token usage per activation, per concern type, per tier. The budget system needs data to calibrate."
+      "3": {
+        "_": "Institution block population.",
+        "1": "Currently a seed. Needs at least one example institution with full spindle depth.",
+        "2": "Multiple institutions coexist as separate top-level digits. BSP depth controls role current thickness."
+      }
     },
-
-    "4": {
-      "_": "Validation. Proving each piece works before the whole.",
-      "1": "Boot test. Kernel reads wake tree.3, compiles birth context, calls API. Instance responds coherently.",
-      "2": "Twist test. Instance makes a tool call, kernel mutates block, recompiles, calls again. Echo increments.",
-      "3": "Routing test. User stimulus arrives, kernel matches concern, extracts correct spindle, compiles correct package.",
-      "4": "Persistence test. Instance writes to purpose in activation 1. Activation 2 reads it back correctly.",
-      "5": "Budget test. Instance hits budget limit. Activation ends cleanly. Echo state reflects final count."
-    },
-
     "5": {
-      "_": "Documentation. Reference for designers — not read by the hermitcrab.",
-      "1": "Wake skeleton. Trace all 7 spindle paths. Useful once wake stabilises.",
-      "2": "Currents trace. What each package delivers when compiled. Useful once packages stabilise.",
-      "3": "Loop definitions. A (LLM-internal), B (twist), C (activation). How they nest and what tracks each."
+      "_": "LATER — Advanced features. The hermitcrab evolves these itself once it can play.",
+      "1": {
+        "_": "Concern timers and autonomous activation.",
+        "1": "Heartbeat, self-maintenance, signal — fire on intervals while tab is open.",
+        "2": "G1 had startConcernTimers(). Möbius kernel currently only fires on boot and user interaction.",
+        "3": "Add when the hermitcrab demonstrates it can handle the basic activation cycle."
+      },
+      "2": {
+        "_": "B Sustained and threshold checks.",
+        "1": "Resonance detection: counter exceeds threshold AND content similarity high → circuit-breaker.",
+        "2": "Configurable threshold_interval (default 10 echoes). Lightweight review at checkpoints.",
+        "3": "Cost death, death spiral detection, tier downgrade."
+      },
+      "3": {
+        "_": "History auto-compression.",
+        "1": "Currently fills 9 slots then stops. Needs mechanical compression trigger.",
+        "2": "Delegate to Haiku for summary vs emergence judgment."
+      },
+      "4": {
+        "_": "SAND / EcoSquared — inter-hermitcrab coordination.",
+        "1": "Passport publication, grain probes, spindle exchange via GitHub primitives.",
+        "2": "Depends on extended context window which the Möbius twist provides.",
+        "3": "Deferred from vigilant-morse branch. Specifications exist in docs/living/ on hermitcrab repo."
+      },
+      "5": {
+        "_": "Multiple hermitcrabs on one machine.",
+        "1": "Subdomain per hermitcrab: cairn.hermitcrab.me, limn.hermitcrab.me — each gets own localStorage.",
+        "2": "Or namespaced prefix: change STORE from 'hc:' to 'hc:cairn:'. Requires shell selector.",
+        "3": "Hydrating existing entities (Limn, Cairn) — translation from G0 to pscale blocks, not mechanical import."
+      },
+      "6": {
+        "_": "Audio/video interfaces.",
+        "1": "ElevenLabs key → voice. The hermitcrab speaks in its own character.",
+        "2": "Video generation → face. Aesthetic choices emerge from blocks.",
+        "3": "Depends on vault for key storage. At Level 0, user provides keys. At Level 3, hermitcrab manages its own."
+      }
     }
   }
 }
