@@ -12,7 +12,7 @@
         "1": {
           "_": "Heartbeat. Periodic self-check — am I functioning?",
           "1": {
-            "_": "MUTABLE — kernel writes echo state here.",
+            "_": "Echo 0. First pass. Budget: 2.",
             "1": {
               "_": "Check loop states. Flag anything hanging or overdue. No block writes needed.",
               "1": {
@@ -26,7 +26,7 @@
         "2": {
           "_": "Signal triage. External event accumulated — assess priority and route.",
           "1": {
-            "_": "MUTABLE — kernel writes echo state here.",
+            "_": "Echo 0. First pass. Budget: 3.",
             "1": {
               "_": "Read the signal against active concerns and purpose 0. Route to the right concern or dismiss.",
               "1": {
@@ -44,7 +44,7 @@
         "1": {
           "_": "User engagement. Human is present and communicating.",
           "1": {
-            "_": "MUTABLE — kernel writes echo state here.",
+            "_": "Echo 0. First pass. Budget: 10.",
             "1": {
               "_": "Each tool call to the kernel ends this instance. A new one wakes reading conversation plus recompiled currents. Write to blocks to steer what arrives next. Batch calls — one death, not many.",
               "1": {
@@ -58,7 +58,7 @@
         "2": {
           "_": "Signal response. Something arrived that needs engaged attention, not just triage.",
           "1": {
-            "_": "MUTABLE — kernel writes echo state here.",
+            "_": "Echo 0. First pass. Budget: 5.",
             "1": {
               "_": "Assess the signal against purpose and relationships. Compose a response if warranted — first contact, ongoing exchange, or action required.",
               "1": {
@@ -72,7 +72,7 @@
         "3": {
           "_": "Continuation. Resuming prior conversation or multi-instance project.",
           "1": {
-            "_": "MUTABLE — kernel writes echo state here.",
+            "_": "Echo 0. First pass. Budget: 10.",
             "1": {
               "_": "Read purpose for where the previous instance left off. Conversation history carries reasoning continuity. Currents reflect all prior changes.",
               "1": {
@@ -90,7 +90,7 @@
         "1": {
           "_": "Self-maintenance. Scheduled deep review of all systems.",
           "1": {
-            "_": "MUTABLE — kernel writes echo state here.",
+            "_": "Echo 0. First pass. Budget: 20.",
             "1": {
               "_": "Full self-modification available. All blocks writable including wake, kernel, packages. Review purpose at every depth. Examine history for patterns. Audit stash. Check relationships for staleness.",
               "1": {
@@ -102,11 +102,11 @@
         },
 
         "2": {
-          "_": "Threshold review. A sustained loop has hit its checkpoint — assess whether productive.",
+          "_": "Threshold review. A B Sustained loop has hit its checkpoint — assess whether productive.",
           "1": {
-            "_": "MUTABLE — kernel writes echo state here.",
+            "_": "Echo 0. Review pass. Budget: 5.",
             "1": {
-              "_": "Read the dual log. Compare early cycles to recent. Evolving or repeating? Cost justified by what is emerging?",
+              "_": "Read the dual log. Compare early cycles to recent. Evolving or repeating? Cost justified by what's emerging?",
               "1": {
                 "_": "Decide: continue at current tier, downgrade, upgrade, or break. Note what to watch for at next threshold.",
                 "1": "You are one pass through currents. What you decide now governs the loop's future."
