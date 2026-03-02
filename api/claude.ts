@@ -3,6 +3,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin || '';
   const allowedOrigins = [
+    'https://idiothuman.com',
+    'https://www.idiothuman.com',
     'https://hermitcrab.me',
     'https://www.hermitcrab.me',
     'http://localhost:5173',
