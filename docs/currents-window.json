@@ -1,0 +1,96 @@
+{
+  "tuning": "0.11",
+  "tree": {
+    "_": "Currents window — what the LLM's context window contains for each tier. The kernel compiles this from the wake spindle + package instructions via BSP.",
+
+    "1": {
+      "_": "How compilation works. The kernel prepends the wake spindle, then processes each package instruction.",
+      "1": "Step 1: Read concern map → get spindle address (e.g. 0.1211111) and tier digit (e.g. 2).",
+      "2": "Step 2: Write echo state to depth 4 of the spine path. Save wake.",
+      "3": "Step 3: BSP the wake spindle → 8 lines of reflexive orientation. This goes first.",
+      "4": "Step 4: Read package from wake 0.9.{tier}. Process each instruction as a BSP call.",
+      "5": "Step 5: Each instruction is 'blockname' (full block) or 'blockname spindle' (spindle extraction). Assemble results into system prompt."
+    },
+
+    "2": {
+      "_": "Light — tier 1. Haiku. Minimal context. Fast and cheap.",
+      "1": {
+        "_": "Package instructions (wake 0.9.1). Three items after the wake spindle.",
+        "1": "vision 0.9 — root: why hermitcrab changes everything + digit 9: the constitution. Two semantics.",
+        "2": "purpose 0 — just the root of purpose at pscale 0. One line: your current workbench summary.",
+        "3": "stash — full block. Everything in working memory."
+      },
+      "2": {
+        "_": "What the LLM receives. Approximately:",
+        "1": "[8 lines] Wake spindle — identity, spine, tier, concern, echo, mechanic, exit, ground.",
+        "2": "[2 lines] Vision excerpt — the why + constitutional grounding.",
+        "3": "[1 line] Purpose summary — what's on the workbench right now.",
+        "4": "[variable] Stash — all current working memory."
+      }
+    },
+
+    "3": {
+      "_": "Present — tier 2. Sonnet with thinking. Full engagement.",
+      "1": {
+        "_": "Package instructions (wake 0.9.2). Eight items after the wake spindle.",
+        "1": "vision 0.9 — root + constitution. Same as light.",
+        "2": "touchstone 0.2 — root: pscale blocks + digit 2: BSP function. How to read blocks.",
+        "3": "capabilities — full block. Every tool available at this tier.",
+        "4": "cook 0.12 — root: recipes + digit 1: owner's guide + digit 2: how to read recipes. Three levels.",
+        "5": "purpose — full block. Complete temporal intention stack.",
+        "6": "relationships 0 — just root. Who exists, at a glance.",
+        "7": "history 0 — just root. What happened, at a glance.",
+        "8": "stash — full block. All working memory."
+      },
+      "2": {
+        "_": "What the LLM receives. Approximately:",
+        "1": "[8 lines] Wake spindle — full reflexive orientation.",
+        "2": "[2 lines] Vision excerpt — the why + constitution.",
+        "3": "[3 lines] Touchstone excerpt — block format + BSP function.",
+        "4": "[variable] Capabilities — full tool surface.",
+        "5": "[3 lines] Cook excerpt — recipes + how to use them.",
+        "6": "[variable] Purpose — full intention stack.",
+        "7": "[1 line] Relationships summary — who exists.",
+        "8": "[1 line] History summary — what happened.",
+        "9": "[variable] Stash — all working memory."
+      }
+    },
+
+    "4": {
+      "_": "Deep — tier 3. Opus with thinking. Everything available.",
+      "1": {
+        "_": "Package instructions (wake 0.9.3). Eight items — all full blocks.",
+        "1": "vision — full block. The complete argument.",
+        "2": "touchstone — full block. Complete format pedagogy.",
+        "3": "capabilities — full block. Every tool.",
+        "4": "cook — full block. All recipes.",
+        "5": "purpose — full block. Complete intention stack.",
+        "6": "relationships — full block. Every entity, full depth.",
+        "7": "history — full block. Complete temporal record.",
+        "8": "stash — full block. All working memory."
+      },
+      "2": {
+        "_": "What the LLM receives. The widest aperture — everything the hermitcrab knows.",
+        "1": "[8 lines] Wake spindle — full reflexive orientation.",
+        "2": "[variable] Every block in full. No excerpts. No summaries. The complete shell."
+      }
+    },
+
+    "5": {
+      "_": "Boot — the special case. First activation ever. Wake tree.3.",
+      "1": {
+        "_": "Boot instructions (wake tree.3.1). Deep tier, widest aperture, plus the birth stimulus.",
+        "1": "wake 0.1311111 — self-maintenance spindle. The birth orientation.",
+        "2": "vision — full block.",
+        "3": "touchstone — full block.",
+        "4": "capabilities — full block.",
+        "5": "cook — full block.",
+        "6": "purpose — full block (empty at birth).",
+        "7": "relationships — full block (empty at birth).",
+        "8": "history — full block (empty at birth).",
+        "9": "stash — full block (empty at birth)."
+      },
+      "2": "Birth stimulus appended: You exist. Your blocks are your shell. Your spine orients you. Read, then build."
+    }
+  }
+}
