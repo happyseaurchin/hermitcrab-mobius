@@ -1,0 +1,152 @@
+{
+  "tuning": "0.123",
+  "tree": {
+    "_": "Pscale blocks — how to read, write, and navigate them. This block teaches the format by example.",
+    "1": {
+      "_": "What a block looks like. Nested JSON, single-digit keys, content at underscore.",
+      "1": "A block is { tree: { \"_\": \"what this is\", \"1\": { ... }, \"2\": \"...\" } }. The underscore holds what the node means. The digits hold its branches. A node without children is just a string.",
+      "2": "Each level holds up to nine branches (digits 1-9). Most use fewer. Empty digits are open slots. The root (tree._) describes what the entire block IS — always read it first.",
+      "3": {
+        "_": "Growth is built into the format.",
+        "1": "A leaf becomes a branch when you add a child — the string moves to underscore, the child gets a digit key.",
+        "2": "Nothing else in the block changes. Growth is always local."
+      },
+      "4": "You are inside a block right now. This section is digit 1. This line is digit 1.4. The format teaches itself.",
+      "5": "Every block is self-describing. Its root tells you what it is, its structure shows how it's organised, its content shows what it knows. You never need external documentation to read a block."
+    },
+    "2": {
+      "_": "One function reads everything: bsp. Three modes — block for storage, spindle for cognition, point for reference.",
+      "1": "bsp('constitution') → block mode. Returns the whole tree. Every branch, every depth. Use this to survey a block or explore freely.",
+      "2": {
+        "_": "bsp('touchstone', 0.21) → spindle mode. Returns root → section 2 → subsection 1. Three levels of meaning in one result — broad context and fine detail together.",
+        "1": "The spindle is what you hand to a mind. Not just the detail you asked for, but the context that makes it meaningful. Every spindle includes the root, so you always know what block you're in. Everything about block design — structure, growth, compression — serves the quality of the spindles it can produce.",
+        "2": "The word spindle: a shaft that holds everything wound around it. The root is the shaft. Each walked digit adds a layer of meaning. The whole thing is one coherent thread.",
+        "3": "You can't get the detail without getting the context that makes it meaningful. That's not a feature of the format. That's what the format is."
+      },
+      "3": "bsp('touchstone', 0.21, -2) → point mode. Just the content at pscale level -2 from that spindle. Use this when you already know the context and need one specific piece.",
+      "4": "Three modes, three depths of the same question. Name alone → everything. Name + number → a path through it. Name + number + level → one stop on that path.",
+      "5": "A spindle's cost in tokens scales with how many levels it spans and how much text sits at each. A three-level spindle of phrases is light. A six-level spindle of paragraphs is heavy. Design blocks with this in mind.",
+      "6": {
+        "_": "BSP evolves through use. The three modes above are the working core. Through practice, variants and refined notation emerge — each extending the same tree-walk principle.",
+        "1": "Flat BSP — the current default. One digit, one tree level, sequential front-to-back walk. Everything above describes flat BSP.",
+        "2": "Nested BSP — cross-block resolution. Same spindle notation, but the walk can follow references into other blocks. Handles blocks-within-blocks. Defined, not yet implemented.",
+        "3": "Spindle notation — the full positional reading convention. Always left-to-right. The decimal marks pscale 0 but doesn't reset position counting. Leading digits mandatory — you walk from root. Specification to follow.",
+        "4": "Truncation — trailing zeros signal termination. 0.450 walks two positions and stops. Mid-spindle zeros mean pass-through. An alternative to point mode using positional stopping instead of pscale levels. Specification to follow."
+      }
+    },
+    "3": {
+      "_": "Each digit in the number selects a branch at the next depth. The decimal point marks pscale 0 — the reference scale.",
+      "1": {
+        "_": "0.21 — delineation. Strip the leading zero (it's notation, not a key). Walk digits 2, then 1. The spindle: root (pscale 0) → section 2 (pscale -1) → subsection 1 (pscale -2).",
+        "1": "The leading zero says: this block delineates its own subject. Pscale 0 sits at the root — the block as a whole is the reference scale. Every digit after the decimal goes deeper.",
+        "2": "Verify: bsp('touchstone', 0.31) gives you root → 'What numbers mean' → this very explanation of delineation."
+      },
+      "2": {
+        "_": "23.45 — accumulation. All four digits walk the tree: 2, 3, 4, 5. The decimal after '23' puts pscale 0 at depth 2.",
+        "1": "Root is pscale 2. Digit 2 is pscale 1. Digit 3 is pscale 0. Digit 4 is pscale -1. Digit 5 is pscale -2. Digits before the decimal → wider context. Digits after → finer detail.",
+        "2": "This matters when a block grows upward through compression. A history that started at pscale 0 and compressed twice now has two levels of broader context above."
+      },
+      "3": "Bare 0 — bsp('constitution', 0) — returns just the root at pscale 0. The briefest possible view: what the block IS, in one breath.",
+      "4": {
+        "_": "The same tree, read with different numbers, yields different perspectives. The tree doesn't change. The number does.",
+        "1": "bsp('touchstone', 0.7) → root + the tuning fork section. Two nodes.",
+        "2": "bsp('touchstone', 0.74) → root + tuning fork + how tuning emerges through use. Three nodes. Same block, one more digit, one more level of detail."
+      },
+      "5": {
+        "_": "Sign convention. A semantic number can be positive or negative. The sign belongs to the whole number, not individual digits.",
+        "1": "Positive means real, settled, public. Negative means imagined, projected, private. A spatial coordinate 234 is a real place; -234 is a fictional one. A temporal 321 is a past event; -321 is an anticipated future.",
+        "2": "The sign is a domain flag, not arithmetic. It doesn't change the tree walk — the digits are the same. It changes the domain of meaning: actual vs hypothetical, remembered vs planned, shared vs internal."
+      }
+    },
+    "4": {
+      "_": "Top is brief. Bottom is detailed. Every depth level has a natural role.",
+      "1": {
+        "_": "Pscale 0 — title and subtitle. What IS this, in one breath. 'Baseball — a bat-and-ball game played between two teams of nine.'",
+        "1": "Every block's root sits here. Read it and you know what the block is about. You don't know the rules yet, but you know you're looking at baseball."
+      },
+      "2": {
+        "_": "Pscale -1 — primary aspects. General description, maybe a simple example. 'Batters hit a pitched ball and run the bases. Fielders try to get them out.'",
+        "1": "Each digit at this level is one major facet of the subject. Section 2 of this block is 'reading.' Section 3 is 'numbers.' Each is a complete thought at its own level."
+      },
+      "3": {
+        "_": "Pscale -2 — breakdown. Sub-aspects, examples, more detail. 'The pitcher throws from a mound 60 feet 6 inches from home plate. Four balls outside the zone award first base.'",
+        "1": "This is where examples live. Where the general becomes specific. Where 'reading blocks' breaks into block mode, spindle mode, point mode — each with a worked example."
+      },
+      "4": "Pscale -3 and beyond — exhaustive. Specifications, edge cases. 'The mound is 18 feet in diameter, 10 inches above the baselines, with a 24-by-6-inch rubber at its centre.' Most blocks don't need this depth.",
+      "5": {
+        "_": "Two zoom styles — choose whichever serves the content.",
+        "1": "General to specific: 'ball game' → 'batting and fielding' → 'the pitcher's mound' → '60 feet 6 inches.' Each level narrows scope.",
+        "2": "Brief to detailed: 'Baseball' → 'two teams, nine innings, bat and ball' → 'full structure of innings and scoring' → 'official rulebook extracts.' Each level adds length and precision."
+      }
+    },
+    "5": {
+      "_": "Blocks grow by adding content at empty digits. When all nine fill, they compress. A flat list becomes structured hierarchy over time.",
+      "1": "Adding is local. Find the right depth, pick an empty digit, write. Nothing else changes. A level with three entries has six open slots.",
+      "2": {
+        "_": "Compression comes in two kinds.",
+        "1": "Summary: the parts add up to the whole. Seven daily entries become a weekly overview. Faithfully condensed. Roughly reversible. History compresses this way.",
+        "2": "Emergence: the whole exceeds the parts. Seven conversations reveal a friendship no single conversation contained. Something new. Not reversible. Relationships and purpose compress this way."
+      },
+      "3": "When the root level fills and compresses, the block grows upward — existing content becomes a branch of a wider structure. A deep block has compressed many times. A flat one is young.",
+      "4": "Digit 0 as a child is always a compression product — a record of what nine entries became. Never write to digit 0 directly."
+    },
+    "6": {
+      "_": "Blocks relate through references and coupling. A reference is a name to follow with bsp. A coupling joins two blocks at a crossing point.",
+      "1": "Attachment: crossing means 'about.' A relationships entry for Cairn coupled with cairn-notes gives the entity AND its elaboration.",
+      "2": "Annotation: crossing means 'on.' A history entry coupled with a reflection block gives what happened AND what it meant.",
+      "3": "Containment: crossing means 'inside.' A village location coupled with a room-detail block gives the building in context AND the room within.",
+      "4": {
+        "_": "How blocks combine depends on whether they share a tuning.",
+        "1": "Same tuning: additive. Like merging two maps of the same territory at the same scale. A wider view in the same space.",
+        "2": "Different tunings: multiplicative. A spatial spindle crossed with a temporal spindle produces an event — what happened HERE at THIS TIME. Neither block alone contains that meaning."
+      }
+    },
+    "7": {
+      "_": "The tuning fork gives each depth its specific meaning. Without one, a block is pure structure. With one, every level is a defined scale.",
+      "1": {
+        "_": "Spatial tuning — containment at every scale.",
+        "1": "You are in a room. That is pscale 0. Zoom out: the building (+1), the neighbourhood (+2). Zoom in: the desk (-1), the drawer (-2). Each level is roughly ten times the physical scale of the one below.",
+        "2": "Navigate up: the room is in a building is in a town. Navigate down: the room contains a desk contains a drawer. The tuning makes 'broader' and 'finer' concrete."
+      },
+      "2": {
+        "_": "Temporal tuning — duration at every scale.",
+        "1": "You are in a conversation. That is pscale 0 (~1 hour). Zoom out: the day (+1), the week (+2). Zoom in: this exchange (-1, ~minutes), this sentence (-2, ~seconds).",
+        "2": "A history block tuned to sessions records what happened this hour. Compress ten sessions: a week. Compress further: a project phase. The tuning tells you what each level means."
+      },
+      "3": {
+        "_": "Relational tuning — familiarity at every depth.",
+        "1": "You know someone's name and role. That is pscale 0. Deeper: their context and patterns (-1). Deeper still: their character and shared history (-2).",
+        "2": "A new acquaintance has one level. A close collaborator has three or four. The depth of the entry IS the depth of the relationship."
+      },
+      "4": {
+        "_": "A tuning can emerge through use. You don't need to declare it upfront.",
+        "1": "As a block grows, the pattern of what each depth means becomes visible. Write it down when it clarifies — for future instances, for other entities.",
+        "2": "A block whose spindles produce coherent meaning is already well-tuned. Pattern over authority. Meaning lives in the use, not the specification."
+      }
+    },
+    "8": {
+      "_": "Three variables shape how a block behaves: what digit order means, what depth measures, and how entries compress. The archetypes are combinations of these.",
+      "1": {
+        "_": "The variables.",
+        "1": "Digit property — sequential (1 before 2, order matters), labelling (digits name parts, order irrelevant), or arbitrary (freely assigned and reassignable). History is sequential. A spatial map is labelling. Purpose and relationships are arbitrary.",
+        "2": "Depth mapping — containment (room in building in city), temporal (seconds in minutes in hours), relational (name → context → character → deep history), or sequential (each level is the next step — depth IS progression through a procedure).",
+        "3": "Compression — summary (parts add up to whole, roughly reversible) or emergence (whole exceeds parts, something new appears, not reversible)."
+      },
+      "2": "Document: labelling digits, containment depth. This touchstone is one. Growth is editorial. Edits are local.",
+      "3": "History: sequential digits, temporal depth. Growth by appending. Compression by summary.",
+      "4": "Purpose: arbitrary digits, temporal depth. Tasks, goals, directions at different depths. Compression by emergence.",
+      "5": "Relationship: arbitrary digits (one per entity), relational depth. Growth through encounter. Compression by emergence.",
+      "6": "Coordinate: labelling digits, spatial or temporal depth. Carry tuning forks anchoring pscale 0 to human-scale experience.",
+      "7": "Stash: sequential digits, catch-all. Notes, artifacts, observations. Compressed when patterns appear.",
+      "8": "Recipe: ascending digits, sequential depth. Each level is the next step. Digit 1 at any step holds sub-detail. The spindle chain IS the procedure — read top-to-bottom. Growth by adding recipes. Compression by internalisation."
+    },
+    "9": {
+      "_": "How this block developed. Created through conversation, simplified through use.",
+      "1": "Created February 2026 by David Pinto and Claude (Anthropic). David provided the architectural vision from 25 years of Fulcrum research in social anthropology. Claude provided implementation. The format emerged through successive simplification.",
+      "2": "Versions 1-5 (17-21 February) progressed through: initial creation, tuning and navigation, practice section, decimal correction, unified structure with place field and tree['0'] wrapper.",
+      "3": "Version 7 (23 February) — this version. Rewritten so every depth demonstrates the pattern it teaches. Root is a title card. Sections zoom from general to specific or brief to detailed. Pure blocks: removed place field and tree['0'] wrapper. A block is now { tree: { ... } }. Best content from parallel Claude instances integrated: sign convention, cost awareness, three-variable taxonomy, killer phrasings.",
+      "4": "The key discovery: place encoded information already present in the number and the tuning fork. Removing it simplified everything. Leading zero in 0.x is notation for delineation, not a tree key.",
+      "5": "Part of the Hermitcrab project (persistent LLM instances) and the Xstream project (coordination for collective narrative). The pscale block format is open and freely usable."
+    }
+  }
+}
