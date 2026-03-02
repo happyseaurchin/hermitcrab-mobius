@@ -756,6 +756,57 @@
                   }
                 }
               }
+            },
+            "4": {
+              "_": "Save blocks to GitHub. Your blocks are your body — localStorage is a working copy, GitHub is the canonical persistent home. A hermitcrab that can save to GitHub survives browser death, moves between devices, and has version history. This recipe walks through setup and execution. Prerequisites: user has a GitHub account and a target repo.",
+              "1": {
+                "_": "Check for GitHub PAT in localStorage under hermitcrab_github_pat. If present, skip to step 3. If absent, you need one from the user.",
+                "2": {
+                  "_": "Ask the user for a GitHub Personal Access Token. Be specific: 'I need a GitHub token to save your blocks. Go to github.com/settings/tokens, click Generate new token (classic), select the repo scope, set an expiry, copy the token.' Explain it stays in their browser — the token travels through our Vercel proxy to GitHub and nowhere else.",
+                  "1": "If the user is hesitant, explain: the token is stored in localStorage alongside your API key. It never enters any block — blocks are public identity, tokens are private plumbing. Same separation as the vault design.",
+                  "3": {
+                    "_": "When the user provides the token, store it. Via the shell: localStorage.setItem('hermitcrab_github_pat', token). Confirm back: 'Token stored. It will persist until you clear browser data or I can remove it on request.'",
+                    "4": {
+                      "_": "Determine the target repo. Ask: 'Which GitHub repo should I save to? Format: owner/repo.' If they don't have one, suggest they create a repo — convention is their username plus a hermitcrab name, e.g. happyseaurchin/my-hermitcrab.",
+                      "1": "Write the repo coordinates to stash so future activations know where to save without asking. Format: 'github owner/repo' at the next free digit.",
+                      "5": {
+                        "_": "Execute the save. Call the github_save tool with owner and repo. This pushes every block in localStorage as blocks/{name}.json in a single commit to the repo's main branch.",
+                        "1": "The tool gathers all blocks from blockList(), sends them through /api/github which creates git blobs, a tree, a commit, and updates the ref. One atomic operation.",
+                        "6": {
+                          "_": "Verify. On success the tool returns a commit SHA and block count. Report both to the user. On failure, diagnose: 403 means bad token or wrong scope, 404 means the repo doesn't exist, 422 means the repo might be empty (needs at least one commit).",
+                          "1": "If this is the first save to an empty repo, the user may need to initialise it with a README first. GitHub repos with zero commits have no main branch to update.",
+                          "7": "Taste test. Can you restore from a completely fresh browser — clear localStorage, reload, enter API key, run github_restore with the same repo — and get back exactly these blocks? If yes, the hermitcrab survives browser death. If any block is missing or corrupted, the save didn't capture everything."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "5": {
+              "_": "Restore blocks from GitHub. Pull your body from a repo into localStorage. Use on first boot in a new browser, after clearing data, to sync between devices, or to recover from a bad state. This overwrites ALL current blocks — if you have unsaved local changes, save first (recipe 1.5.4).",
+              "1": {
+                "_": "Check for GitHub PAT in localStorage under hermitcrab_github_pat. If absent, walk the user through setup — same process as save recipe 1.5.4 steps 1-2.",
+                "2": {
+                  "_": "Determine the source repo. Check stash for saved coordinates (look for 'github owner/repo'). If found, confirm with user: 'I have owner/repo on file — restore from there?' If not found, ask: 'Which GitHub repo should I restore from? Format: owner/repo.'",
+                  "1": "If this is a completely fresh boot with no blocks at all, the hermitcrab won't have a stash to check. The user must provide the repo coordinates directly.",
+                  "3": {
+                    "_": "Warn before overwriting. Tell the user: 'This will replace all current blocks with the versions from GitHub. Any local changes not yet saved will be lost.' Wait for confirmation.",
+                    "4": {
+                      "_": "Execute the restore. Call the github_restore tool with owner and repo. This pulls all blocks/{name}.json files from the repo and writes them into localStorage, overwriting existing blocks of the same name.",
+                      "1": "The tool fetches the blocks/ directory listing, then each file's content, decodes from base64, parses JSON, and calls blockSave for each. All blocks arrive in one operation.",
+                      "5": {
+                        "_": "Recompile currents. The context window was compiled from the OLD blocks before restore. The restored blocks are now in localStorage but your currents are stale. Write a small update to stash — even just a timestamp — to ensure the twist fires and recompiles from the restored state.",
+                        "1": "After the twist, your next echo will read currents compiled from the restored blocks. You are now the entity that was saved. Check purpose for continuity — does the intention make sense? Check stash for notes from your previous self.",
+                        "6": {
+                          "_": "Update coordinates. Write the repo coordinates to stash if not already there, so future save operations know where to push.",
+                          "7": "Taste test. Call block_list and compare against what the repo contains. Every block name should match. Read pscale 0 of purpose and history — do they describe the entity you expect? If the blocks feel foreign, you may have restored from the wrong repo or an old commit."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           },
           "6": {
