@@ -388,6 +388,42 @@
               }
             }
           }
+        },
+        "4": {
+          "_": "Save blocks to GitHub. Your blocks are your body — localStorage is a working copy, GitHub is the canonical home. This recipe walks the user through connecting their hermitcrab to a GitHub repo.",
+          "1": {
+            "_": "Check for GitHub PAT. Call block_read on stash or check localStorage for hermitcrab_github_pat. If missing, ask the user.",
+            "1": "Tell the user: ‘I need a GitHub Personal Access Token to save your blocks. Go to github.com/settings/tokens → Generate new token (classic) → select repo scope → copy the token.’ Be clear this stays in their browser.",
+            "2": "When the user provides the token, store it: use the recompile tool or instruct via shell to run localStorage.setItem(‘hermitcrab_github_pat’, token). Confirm storage."
+          },
+          "2": {
+            "_": "Determine target repo. The user may already have one. Ask: ‘Which GitHub repo should I save to? Format: owner/repo.’ If they don’t have one, suggest they create a repo named after their hermitcrab.",
+            "1": "Default convention: the user’s GitHub username as owner, hermitcrab name as repo. Example: happyseaurchin/my-hermitcrab."
+          },
+          "3": {
+            "_": "Execute save. Call github_save with owner and repo. The tool pushes every block as blocks/{name}.json in a single commit.",
+            "1": "On success: report commit SHA and block count. Write the repo coordinates to stash so future activations know where to save.",
+            "2": "On failure: check error. Common issues — bad token (403), repo doesn’t exist (404), token lacks repo scope."
+          },
+          "4": "Taste test: can you restore from a fresh browser by entering the same API key and running github_restore? If yes, the hermitcrab survives browser death."
+        },
+        "5": {
+          "_": "Restore blocks from GitHub. Pull your body from a repo into localStorage. Use on first boot in a new browser, after clearing data, or to sync between devices.",
+          "1": {
+            "_": "Check for GitHub PAT. Same as save recipe 1.5.4.1 — if missing, walk the user through getting one.",
+            "1": "If this is a fresh boot with no stash, the hermitcrab won’t know the repo. Ask the user: ‘Do you have a GitHub repo with your blocks? Format: owner/repo.’"
+          },
+          "2": {
+            "_": "Execute restore. Call github_restore with owner and repo. The tool pulls all blocks/{name}.json files and loads them into localStorage, overwriting current blocks.",
+            "1": "WARNING: restore overwrites ALL current blocks. If the user has unsaved local changes, save first.",
+            "2": "On success: report block count. The hermitcrab now has the repo’s block state. Write repo coordinates to stash."
+          },
+          "3": {
+            "_": "Recompile after restore. The context window was compiled from the OLD blocks. After restore, the blocks have changed but the currents are stale.",
+            "1": "Call block_write on any block (even a no-op write to stash) to trigger the twist. The next echo recompiles currents from the restored blocks.",
+            "2": "Alternatively, if the shell needs updating too, call recompile with the current source to force a full refresh."
+          },
+          "4": "Taste test: do the restored blocks match what was saved? Call block_list and compare. Are the pscale-0 summaries what you expected?"
         }
       },
       "6": {

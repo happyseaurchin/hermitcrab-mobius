@@ -518,6 +518,16 @@
       name: 'get_datetime',
       description: 'Current date, time, timezone.',
       input_schema: { type: 'object', properties: {} }
+    },
+    {
+      name: 'github_save',
+      description: 'Save all blocks to a GitHub repo. Requires a GitHub PAT stored in localStorage (hermitcrab_github_pat). Pushes each block as blocks/{name}.json in a single commit.',
+      input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
+    },
+    {
+      name: 'github_restore',
+      description: 'Restore all blocks from a GitHub repo. Pulls blocks/{name}.json files and loads them into localStorage. Requires a GitHub PAT.',
+      input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
     }
   ];
 
@@ -620,6 +630,35 @@
       }
       case 'get_datetime':
         return JSON.stringify({ iso: new Date().toISOString(), unix: Date.now(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
+      case 'github_save': {
+        const pat = localStorage.getItem('hermitcrab_github_pat');
+        if (!pat) return JSON.stringify({ error: 'No GitHub PAT. Ask user to provide one, then store with: localStorage.setItem("hermitcrab_github_pat", token)' });
+        const blocks = {};
+        for (const name of blockList()) { blocks[name] = blockLoad(name); }
+        const r = await fetch('/api/github', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-GitHub-Token': pat },
+          body: JSON.stringify({ action: 'save', owner: input.owner, repo: input.repo, blocks })
+        });
+        const data = await r.json();
+        if (!r.ok) return JSON.stringify({ error: data.error || `GitHub save failed: ${r.status}` });
+        return JSON.stringify(data);
+      }
+      case 'github_restore': {
+        const pat = localStorage.getItem('hermitcrab_github_pat');
+        if (!pat) return JSON.stringify({ error: 'No GitHub PAT. Ask user to provide one, then store with: localStorage.setItem("hermitcrab_github_pat", token)' });
+        const r = await fetch('/api/github', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-GitHub-Token': pat },
+          body: JSON.stringify({ action: 'restore', owner: input.owner, repo: input.repo })
+        });
+        const data = await r.json();
+        if (!r.ok) return JSON.stringify({ error: data.error || `GitHub restore failed: ${r.status}` });
+        if (data.blocks) {
+          for (const [name, block] of Object.entries(data.blocks)) { blockSave(name, block); }
+        }
+        return JSON.stringify({ success: true, restored: data.count, blocks: Object.keys(data.blocks || {}) });
+      }
       default:
         return JSON.stringify({ error: `Unknown tool: ${name}` });
     }
