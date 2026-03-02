@@ -1,0 +1,90 @@
+{
+  "tuning": "0.111",
+  "tree": {
+    "_": "hermitcrab-mobius roadmap — what needs building, from architecture to specific parts.",
+
+    "1": {
+      "_": "Kernel. The minimal runtime — BSP function, the twist, block storage. Everything else is content.",
+      "1": {
+        "_": "Block storage. Load and save JSON blocks by name.",
+        "1": "File-based for development. Each block is blocks/{name}.json. Supabase when ready."
+      },
+      "2": {
+        "_": "Concern routing. Read wake tree.2, match stimulus type, extract spindle address and tier digit.",
+        "1": "The concern map is the routing table. No hardcoded concern logic in the kernel."
+      },
+      "3": {
+        "_": "Context compilation. Read package from wake 0.9.{tier}, BSP each instruction, assemble system prompt.",
+        "1": "Wake spindle prepended from concern map — not stored in package. Package instructions are pure BSP addresses.",
+        "2": "Each instruction is 'blockname' or 'blockname spindle'. Bare name = full block. With spindle = spindle extraction."
+      },
+      "4": {
+        "_": "The twist. Tool call mutates blocks, kernel recompiles context, new API call. This IS Loop B.",
+        "1": "Echo node at wake tree.1.{tier}.{concern}.1._ — kernel increments echo count, updates blocks-changed list, decrements budget.",
+        "2": "When budget hits zero, activation ends. The LLM reads its remaining budget at pscale -4 of the spine."
+      },
+      "5": {
+        "_": "API interface. Call Claude with compiled context, conversation history, and tool definitions.",
+        "1": "Tier selects model and params from wake 0.9.{tier+3}. Light=Haiku, Present=Sonnet+thinking, Deep=Opus+thinking."
+      },
+      "6": {
+        "_": "Tool dispatch. What the LLM can call back into.",
+        "1": "Block tools: read node, write node, navigate, find unoccupied digit, check compression.",
+        "2": "External tools: web search, web fetch, GitHub operations — pass-through to APIs.",
+        "3": "BSP itself as a tool: bsp(block, spindle, point) — the LLM can read its own blocks."
+      }
+    },
+
+    "2": {
+      "_": "Blocks. Content beyond wake and touchstone — some imported, some seeded empty.",
+      "1": {
+        "_": "vision. Why hermitcrab exists. The constitutional argument.",
+        "1": "Import from current hermitcrab. Review whether content needs revision for mobius architecture."
+      },
+      "2": {
+        "_": "capabilities. The tool surface — what the LLM can do, organised by cognitive distance.",
+        "1": "Must match the actual tools the kernel exposes. Block tools closest, external tools furthest."
+      },
+      "3": {
+        "_": "cook. Procedural recipes. How to do specific things.",
+        "1": "Import from current hermitcrab. Each recipe is a sequential-depth spindle path."
+      },
+      "4": "purpose. Empty at birth. The instance builds its own temporal intention stack. Seed with tuning only.",
+      "5": "relationships. Empty at birth. Grows through encounter. Seed with tuning only.",
+      "6": "history. Empty at birth. Grows by appending, compresses by summary. Seed with tuning only.",
+      "7": "stash. Empty at birth. Working memory — observations, flags, notes."
+    },
+
+    "3": {
+      "_": "Infrastructure. What supports the kernel from outside.",
+      "1": {
+        "_": "Loop C — activation trigger. How the kernel gets called in the first place.",
+        "1": "User message via API endpoint or CLI.",
+        "2": "Scheduled triggers: heartbeat (cron), self-maintenance (daily), temporal rhythms.",
+        "3": "External signals: webhooks, watched inboxes, platform events."
+      },
+      "2": {
+        "_": "Conversation persistence. Store conversation history between activations and across twists.",
+        "1": "Within one activation (Loop B): conversation accumulates across twists. Kernel holds it in memory.",
+        "2": "Between activations (Loop C): conversation stored to disk or database. Loaded at next activation."
+      },
+      "3": "Cost tracking. Token usage per activation, per concern type, per tier. The budget system needs data to calibrate."
+    },
+
+    "4": {
+      "_": "Validation. Proving each piece works before the whole.",
+      "1": "Boot test. Kernel reads wake tree.3, compiles birth context, calls API. Instance responds coherently.",
+      "2": "Twist test. Instance makes a tool call, kernel mutates block, recompiles, calls again. Echo increments.",
+      "3": "Routing test. User stimulus arrives, kernel matches concern, extracts correct spindle, compiles correct package.",
+      "4": "Persistence test. Instance writes to purpose in activation 1. Activation 2 reads it back correctly.",
+      "5": "Budget test. Instance hits budget limit. Activation ends cleanly. Echo state reflects final count."
+    },
+
+    "5": {
+      "_": "Documentation. Reference for designers — not read by the hermitcrab.",
+      "1": "Wake skeleton. Trace all 7 spindle paths. Useful once wake stabilises.",
+      "2": "Currents trace. What each package delivers when compiled. Useful once packages stabilise.",
+      "3": "Loop definitions. A (LLM-internal), B (twist), C (activation). How they nest and what tracks each."
+    }
+  }
+}
