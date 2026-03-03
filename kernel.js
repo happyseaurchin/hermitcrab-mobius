@@ -235,29 +235,41 @@
     return { needed: occupied >= 9, occupied };
   }
 
-  // ═══════ §3 WAKE READER ═══════
-  // The kernel reads wake for ALL decisions. These functions extract
-  // concern mapping, packages, invocation params, and echo state.
+  // ═══════ §3 WAKE + CONCERN READER ═══════
+  // Concerns block: stimulus routing, temporal state, ripe set.
+  // Wake block: spine instructions (wake.1), packages and invocation (wake.9).
 
-  // Find concern: wake.2 maps stimulus type → { spindle, tier }
+  // Find concern: walk concerns block, match on stimulus field.
+  // Tier derived from pscale depth. Spine stored on the node.
+  // Returns path so caller can update `last` to record loop state.
   function findConcern(stimulus) {
-    const wake = blockLoad('wake');
-    if (!wake) return { spindle: '0.1211111', tier: 2 };
-    const map = wake.tree?.['2'];
-    if (!map || typeof map !== 'object') return { spindle: '0.1211111', tier: 2 };
-    for (let d = 1; d <= 9; d++) {
-      const entry = map[String(d)];
-      if (!entry || typeof entry !== 'object') continue;
-      if ((entry._ || '').toLowerCase() === stimulus.toLowerCase()) {
-        return {
-          spindle: entry['1'] || '0.1211111',
-          tier: parseInt(entry['2']) || 2,
-          name: entry._ || stimulus
-        };
+    const concerns = blockLoad('concerns');
+    if (!concerns || !concerns.tree) return { spindle: '0.1211111', tier: 2, name: 'user' };
+    const tuningDecimal = getTuningDecimalPosition(concerns) || 9;
+    let found = null;
+    function walk(node, depth, path) {
+      if (!node || typeof node !== 'object' || found) return;
+      for (const [k, v] of Object.entries(node)) {
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate') continue;
+        if (!v || typeof v !== 'object') continue;
+        const childPath = path ? `${path}.${k}` : k;
+        if (v.stimulus && v.stimulus.toLowerCase() === stimulus.toLowerCase()) {
+          const pscale = tuningDecimal - (depth + 1);
+          found = {
+            spindle: v.spine || '0.1211111',
+            tier: tierFromPscale(pscale),
+            name: v._ || stimulus,
+            immediate: !!v.immediate,
+            pscale,
+            path: childPath
+          };
+          return;
+        }
+        walk(v, depth + 1, childPath);
       }
     }
-    // Default: user engagement
-    return { spindle: '0.1211111', tier: 2, name: 'user' };
+    walk(concerns.tree, 0, '');
+    return found || { spindle: '0.1211111', tier: 2, name: 'user' };
   }
 
   // Read package entries: wake.9.{tier} → list of BSP instructions
@@ -351,10 +363,11 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object') return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || !v || typeof v !== 'object') continue;
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || !v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         const pscale = tuningDecimal - (depth + 1);
-        if (v.last !== undefined) {
+        if (v.last !== undefined && !v.immediate) {
+          // Only phase-check non-immediate concerns. Immediate ones fire on stimulus, not timer.
           const period = TEMPORAL_PERIOD[pscale];
           if (period) {
             const phase = (nowSeconds - (v.last || 0)) / period;
@@ -461,9 +474,27 @@
       sections.push(`[spine ${concern.spindle}]\n${spineResult.nodes.map(n => `  [${n.pscale}] ${n.text}`).join('\n')}`);
     }
 
-    // §A.5 — Ripe concerns (phase ≥ 1.0). The inverse Fourier at t=now.
-    const ripeText = formatRipeSet(whatsRipe(Date.now() / 1000));
-    if (ripeText) sections.push(ripeText);
+    // §A.5 — Concern dashboard. Ring at root for structure + ripe set for urgency.
+    const concernsBlock = blockLoad('concerns');
+    if (concernsBlock) {
+      const spread = xSpread(concernsBlock, null);
+      const ringLines = [`[concerns]`];
+      if (spread) {
+        for (const c of spread.children) {
+          if (c.digit === '_') continue;
+          ringLines.push(`  ${c.digit}: ${c.text || '(branch)'}${c.branch ? ' +' : ''}`);
+        }
+      }
+      const ripeSet = whatsRipe(Date.now() / 1000);
+      if (ripeSet.length > 0) {
+        ringLines.push(`  [ripe]`);
+        for (const r of ripeSet) {
+          const urgency = r.phase > 2.0 ? ' (significantly overdue)' : r.phase > 1.5 ? ' (overdue)' : '';
+          ringLines.push(`    [${r.pscale}] ${r.text} — phase ${r.phase.toFixed(2)}${urgency}`);
+        }
+      }
+      sections.push(ringLines.join('\n'));
+    }
 
     // §B — Package currents: BSP each entry from wake.9.{tier}
     const instructions = readPackage(concern.tier);
@@ -891,6 +922,8 @@
     try {
       const stimulus = opts.stimulus || 'user';
       const concern = findConcern(stimulus);
+      // Record loop state: stimulus arrived, update last timestamp
+      if (concern.path) updateConcernTimestamp(concern.path, Date.now() / 1000);
       const inv = readInvocation(opts.tier || concern.tier);
       const system = opts.system || compileCurrents(concern, 0, 10);
       const params = {

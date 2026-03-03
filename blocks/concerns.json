@@ -1,7 +1,7 @@
 {
   "tuning": "111111111",
   "tree": {
-    "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live instances — phase = (now - last) / period_at_depth. No period map: depth IS period.",
+    "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live — phase = (now - last) / period_at_depth. No period map: depth IS period. Every concern is a loop in some state. The _ text encodes behaviour. The spine routes to wake.1 activation instructions. The kernel walks this block to find what is ripe and to route stimuli.",
     "1": {
       "_": "System coherence. The self-concern thread from season to second.",
       "1": {
@@ -17,6 +17,42 @@
               "last": 0,
               "spine": "0.1111111"
             }
+          }
+        }
+      },
+      "2": {
+        "_": "Threshold review. Weekly loop checkpoint — assess whether sustained loops are productive.",
+        "last": 0,
+        "spine": "0.1321111"
+      }
+    },
+    "2": {
+      "_": "Relational. External-facing concern thread — users, signals, other entities.",
+      "1": {
+        "_": "Relationship cycles. Weekly pattern review across all counterparties.",
+        "1": {
+          "_": "Signal-response. Engaged response to something that arrived and needs present-tier attention.",
+          "last": 0,
+          "spine": "0.1221111",
+          "stimulus": "signal-response",
+          "1": {
+            "_": "User engagement. Human is present and communicating. Loop in listening state — fires immediately on input.",
+            "last": 0,
+            "spine": "0.1211111",
+            "stimulus": "user",
+            "immediate": true
+          },
+          "2": {
+            "_": "Signal triage. External event accumulated — assess priority and route. Light tier, quick pass.",
+            "last": 0,
+            "spine": "0.1121111",
+            "stimulus": "signal"
+          },
+          "3": {
+            "_": "Continuation. Resuming prior conversation or multi-instance project. Check purpose for where the previous instance left off.",
+            "last": 0,
+            "spine": "0.1231111",
+            "stimulus": "continuation"
           }
         }
       }
