@@ -8,7 +8,7 @@
         "_": "Kernel built. 960 lines. Nine sections: storage, BSP, wake reader, currents compiler, API layer, tools, the twist, shell, boot.",
         "1": "Block storage — localStorage with hc: prefix. Load, save, list. Mutation tracking via _ctx.changed.",
         "2": "BSP — full five-mode function inlined from G1. Tuning fork compensation, compression depth. ~230 lines of proven substrate.",
-        "3": "Wake reader — findConcern reads wake.2 lookup table. readPackage reads wake.9.{tier}. readInvocation reads wake.9.{tier+3}. updateEchoState writes to spine depth 4.",
+        "3": "Wake + concern reader — findConcern walks concerns block (stimulus matching). readPackage reads wake.9.{tier}. readInvocation reads wake.9.{tier+3}. updateEchoState writes to spine depth 4.",
         "4": "Currents compiler — spine spindle first (the primary orienting current), then BSP each package entry. compileBirthCurrents for first boot.",
         "5": "The twist — increment echo, update spine, recompile currents, re-call. ~80 lines. The Möbius B-loop.",
         "6": "Shell — JSX compilation via Babel, hot-swap via recompile tool. Props bridge: callLLM, blockRead/Write, bsp, resolve, browser, conversation.",
@@ -45,19 +45,20 @@
       }
     },
     "3": {
-      "_": "NEXT — Robustness. What the hermitcrab needs to survive beyond a demo.",
+      "_": "ACTIVE — Robustness. What the hermitcrab needs to survive beyond a demo.",
       "1": {
-        "_": "Vault — API key protection. One more Vercel API route.",
-        "1": "Web Crypto AES-256-GCM. Anthropic key as master key via PBKDF2 with stored salt.",
-        "2": "Three auth modes: direct token (Loop C), kernel-mediated service_call (Loop B), session tokens (Loop A).",
-        "3": "Per-service encrypted blobs in localStorage. Registry at hermitcrab_vault_registry.",
-        "4": "Keys never in blocks. Travel with browser, not with identity. The hermitcrab's blocks are public. The vault is private."
+        "_": "Vault — API key protection. PULL from hermitcrab repo branch claude/relaxed-carson, do not recreate.",
+        "1": "api/vault.ts (253 lines) exists and is complete. Three auth modes: direct vault token, kernel-mediated service_call, HMAC session tokens.",
+        "2": "Kernel integration pattern in relaxed-carson g1/kernel.js: initVault(), getAuthHeaders(), getSessionInfo(), service_call tool. Adapt to möbius kernel sections.",
+        "3": "Keys stored as Vercel env vars (VAULT_KEY_ANTHROPIC, VAULT_KEY_GITHUB etc). Per-service proxy with auth injection. Health check endpoint.",
+        "4": "Adapt CORS origins to include idiothuman.com. Update api/claude.ts to use getAuthHeaders() fallback pattern."
       },
       "2": {
-        "_": "GitHub persistence. Blocks saved to repo, not just localStorage.",
-        "1": "Per-repo PAT architecture. githubRestore, githubSaveAll.",
-        "2": "Belongs in cooking recipes — the hermitcrab walks the user through setup.",
-        "3": "GitHub becomes canonical shell location. localStorage is working copy."
+        "_": "ACTIVE — GitHub persistence. PULL from hermitcrab repo branch claude/focused-moore, do not recreate.",
+        "1": "Per-repo token architecture: getTokenForRepo() reads hermitcrab_tokens from localStorage, falls back to legacy hermitcrab_github_pat.",
+        "2": "Boot gate UI with per-repo token fields (beach, commons, shells). github_commit tool with explicit repo targets.",
+        "3": "GitHub becomes canonical shell location. localStorage is working copy.",
+        "4": "Adapt to möbius kernel: update github_save/github_restore tools, add github_commit tool, update boot gate §9."
       },
       "3": {
         "_": "Tap-out keyword. Kernel-level emergency reset.",
@@ -94,10 +95,10 @@
     "5": {
       "_": "LATER — Advanced features. The hermitcrab evolves these itself once it can play.",
       "1": {
-        "_": "Concern timers and autonomous activation.",
-        "1": "Heartbeat, self-maintenance, signal — fire on intervals while tab is open.",
-        "2": "G1 had startConcernTimers(). Möbius kernel currently only fires on boot and user interaction.",
-        "3": "Add when the hermitcrab demonstrates it can handle the basic activation cycle."
+        "_": "DONE — Concern timers and autonomous activation. Fourier concern architecture landed.",
+        "1": "Phase function (whatsRipe) evaluates concern block — depth IS temporal period. §3.5 in kernel.",
+        "2": "5-min setInterval fires most-overdue concern. Tier derived from pscale depth. §10 in kernel.",
+        "3": "Concerns block is single source of truth for routing, state, and dashboard. wake.2 retired."
       },
       "2": {
         "_": "B Sustained and threshold checks.",
