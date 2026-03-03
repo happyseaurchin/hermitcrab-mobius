@@ -177,16 +177,16 @@
       }
       if (typeof point === 'string') {
         const endPath = walkDigits.length > 0 ? walkDigits.join('.') : null;
-        if (point === '~') {
-          const spread = xSpread(blk, endPath);
-          if (!spread) return { mode: 'spread', path: endPath, text: null, children: [] };
-          return { mode: 'spread', path: endPath, ...spread };
-        }
         if (point === '*') {
+          // Ring: spindle context + one level of children at endpoint
+          const spread = xSpread(blk, endPath);
+          const children = spread ? spread.children : [];
+          return { mode: 'ring', nodes, children };
+        }
+        if (point === '~') {
+          // Spread: raw subtree extraction at endpoint (for merging, manipulation)
           const endNode = endPath ? blockNavigate(blk, endPath) : blk.tree;
-          if (!endNode) return { mode: 'ring', path: endPath, text: null, children: [] };
-          const subtree = resolveBlock({ tree: endNode }, 9);
-          return { mode: 'ring', path: endPath, text: subtree.text, children: subtree.children };
+          return { mode: 'spread', path: endPath, subtree: endNode || null };
         }
         return { mode: 'error', error: `Unknown point mode: ${point}` };
       }
@@ -375,13 +375,15 @@
       return `[${blockName} ${spindle}]\n${result.nodes.map(n => `  [${n.pscale}] ${n.text}`).join('\n')}`;
     }
     if (result.mode === 'point') return `[${blockName} ${spindle} ${point}] ${result.text}`;
-    if (result.mode === 'spread') {
-      const kids = (result.children || []).map(c => `  ${c.digit}: ${c.text}`).join('\n');
-      return `[${blockName} ${spindle} ~]\n${result.text ? `  ${result.text}\n` : ''}${kids}`;
-    }
     if (result.mode === 'ring') {
-      const kids = (result.children || []).map(c => `  ${c.text}`).join('\n');
-      return `[${blockName} ${spindle} *]\n${result.text ? `  ${result.text}\n` : ''}${kids}`;
+      // Spindle context + one level of children
+      const spine = result.nodes.map(n => `  [${n.pscale}] ${n.text}`);
+      const kids = (result.children || []).map(c => `    ${c.digit}: ${c.text || '(branch)'}${c.branch ? ' +' : ''}`);
+      return `[${blockName} ${spindle} *]\n${spine.join('\n')}\n${kids.join('\n')}`;
+    }
+    if (result.mode === 'spread') {
+      // Raw subtree — format as JSON for extraction
+      return `[${blockName} ${spindle} ~]\n${JSON.stringify(result.subtree, null, 2)}`;
     }
     return '';
   }
@@ -482,13 +484,13 @@
     },
     {
       name: 'bsp',
-      description: 'Block·Spindle·Point — semantic address resolution.\nbsp(name) → full block\nbsp(name, 0.21) → spindle (depth walk)\nbsp(name, 0.21, -1) → point at pscale\nbsp(name, 0.21, "~") → spread (sibling labels)\nbsp(name, 0.21, "*") → ring (all children, simultaneous)',
+      description: 'Block·Spindle·Point — semantic address resolution.\nbsp(name) → full block\nbsp(name, 0.21) → spindle (depth walk)\nbsp(name, 0.21, -1) → point at pscale\nbsp(name, 0.21, "*") → ring (spindle context + one level of children)\nbsp(name, 0.21, "~") → spread (raw subtree extraction)',
       input_schema: {
         type: 'object',
         properties: {
           name: { type: 'string' },
           spindle: { type: 'number' },
-          point: { description: "Number for pscale, '~' for spread, '*' for ring", oneOf: [{ type: 'number' }, { type: 'string', enum: ['~', '*'] }] }
+          point: { description: "Number: pscale level. '*': ring (spindle + one-level children). '~': spread (raw subtree extraction).", oneOf: [{ type: 'number' }, { type: 'string', enum: ['*', '~'] }] }
         },
         required: ['name']
       }
