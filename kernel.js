@@ -384,15 +384,6 @@
     return ripe;
   }
 
-  function formatRipeSet(ripeSet) {
-    if (ripeSet.length === 0) return '';
-    const lines = ripeSet.map(c => {
-      const urgency = c.phase > 2.0 ? ' (significantly overdue)' : c.phase > 1.5 ? ' (overdue)' : '';
-      return `  [${c.pscale}] ${c.text} — phase ${c.phase.toFixed(2)}${urgency}`;
-    });
-    return `[concerns ripe]\n${lines.join('\n')}`;
-  }
-
   function updateConcernTimestamp(path, nowSeconds) {
     const concerns = blockLoad('concerns');
     if (!concerns) return;
@@ -475,15 +466,12 @@
     }
 
     // §A.5 — Concern dashboard. Ring at root for structure + ripe set for urgency.
-    const concernsBlock = blockLoad('concerns');
-    if (concernsBlock) {
-      const spread = xSpread(concernsBlock, null);
+    const concernRing = bsp('concerns', 0, '*');
+    if (concernRing.mode === 'ring') {
       const ringLines = [`[concerns]`];
-      if (spread) {
-        for (const c of spread.children) {
-          if (c.digit === '_') continue;
-          ringLines.push(`  ${c.digit}: ${c.text || '(branch)'}${c.branch ? ' +' : ''}`);
-        }
+      for (const c of concernRing.children) {
+        if (c.digit === '_') continue;
+        ringLines.push(`  ${c.digit}: ${c.text || '(branch)'}${c.branch ? ' +' : ''}`);
       }
       const ripeSet = whatsRipe(Date.now() / 1000);
       if (ripeSet.length > 0) {
