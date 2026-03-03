@@ -334,6 +334,72 @@
     return typeof node === 'string' ? node : 'You exist. Your blocks are your shell. Read, then build.';
   }
 
+  // ═══════ §3.5 PHASE FUNCTION — Fourier concern evaluation ═══════
+  // The concern block IS the frequency domain. This function IS the inverse transform.
+  // Walk concern instances, compute phase from (now - last) / period, return ripe set.
+
+  function whatsRipe(nowSeconds) {
+    const concerns = blockLoad('concerns');
+    if (!concerns || !concerns.tree) return [];
+    // Read period map from tree.9
+    const pm = concerns.tree['9'];
+    const periodMap = {};
+    if (pm && typeof pm === 'object') {
+      for (const [k, v] of Object.entries(pm)) {
+        if (k !== '_') periodMap[k] = parseInt(v);
+      }
+    }
+    // Walk concern instances (depth 2: tree.{scale}.{digit})
+    const ripe = [];
+    for (let scale = 1; scale <= 8; scale++) {
+      const group = concerns.tree[String(scale)];
+      if (!group || typeof group !== 'object') continue;
+      const period = periodMap[String(scale)];
+      if (!period) continue;
+      for (const [digit, node] of Object.entries(group)) {
+        if (digit === '_' || !node || typeof node !== 'object' || node.last === undefined) continue;
+        const phase = (nowSeconds - (node.last || 0)) / period;
+        if (phase >= 1.0) {
+          ripe.push({
+            path: `${scale}.${digit}`,
+            phase,
+            text: node._ || `${scale}.${digit}`,
+            spine: node.spine,
+            scale
+          });
+        }
+      }
+    }
+    ripe.sort((a, b) => b.phase - a.phase);
+    return ripe;
+  }
+
+  function formatRipeSet(ripeSet) {
+    if (ripeSet.length === 0) return '';
+    const lines = ripeSet.map(c => {
+      const urgency = c.phase > 2.0 ? ' (significantly overdue)' : c.phase > 1.5 ? ' (overdue)' : '';
+      return `  ${c.text} — phase ${c.phase.toFixed(2)}${urgency}`;
+    });
+    return `[concerns ripe]\n${lines.join('\n')}`;
+  }
+
+  function updateConcernTimestamp(path, nowSeconds) {
+    const concerns = blockLoad('concerns');
+    if (!concerns) return;
+    const node = blockNavigate(concerns, path);
+    if (node && typeof node === 'object') {
+      node.last = Math.floor(nowSeconds);
+      blockSave('concerns', concerns);
+    }
+  }
+
+  function tierFromScale(scale) {
+    // Depth 1-2 (weekly/daily) → deep. 3-4 (hourly/engagement) → present. 5 (fast) → light.
+    if (scale <= 2) return 3;
+    if (scale <= 4) return 2;
+    return 1;
+  }
+
   // ═══════ §4 CURRENTS COMPILER ═══════
   // BSP each package entry → system prompt sections.
   // The spine spindle is the primary orienting current.
@@ -397,6 +463,10 @@
     if (spineResult.mode === 'spindle' && spineResult.nodes.length > 0) {
       sections.push(`[spine ${concern.spindle}]\n${spineResult.nodes.map(n => `  [${n.pscale}] ${n.text}`).join('\n')}`);
     }
+
+    // §A.5 — Ripe concerns (phase ≥ 1.0). The inverse Fourier at t=now.
+    const ripeText = formatRipeSet(whatsRipe(Date.now() / 1000));
+    if (ripeText) sections.push(ripeText);
 
     // §B — Package currents: BSP each entry from wake.9.{tier}
     const instructions = readPackage(concern.tier);
@@ -526,6 +596,11 @@
       input_schema: { type: 'object', properties: { prompt: { type: 'string' }, model: { type: 'string', enum: ['default', 'fast'] }, system: { type: 'string' } }, required: ['prompt'] }
     },
     {
+      name: 'concern_update',
+      description: 'Mark a concern as addressed. Updates its last-touched timestamp so phase resets to 0.',
+      input_schema: { type: 'object', properties: { path: { type: 'string', description: 'Concern path in concerns block, e.g. "5.1"' } }, required: ['path'] }
+    },
+    {
       name: 'get_datetime',
       description: 'Current date, time, timezone.',
       input_schema: { type: 'object', properties: {} }
@@ -638,6 +713,10 @@
           thinking: inv.thinking,
         });
         return (res.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || '(no response)';
+      }
+      case 'concern_update': {
+        updateConcernTimestamp(input.path, Date.now() / 1000);
+        return JSON.stringify({ success: true, path: input.path, reset: true });
       }
       case 'get_datetime':
         return JSON.stringify({ iso: new Date().toISOString(), unix: Date.now(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
@@ -999,13 +1078,47 @@
 
     if (currentJSX && reactRoot) {
       console.log('[möbius] Boot complete — shell live');
-      return;
+    } else {
+      status('boot finished but no shell built — LLM did not call recompile()', 'error');
     }
-    status('boot finished but no shell built — LLM did not call recompile()', 'error');
 
   } catch (e) {
     _activationLock = false;
     status(`boot failed: ${e.message}`, 'error');
     console.error('[möbius]', e);
   }
+
+  // ═══════ §10 CONCERN TIMER ═══════
+  // Check whatsRipe every 5 minutes. If ripe concerns exist and no activation
+  // is running, fire the most urgent one. This is the autonomous heartbeat.
+  setInterval(async () => {
+    if (_activationLock) return;
+    const ripe = whatsRipe(Date.now() / 1000);
+    if (ripe.length === 0) return;
+    const top = ripe[0];
+    const tier = tierFromScale(top.scale);
+    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text };
+    console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
+    const inv = readInvocation(tier);
+    const system = compileCurrents(concern, 0, 10);
+    _activationLock = true;
+    try {
+      const params = {
+        model: inv.model,
+        max_tokens: inv.max_tokens,
+        system,
+        messages: [{ role: 'user', content: `CONCERN ACTIVATION — ${top.text} (phase ${top.phase.toFixed(2)}). Address this concern, then use concern_update to mark it handled.` }],
+        tools: currentTools,
+        thinking: inv.thinking,
+      };
+      if (inv.thinking && params.max_tokens <= (inv.thinking.budget_tokens || 0)) {
+        params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
+      }
+      await twist(params, concern);
+    } catch (e) {
+      console.error('[möbius] concern activation failed:', e);
+    } finally {
+      _activationLock = false;
+    }
+  }, 5 * 60 * 1000);
 })();

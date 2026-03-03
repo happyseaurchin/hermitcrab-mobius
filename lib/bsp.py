@@ -352,7 +352,11 @@ def main():
     point = None
 
     if len(sys.argv) > 2:
-        spindle = float(sys.argv[2])
+        arg2 = sys.argv[2]
+        if arg2 in ('*', '~'):
+            point = arg2
+        else:
+            spindle = float(arg2)
 
     if len(sys.argv) > 3:
         p = sys.argv[3]

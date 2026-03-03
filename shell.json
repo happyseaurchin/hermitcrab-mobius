@@ -1254,6 +1254,28 @@
       "tree": {
         "_": "Your notebook. Write here deliberately \u2014 observations, flags, things to revisit. Any activation state can write; light-state writes to pass observations to deeper activations. Entries appended by digit. When 1-9 fill, compress. Not history (that's automatic). Not artifacts (those are interface or external). This is your working memory between activations."
       }
+    },
+    "concerns": {
+      "tuning": "0.11111",
+      "tree": {
+        "_": "Live concern instances. Depth = temporal scale. Phase = (now - last) / period. Tier by depth: 1-2 deep, 3-4 present, 5 light. The phase function is the inverse Fourier transform at t=now. Constructive interference: multiple concerns ripe simultaneously = activity burst.",
+        "2": {
+          "_": "Daily.",
+          "1": { "_": "Self-maintenance. Full system review.", "last": 0, "spine": "0.1311111" }
+        },
+        "5": {
+          "_": "Per-15-minutes.",
+          "1": { "_": "Heartbeat. Am I functioning?", "last": 0, "spine": "0.1111111" }
+        },
+        "9": {
+          "_": "Period map. Depth digit to seconds. The kernel reads this mechanically. The LLM reads the group _ text semantically. Both agree.",
+          "1": "604800",
+          "2": "86400",
+          "3": "14400",
+          "4": "3600",
+          "5": "900"
+        }
+      }
     }
   }
 }
