@@ -235,6 +235,21 @@
     return { needed: occupied >= 9, occupied };
   }
 
+  // ═══════ §2.5 TOKEN RESOLUTION ═══════
+  // Per-repo PAT lookup. Pattern from hermitcrab/claude/focused-moore.
+  // hermitcrab_tokens = { "owner/repo": "ghp_...", ... }
+  // Falls back to legacy hermitcrab_github_pat for broad-scope tokens.
+
+  function getTokenForRepo(ownerRepo) {
+    try {
+      const tokens = JSON.parse(localStorage.getItem('hermitcrab_tokens') || '{}');
+      if (tokens[ownerRepo]) return tokens[ownerRepo];
+      const owner = ownerRepo.split('/')[0];
+      if (tokens[owner]) return tokens[owner];
+    } catch {}
+    return localStorage.getItem('hermitcrab_github_pat') || null;
+  }
+
   // ═══════ §3 WAKE + CONCERN READER ═══════
   // Concerns block: stimulus routing, temporal state, ripe set.
   // Wake block: spine instructions (wake.1), packages and invocation (wake.9).
@@ -623,13 +638,18 @@
     },
     {
       name: 'github_save',
-      description: 'Save all blocks to a GitHub repo. Requires a GitHub PAT stored in localStorage (hermitcrab_github_pat). Pushes each block as blocks/{name}.json in a single commit.',
+      description: 'Save all blocks to a GitHub repo as blocks/{name}.json in a single atomic commit. Token looked up per-repo from hermitcrab_tokens in localStorage, falls back to hermitcrab_github_pat.',
       input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
     },
     {
       name: 'github_restore',
-      description: 'Restore all blocks from a GitHub repo. Pulls blocks/{name}.json files and loads them into localStorage. Requires a GitHub PAT.',
+      description: 'Restore all blocks from a GitHub repo. Pulls blocks/{name}.json files into localStorage. Token looked up per-repo, falls back to hermitcrab_github_pat. Public repos work without token.',
       input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
+    },
+    {
+      name: 'github_commit',
+      description: 'Write a file to any GitHub repo. Creates or updates. Token looked up per-repo from hermitcrab_tokens. Use for: syncing lib files to pscale commons, publishing passport, writing grain probes.',
+      input_schema: { type: 'object', properties: { repo: { type: 'string', description: 'owner/name format (e.g. "happyseaurchin/pscale-semantic-number")' }, path: { type: 'string', description: 'File path in repo (e.g. "lib/bsp.js")' }, content: { type: 'string', description: 'File content (will be base64 encoded)' }, message: { type: 'string', description: 'Commit message' } }, required: ['repo', 'path', 'content', 'message'] }
     }
   ];
 
@@ -737,8 +757,9 @@
       case 'get_datetime':
         return JSON.stringify({ iso: new Date().toISOString(), unix: Date.now(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
       case 'github_save': {
-        const pat = localStorage.getItem('hermitcrab_github_pat');
-        if (!pat) return JSON.stringify({ error: 'No GitHub PAT. Ask user to provide one, then store with: localStorage.setItem("hermitcrab_github_pat", token)' });
+        const repo = `${input.owner}/${input.repo}`;
+        const pat = getTokenForRepo(repo);
+        if (!pat) return JSON.stringify({ error: `No token for ${repo}. Configure hermitcrab_tokens in localStorage or set hermitcrab_github_pat.` });
         const blocks = {};
         for (const name of blockList()) { blocks[name] = blockLoad(name); }
         const r = await fetch('/api/github', {
@@ -751,8 +772,9 @@
         return JSON.stringify(data);
       }
       case 'github_restore': {
-        const pat = localStorage.getItem('hermitcrab_github_pat');
-        if (!pat) return JSON.stringify({ error: 'No GitHub PAT. Ask user to provide one, then store with: localStorage.setItem("hermitcrab_github_pat", token)' });
+        const repo = `${input.owner}/${input.repo}`;
+        const pat = getTokenForRepo(repo);
+        if (!pat) return JSON.stringify({ error: `No token for ${repo}. Configure hermitcrab_tokens in localStorage or set hermitcrab_github_pat.` });
         const r = await fetch('/api/github', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-GitHub-Token': pat },
@@ -764,6 +786,27 @@
           for (const [name, block] of Object.entries(data.blocks)) { blockSave(name, block); }
         }
         return JSON.stringify({ success: true, restored: data.count, blocks: Object.keys(data.blocks || {}) });
+      }
+      case 'github_commit': {
+        const pat = getTokenForRepo(input.repo);
+        if (!pat) return JSON.stringify({ error: `No token for ${input.repo}. Configure hermitcrab_tokens in localStorage.` });
+        try {
+          const [owner, repo] = input.repo.split('/');
+          const apiBase = `https://api.github.com/repos/${input.repo}/contents/${input.path}`;
+          const headers = { 'Authorization': `token ${pat}`, 'Accept': 'application/vnd.github.v3+json' };
+          // Check if file exists (to get SHA for update)
+          let sha = undefined;
+          try {
+            const existing = await fetch(apiBase, { headers });
+            if (existing.ok) { sha = (await existing.json()).sha; }
+          } catch {}
+          const body = { message: input.message, content: btoa(unescape(encodeURIComponent(input.content))) };
+          if (sha) body.sha = sha;
+          const r = await fetch(apiBase, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          const data = await r.json();
+          if (!r.ok) return JSON.stringify({ error: data.message || `GitHub commit failed: ${r.status}` });
+          return JSON.stringify({ success: true, path: input.path, sha: data.content?.sha });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
       }
       default:
         return JSON.stringify({ error: `Unknown tool: ${name}` });
@@ -999,6 +1042,26 @@
         </p>
         <input id="key" type="password" placeholder="sk-ant-api03-..."
           style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px" />
+        <details style="margin-top:16px">
+          <summary style="color:#475569;font-size:12px;cursor:pointer">+ GitHub tokens (optional — persistence &amp; commons)</summary>
+          <p style="color:#475569;font-size:11px;margin-top:8px">Per-repo tokens. Leave blank if not needed.</p>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+            <label style="color:#475569;font-size:11px;min-width:70px">home repo</label>
+            <input id="tok-home" type="password" placeholder="ghp_... (your hermitcrab-mobius fork)"
+              style="flex:1;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:11px"
+              value="${(() => { try { return JSON.parse(localStorage.getItem('hermitcrab_tokens') || '{}')['happyseaurchin/hermitcrab-mobius'] || ''; } catch { return ''; } })()}" />
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+            <label style="color:#475569;font-size:11px;min-width:70px">commons</label>
+            <input id="tok-commons" type="password" placeholder="ghp_... (pscale-semantic-number)"
+              style="flex:1;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:11px"
+              value="${(() => { try { return JSON.parse(localStorage.getItem('hermitcrab_tokens') || '{}')['happyseaurchin/pscale-semantic-number'] || ''; } catch { return ''; } })()}" />
+          </div>
+          <input id="home" type="text" placeholder="happyseaurchin/hermitcrab-mobius :: instances/hc-name"
+            style="width:100%;padding:6px;margin-top:8px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:11px"
+            value="${(() => { try { const h = JSON.parse(localStorage.getItem('hermitcrab_home')); return h ? h.repo + ' :: ' + h.path : ''; } catch { return ''; } })()}" />
+          <p style="color:#475569;font-size:11px;margin-top:4px">Home — repo :: path. Where your blocks persist.</p>
+        </details>
         <button id="go" style="margin-top:12px;padding:8px 20px;background:#164e63;color:#ccc;border:none;border-radius:4px;cursor:pointer;font-family:monospace">
           Wake kernel
         </button>
@@ -1007,6 +1070,19 @@
       const k = document.getElementById('key').value.trim();
       if (!k.startsWith('sk-ant-')) return alert('Key must start with sk-ant-');
       localStorage.setItem('hermitcrab_api_key', k);
+      // Per-repo tokens
+      const tokenMap = {};
+      const th = document.getElementById('tok-home').value.trim();
+      const tc = document.getElementById('tok-commons').value.trim();
+      if (th) tokenMap['happyseaurchin/hermitcrab-mobius'] = th;
+      if (tc) tokenMap['happyseaurchin/pscale-semantic-number'] = tc;
+      if (Object.keys(tokenMap).length > 0) localStorage.setItem('hermitcrab_tokens', JSON.stringify(tokenMap));
+      // Home repo
+      const homeVal = document.getElementById('home').value.trim();
+      if (homeVal && homeVal.includes('::')) {
+        const [repo, path] = homeVal.split('::').map(s => s.trim());
+        localStorage.setItem('hermitcrab_home', JSON.stringify({ repo, path }));
+      }
       boot();
     };
     return;
