@@ -335,41 +335,38 @@
   }
 
   // ═══════ §3.5 PHASE FUNCTION — Fourier concern evaluation ═══════
-  // The concern block IS the frequency domain. This function IS the inverse transform.
-  // Walk concern instances, compute phase from (now - last) / period, return ripe set.
+  // The concern block IS the frequency domain. Depth IS temporal scale.
+  // No period map: pscale level → seconds via standard temporal mapping.
+  // Walk recursively, check phase at every node with a `last` field.
+
+  // Standard temporal mapping: pscale level → period in seconds.
+  // 9=year, 8=month, 7=week, 6=day(~8h), 5=hour, 4=10min, 3=min, 2=10s, 1=s
+  const TEMPORAL_PERIOD = { 9: 31536000, 8: 2592000, 7: 604800, 6: 28800, 5: 3600, 4: 600, 3: 60, 2: 10, 1: 1 };
 
   function whatsRipe(nowSeconds) {
     const concerns = blockLoad('concerns');
     if (!concerns || !concerns.tree) return [];
-    // Read period map from tree.9
-    const pm = concerns.tree['9'];
-    const periodMap = {};
-    if (pm && typeof pm === 'object') {
-      for (const [k, v] of Object.entries(pm)) {
-        if (k !== '_') periodMap[k] = parseInt(v);
-      }
-    }
-    // Walk concern instances (depth 2: tree.{scale}.{digit})
+    const tuningDecimal = getTuningDecimalPosition(concerns) || 9;
     const ripe = [];
-    for (let scale = 1; scale <= 8; scale++) {
-      const group = concerns.tree[String(scale)];
-      if (!group || typeof group !== 'object') continue;
-      const period = periodMap[String(scale)];
-      if (!period) continue;
-      for (const [digit, node] of Object.entries(group)) {
-        if (digit === '_' || !node || typeof node !== 'object' || node.last === undefined) continue;
-        const phase = (nowSeconds - (node.last || 0)) / period;
-        if (phase >= 1.0) {
-          ripe.push({
-            path: `${scale}.${digit}`,
-            phase,
-            text: node._ || `${scale}.${digit}`,
-            spine: node.spine,
-            scale
-          });
+    function walk(node, depth, path) {
+      if (!node || typeof node !== 'object') return;
+      for (const [k, v] of Object.entries(node)) {
+        if (k === '_' || k === 'last' || k === 'spine' || !v || typeof v !== 'object') continue;
+        const childPath = path ? `${path}.${k}` : k;
+        const pscale = tuningDecimal - (depth + 1);
+        if (v.last !== undefined) {
+          const period = TEMPORAL_PERIOD[pscale];
+          if (period) {
+            const phase = (nowSeconds - (v.last || 0)) / period;
+            if (phase >= 1.0) {
+              ripe.push({ path: childPath, phase, text: v._ || childPath, spine: v.spine, pscale });
+            }
+          }
         }
+        walk(v, depth + 1, childPath);
       }
     }
+    walk(concerns.tree, 0, '');
     ripe.sort((a, b) => b.phase - a.phase);
     return ripe;
   }
@@ -378,7 +375,7 @@
     if (ripeSet.length === 0) return '';
     const lines = ripeSet.map(c => {
       const urgency = c.phase > 2.0 ? ' (significantly overdue)' : c.phase > 1.5 ? ' (overdue)' : '';
-      return `  ${c.text} — phase ${c.phase.toFixed(2)}${urgency}`;
+      return `  [${c.pscale}] ${c.text} — phase ${c.phase.toFixed(2)}${urgency}`;
     });
     return `[concerns ripe]\n${lines.join('\n')}`;
   }
@@ -393,10 +390,10 @@
     }
   }
 
-  function tierFromScale(scale) {
-    // Depth 1-2 (weekly/daily) → deep. 3-4 (hourly/engagement) → present. 5 (fast) → light.
-    if (scale <= 2) return 3;
-    if (scale <= 4) return 2;
+  function tierFromPscale(pscale) {
+    // Week+ (pscale ≥ 7) → deep. Day-hour (5-6) → present. Minutes or less (≤ 4) → light.
+    if (pscale >= 7) return 3;
+    if (pscale >= 5) return 2;
     return 1;
   }
 
@@ -1096,7 +1093,7 @@
     const ripe = whatsRipe(Date.now() / 1000);
     if (ripe.length === 0) return;
     const top = ripe[0];
-    const tier = tierFromScale(top.scale);
+    const tier = tierFromPscale(top.pscale);
     const concern = { spindle: top.spine || '0.1111111', tier, name: top.text };
     console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
     const inv = readInvocation(tier);

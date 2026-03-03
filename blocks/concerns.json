@@ -1,22 +1,25 @@
 {
-  "tuning": "0.11111",
+  "tuning": "111111111",
   "tree": {
-    "_": "Live concern instances. Depth = temporal scale. Phase = (now - last) / period. Tier by depth: 1-2 deep, 3-4 present, 5 light. The phase function is the inverse Fourier transform at t=now. Constructive interference: multiple concerns ripe simultaneously = activity burst.",
-    "2": {
-      "_": "Daily.",
-      "1": { "_": "Self-maintenance. Full system review.", "last": 0, "spine": "0.1311111" }
-    },
-    "5": {
-      "_": "Per-15-minutes.",
-      "1": { "_": "Heartbeat. Am I functioning?", "last": 0, "spine": "0.1111111" }
-    },
-    "9": {
-      "_": "Period map. Depth digit to seconds. The kernel reads this mechanically. The LLM reads the group _ text semantically. Both agree.",
-      "1": "604800",
-      "2": "86400",
-      "3": "14400",
-      "4": "3600",
-      "5": "900"
+    "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live instances — phase = (now - last) / period_at_depth. No period map: depth IS period.",
+    "1": {
+      "_": "System coherence. The self-concern thread from season to second.",
+      "1": {
+        "_": "Block architecture. Weekly structural integrity.",
+        "1": {
+          "_": "Self-maintenance. Daily full review.",
+          "last": 0,
+          "spine": "0.1311111",
+          "1": {
+            "_": "Active engagement. Hourly presence.",
+            "1": {
+              "_": "Heartbeat. Am I functioning?",
+              "last": 0,
+              "spine": "0.1111111"
+            }
+          }
+        }
+      }
     }
   }
 }
