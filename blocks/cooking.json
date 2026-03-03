@@ -134,7 +134,7 @@
           },
           "_": "Understand EcoSquared. Trust economics riding on SAND."
         },
-        "_": "Reader's handbook. How to use this cookbook and write new recipes. Two structural modes. A spindle recipe nests steps linearly \u2014 A then B then C \u2014 context narrows at each depth, taste test at the leaf. A ring recipe presents facets simultaneously \u2014 A AND B AND C \u2014 each child a rich paragraph, the blurb holds orientation and taste test (systemic completion), compiled with bsp(block, spindle, '*'). Three parts to every spindle recipe: (1) operational context, (2) ascending digits walk steps, digit 1 holds sub-detail, (3) taste test at final node. Two parts to every ring recipe: (1) blurb with orientation and taste test in _, (2) rich sibling facets as children. See 0.111 for a spindle example, 0.112 for a ring explanation, 0.191 for a ring example."
+        "_": "Reader's handbook. How to use this cookbook and write new recipes. Two structural modes. A spindle recipe nests steps linearly \u2014 A then B then C \u2014 context narrows at each depth, taste test at the leaf. A ring recipe presents facets simultaneously \u2014 bsp(block, spindle, '*') returns the spindle context plus one level of children at the endpoint. Three parts to every spindle recipe: (1) operational context, (2) ascending digits walk steps, digit 1 holds sub-detail, (3) taste test at final node. Two parts to every ring recipe: (1) blurb with orientation and taste test in _, (2) rich sibling facets as children. See 0.111 for a spindle example, 0.112 for a ring explanation, 0.191 for a ring example."
       },
       "2": {
         "1": {
