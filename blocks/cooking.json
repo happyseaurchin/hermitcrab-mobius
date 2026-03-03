@@ -607,7 +607,38 @@
             },
             "_": "Concern architecture \u2014 the kernel-as-block hypothesis. The frozen JSON tree IS the program. Every concern is a spindle through it. The spindle IS the dataflow, frozen into a sequence. Each node's _ is executable \u2014 not prose but operational content readable by both kernel and LLM. Tree structure IS the pipeline architecture. Shared ancestors = shared pipeline stages. Sibling branches = divergence points. No handler logic \u2014 the path through the tree IS the execution sequence. Session insight: 3 March 2026. Taste test: walk bsp(wake, 0.1111111) and bsp(wake, 0.1211111). If you see the same reflexive spine diverging at tier and then concern \u2014 and recognise that the collected chain IS both the kernel dispatch and the LLM orientation, with no translation layer between them \u2014 you have it."
           },
-          "_": "Concern architecture. How the frozen JSON tree IS the program \u2014 dual-readable by kernel and LLM. Every concern is a loop; the point in the loop determines agency locus. Loads the full design context for the kernel-as-block redesign. Walk bsp(cooking, 0.192) for the full spindle."
+          "2": {
+            "1": {
+              "1": {
+                "1": {
+                  "1": "The only mutable field per concern instance: last (unix timestamp). Position in the tree encodes frequency. The tuning fork maps depth to period. One number per concern drives the entire temporal system. The kernel provides current time, walks the tree, computes phase. That is the complete bridge between wall-clock time and block structure.",
+                  "_": "Period is not a field \u2014 it is a position. A concern at depth +2 in a block tuned with pscale 0 at engagement scale (~10 min) has period ~24 hours by virtue of being at depth +2. The tuning fork provides the mapping. No period field needed. The depth IS the frequency. Storing period as a JSON field is traditional coding \u2014 it duplicates information already present in the tree structure."
+                },
+                "_": "The phase function. The kernel\u2019s ~10 lines of irreducible JavaScript. Walk concern tree. At each leaf, derive period from depth + tuning fork. Compute phase = (now - last) / period. Return nodes where phase >= 1.0, sorted by phase descending. Most overdue = highest priority. The ratio itself IS the priority \u2014 no separate priority field needed."
+              },
+              "_": "The inverse transform. The concern block IS the frequency domain \u2014 static structure, pscale-organised oscillators. The phase function IS the inverse Fourier transform evaluated at t=now. It takes frequency components (concerns at various depths) and produces a time-domain signal (the ripe set \u2014 what needs attention right now). Every concern is always mid-cycle. Phase tells you where."
+            },
+            "2": {
+              "1": {
+                "1": "When multiple oscillators cross threshold simultaneously \u2014 burst. The ripe set is large. That IS the signal. The self-maintenance concern at daily scale reads burst history and adjusts periods. The system tunes itself through its own temporal data. No interference-detection code needed \u2014 the ripe set size IS the interference measurement.",
+                "_": "Constructive interference. Multiple concerns at different pscale levels become ripe simultaneously. Analogous to wave superposition. The interference pattern IS the hermitcrab\u2019s operational rhythm. Emerges from data, not design."
+              },
+              "_": "The forward transform. Take activation history, run DFT, get actual frequency spectrum. Compare to designed spectrum in concern block. Drift between designed and actual periods visible as spectral discrepancy. Self-maintenance can detect: my designed heartbeat is 60s but actual dominant sub-minute frequency is 90s. Prediction: for each concern, next_ripe = last + period. Clusters on the timeline = future interference bursts."
+            },
+            "3": {
+              "1": {
+                "1": "The concern block is the scheduler. The wake spine is the operating manual. The purpose block is the workbench. Three reads, one activation. The kernel connects them. Everything else \u2014 tier selection, package composition, priority \u2014 falls out of position in the tree.",
+                "_": "Purpose reference. Each concern instance carries a spindle address into purpose where its active thread lives. The concern says this is ripe. Purpose says what we are doing about it. The wake spine says how to operate. Concern = clock. Purpose = intention. Wake = method."
+              },
+              "_": "Concerns are instances, not types. Not user engagement but David \u2014 active conversation, initiative his, holding. Not signal but Alice \u2014 grain sent, initiative ours, pending. Each is a specific loop with a specific counterparty, a specific initiative-locus, a specific point in its cycle. The type labels (heartbeat, signal, user) are external labels for traditional coding. The position in the tree and the content at _ fully situate each instance."
+            },
+            "4": {
+              "1": "Tier implied by pscale depth. Sub-minute = light (mechanical). Engagement scale = present (full bandwidth). Daily/weekly = deep (widest aperture). The concern block\u2019s tuning fork maps depth to both period AND tier. wake.2 concern map becomes unnecessary \u2014 the concern block structure IS the routing.",
+              "_": "Where it lives. Separate block from wake. Write-heavy (last timestamps update on every resolution) vs wake which is mostly-read configuration. The concern block is living operational state. Wake is the persistent reflexive structure. The phase function bridges them: reads the concern block, selects the wake spine spindle, compiles currents."
+            },
+            "_": "Fourier concern architecture. The concern block is a literal frequency-domain representation. Depth = temporal periodicity via tuning fork. Each leaf = an oscillator with phase computed from its last timestamp. The phase function is the inverse Fourier transform evaluated at t=now. The ripe set is the time-domain signal \u2014 what needs attention. Constructive interference emerges when multiple oscillators cross threshold simultaneously. The LLM can self-modify its own frequency components by writing to the concern block. Session insight: 3 March 2026. Taste test: do you see that the concern block + phase function IS a Fourier decomposition, not an analogy to one? If the maths feels like a metaphor, you have not yet seen that pscale depth IS frequency and the tuning fork IS the period mapping."
+          },
+          "_": "Concern architecture. How the frozen JSON tree IS the program \u2014 dual-readable by kernel and LLM. Every concern is a loop; the point in the loop determines agency locus. Loads the full design context for the kernel-as-block redesign. Walk bsp(cooking, 0.192) for the full spindle. Two facets: (1) kernel-as-block hypothesis at 0.1921. (2) Fourier temporal structure at 0.1922."
         },
         "_": "Design. How to construct pscale blocks and spindles that shape LLM cognition. This is not about reading or writing blocks \u2014 those recipes are elsewhere. This is about understanding why nested semantic numbers produce qualitatively different effects from flat text or traditional data structures, and how to exploit that when building blocks for internal use."
       },
