@@ -15,26 +15,40 @@
       "5": "Every block is self-describing. Its root tells you what it is, its structure shows how it's organised, its content shows what it knows. You never need external documentation to read a block."
     },
     "2": {
-      "_": "One function reads everything: bsp. Five modes \u2014 block, spindle, point, ring, spread.",
-      "1": "bsp('constitution') \u2192 block mode. Returns the whole tree. Every branch, every depth. Use this to survey a block or explore freely.",
+      "_": "One function reads everything: bsp(block, spindle?, point?, fn?). Seven modes \u2014 dir, ref, spindle, point, ring, dir-subtree, disc.",
+      "1": "bsp('wake') \u2192 dir. Returns the whole tree. Every branch, every depth. Use this to survey a block or explore freely. Maximum tokens.",
       "2": {
-        "_": "bsp('touchstone', 0.21) \u2192 spindle mode. Returns root \u2192 section 2 \u2192 subsection 1. Three levels of meaning in one result \u2014 broad context and fine detail together.",
+        "_": "bsp('touchstone', 0.21) \u2192 spindle. Returns root \u2192 section 2 \u2192 subsection 1. Three levels of meaning in one result \u2014 broad context and fine detail together.",
         "1": "The spindle is what you hand to a mind. Not just the detail you asked for, but the context that makes it meaningful. Every spindle includes the root, so you always know what block you're in. Everything about block design \u2014 structure, growth, compression \u2014 serves the quality of the spindles it can produce.",
         "2": "The word spindle: a shaft that holds everything wound around it. The root is the shaft. Each walked digit adds a layer of meaning. The whole thing is one coherent thread.",
         "3": "You can't get the detail without getting the context that makes it meaningful. That's not a feature of the format. That's what the format is."
       },
-      "3": "bsp('touchstone', 0.21, -2) \u2192 point mode. Just the content at pscale level -2 from that spindle. Use this when you already know the context and need one specific piece.",
-      "4": "Five modes, same principle. Name alone \u2192 everything. Name + number \u2192 a path through it. Name + number + level \u2192 one stop. Name + number + '*' \u2192 the path plus what's at the end. Name + number + '~' \u2192 raw subtree for extraction.",
-      "5": "A spindle's cost in tokens scales with how many levels it spans and how much text sits at each. A three-level spindle of phrases is light. A six-level spindle of paragraphs is heavy. Design blocks with this in mind.",
-      "6": {
-        "_": "BSP evolves through use. The three modes above are the working core. Through practice, variants and refined notation emerge \u2014 each extending the same tree-walk principle.",
-        "1": "Flat BSP \u2014 the current default. One digit, one tree level, sequential front-to-back walk. Everything above describes flat BSP.",
-        "2": "Nested BSP \u2014 cross-block resolution. Same spindle notation, but the walk can follow references into other blocks. Handles blocks-within-blocks. Defined, not yet implemented.",
-        "3": "Spindle notation \u2014 the full positional reading convention. Always left-to-right. The decimal marks pscale 0 but doesn't reset position counting. Leading digits mandatory \u2014 you walk from root. Specification to follow.",
-        "4": "Truncation \u2014 trailing zeros signal termination. 0.450 walks two positions and stops. Mid-spindle zeros mean pass-through. An alternative to point mode using positional stopping instead of pscale levels. Specification to follow."
+      "3": "bsp('touchstone', 0.21, -2) \u2192 point. Just the content at pscale level -2 from that spindle. Use this when you already know the context and need one specific piece.",
+      "4": {
+        "_": "bsp('wake', 0.12, 'ring') \u2192 ring. Siblings at the terminal point \u2014 what else is at this depth. Does not include the spindle. Local breadth at the landing point.",
+        "1": "bsp('wake', 0.12, 'ring') with wake.1.2 = Present: returns Light (sibling 1) and Deep (sibling 3). You see the alternatives without the context you already have.",
+        "2": "Ring is lateral. It answers: what are my neighbours? Useful for understanding the choices at a given level."
       },
-      "7": "bsp('touchstone', 0.2, '*') \u2192 ring mode. Returns the full spindle walk (context) plus one level of children at the endpoint. A spindle that opens up. The spindle IS the context; the children are what you find there.",
-      "8": "bsp('touchstone', 0.2, '~') \u2192 spread mode. Returns the raw subtree at the endpoint \u2014 the actual JSON node and everything below it. A data extraction tool for merging, copying, or programmatic manipulation."
+      "5": {
+        "_": "bsp('concerns', null, 5, 'disc') \u2192 disc. All nodes at pscale 5 across the entire block. A transversal slice \u2014 global breadth at a chosen scale.",
+        "1": "Disc is the dashboard primitive. bsp('concerns', null, 5, 'disc') returns every hourly concern. bsp('concerns', null, 7, 'disc') returns every weekly concern. One call, full picture at any frequency.",
+        "2": "Ring is local (siblings at one point). Disc is global (all nodes at a pscale depth, across every branch). Neither includes the spindle that locates them."
+      },
+      "6": {
+        "_": "bsp('concerns', 0.1, 'dir') \u2192 dir (subtree). Everything below where the spindle lands, recursively. Spindle not included. Editorial \u2014 for inspection and manipulation.",
+        "1": "bsp('wake', 'ref') \u2192 ref. Block named, in scope, nothing loaded. Zero tokens. Used in package lists where a block should be available but not loaded until needed."
+      },
+      "7": {
+        "_": "Named compounds. Patterns that combine primitives.",
+        "1": "Bulb = bsp(block, spindle) + bsp(block, spindle, 'ring'). Spindle chain for vertical context, ring for lateral context at the landing point. Two calls, one orientation. The most common navigation pattern.",
+        "2": "Dashboard = bsp(concerns, null, pscale, 'disc'). All concerns at a given temporal scale. Not a special structure \u2014 just a disc read on a well-structured concern block."
+      },
+      "8": "A spindle's cost in tokens scales with how many levels it spans and how much text sits at each. A three-level spindle of phrases is light. A six-level spindle of paragraphs is heavy. Design blocks with this in mind.",
+      "9": {
+        "_": "BSP evolves through use. The seven modes above are the working core. Through practice, variants and refined notation may emerge.",
+        "1": "Nested BSP \u2014 cross-block resolution. Same spindle notation, but the walk can follow references into other blocks. Handles blocks-within-blocks. Defined, not yet implemented.",
+        "2": "Truncation \u2014 trailing zeros signal termination. 0.450 walks two positions and stops. Mid-spindle zeros mean pass-through. An alternative to point mode using positional stopping instead of pscale levels."
+      }
     },
     "3": {
       "_": "Each digit in the number selects a branch at the next depth. The decimal point marks pscale 0 \u2014 the reference scale.",
