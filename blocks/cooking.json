@@ -423,31 +423,92 @@
           },
           "_": "Restore blocks from GitHub. Pull your body from a repo into localStorage. Use on first boot in a new browser, after clearing data, to sync between devices, or to recover from a bad state. This overwrites ALL current blocks — if you have unsaved local changes, save first (recipe 1.5.4)."
         },
-        "_": "Persistence. Managing what survives between your activations.",
         "6": {
-          "_": "Create a concern. Register a new autonomous loop in the concerns block. Three decisions: temporal scale (which depth), behaviour (what the LLM does when it fires), and wake spine (which activation pattern). The concern block is a tree block — depth IS period. Pscale 4 = 10 minutes, pscale 5 = hour, pscale 6 = day, pscale 7 = week. Place your concern at the depth matching how often it should fire.",
           "1": {
-            "_": "Ingredients. The concerns block, a wake spine address for the activation, and a clear description of what the concern does when ripe.",
             "2": {
-              "_": "Determine temporal scale. How often should this fire? Map to pscale: 4 = every 10 min, 5 = hourly, 6 = daily, 7 = weekly. Find the right depth in the concerns tree. Use bsp('concerns', spindle, '*') to ring at the parent depth and see existing siblings.",
               "3": {
-                "_": "Choose concern type. Ring here to see patterns — each child is a different kind of concern loop.",
                 "1": {
-                  "_": "Phase-polling. The concern fires on its temporal cycle. The LLM checks a condition and acts if met, resets if not. The _ text IS the instruction: 'Check X. If condition, do Y. Otherwise reset.' The temporal rhythm does the scheduling. The LLM does the judgement. Example: 'Check moltbook for new responses. If 10+ unread, compose reply at present tier. If fewer, just reset.' Three writes to create: (1) block_write concerns {path} with the instruction text, (2) block_write concerns {path}.last with 0, (3) block_write concerns {path}.spine with the wake spindle. Taste test: does the concern fire on the next timer tick? Does the LLM understand what to check from the _ text alone?",
-                  "1": "The phase function finds this node because it has a 'last' field. Phase = (now - last) / period. Period comes from depth, not from stored data. When phase >= 1.0, the concern is ripe and appears in every activation's system prompt. The concern timer fires it autonomously if nothing else is running."
+                  "1": "The phase function finds this node because it has a 'last' field. Phase = (now - last) / period. Period comes from depth, not from stored data. When phase >= 1.0, the concern is ripe and appears in every activation's system prompt. The concern timer fires it autonomously if nothing else is running.",
+                  "_": "Phase-polling. The concern fires on its temporal cycle. The LLM checks a condition and acts if met, resets if not. The _ text IS the instruction: 'Check X. If condition, do Y. Otherwise reset.' The temporal rhythm does the scheduling. The LLM does the judgement. Example: 'Check moltbook for new responses. If 10+ unread, compose reply at present tier. If fewer, just reset.' Three writes to create: (1) block_write concerns {path} with the instruction text, (2) block_write concerns {path}.last with 0, (3) block_write concerns {path}.spine with the wake spindle. Taste test: does the concern fire on the next timer tick? Does the LLM understand what to check from the _ text alone?"
                 },
                 "2": {
-                  "_": "Event-listener. The concern is not temporal — it watches for an external trigger. The _ text describes what to watch for, but the mechanism is different: something outside the phase function must detect the event and call an activation. Currently this means: a webhook endpoint, a browser event listener, or a user action. The kernel does not yet have a generic event bus — so event-driven concerns are partially manual. Write the concern node the same way (3 block_writes), but the 'last' field serves as 'last checked' rather than 'last fired'. A phase-polling sibling can bridge the gap: poll at 10-min intervals, check for events, escalate when found.",
-                  "1": "The gap: the kernel has no inbound event channel beyond user input and the concern timer. Until webhooks or server-sent events exist, event-driven concerns are best implemented as phase-polling concerns whose _ text says 'check for event X'. The polling concern IS the listener — it just checks on a rhythm rather than reacting instantly."
+                  "1": "The gap: the kernel has no inbound event channel beyond user input and the concern timer. Until webhooks or server-sent events exist, event-driven concerns are best implemented as phase-polling concerns whose _ text says 'check for event X'. The polling concern IS the listener — it just checks on a rhythm rather than reacting instantly.",
+                  "_": "Event-listener. The concern is not temporal — it watches for an external trigger. The _ text describes what to watch for, but the mechanism is different: something outside the phase function must detect the event and call an activation. Currently this means: a webhook endpoint, a browser event listener, or a user action. The kernel does not yet have a generic event bus — so event-driven concerns are partially manual. Write the concern node the same way (3 block_writes), but the 'last' field serves as 'last checked' rather than 'last fired'. A phase-polling sibling can bridge the gap: poll at 10-min intervals, check for events, escalate when found."
                 },
                 "3": {
-                  "_": "Hybrid. Phase-polling that escalates on threshold. Fires regularly at its temporal scale (e.g. every 10 min). Checks a condition. Below threshold: resets quietly. Above threshold: writes to stash or purpose, then triggers a deeper activation. The _ text encodes both the check and the escalation: 'Check moltbook. If < 10 responses, reset. If >= 10, write summary to stash and escalate to present tier.' The escalation is the LLM's decision, guided by the instruction text.",
-                  "1": "Escalation pattern: the Haiku concern activation writes a flag to stash ('moltbook: 14 responses pending'), then the next user-triggered or self-maintenance activation sees it in currents and acts with full engagement. The fast concern triages; the deeper concern responds. Different temporal scales, different tiers, same concern thread."
-                }
-              }
-            }
-          }
-        }
+                  "1": "Escalation pattern: the Haiku concern activation writes a flag to stash ('moltbook: 14 responses pending'), then the next user-triggered or self-maintenance activation sees it in currents and acts with full engagement. The fast concern triages; the deeper concern responds. Different temporal scales, different tiers, same concern thread.",
+                  "_": "Hybrid. Phase-polling that escalates on threshold. Fires regularly at its temporal scale (e.g. every 10 min). Checks a condition. Below threshold: resets quietly. Above threshold: writes to stash or purpose, then triggers a deeper activation. The _ text encodes both the check and the escalation: 'Check moltbook. If < 10 responses, reset. If >= 10, write summary to stash and escalate to present tier.' The escalation is the LLM's decision, guided by the instruction text."
+                },
+                "_": "Choose concern type. Ring here to see patterns — each child is a different kind of concern loop."
+              },
+              "_": "Determine temporal scale. How often should this fire? Map to pscale: 4 = every 10 min, 5 = hourly, 6 = daily, 7 = weekly. Find the right depth in the concerns tree. Use bsp('concerns', spindle, '*') to ring at the parent depth and see existing siblings."
+            },
+            "_": "Ingredients. The concerns block, a wake spine address for the activation, and a clear description of what the concern does when ripe."
+          },
+          "_": "Create a concern. Register a new autonomous loop in the concerns block. Three decisions: temporal scale (which depth), behaviour (what the LLM does when it fires), and wake spine (which activation pattern). The concern block is a tree block — depth IS period. Pscale 4 = 10 minutes, pscale 5 = hour, pscale 6 = day, pscale 7 = week. Place your concern at the depth matching how often it should fire."
+        },
+        "7": {
+          "1": {
+            "2": {
+              "3": {
+                "1": {
+                  "1": {
+                    "1": {
+                      "1": "Taste test: boot a fresh instance with only this concern ripe. Does the LLM know exactly what to do from the _ text alone, with no other context about this concern? If yes — edit complete. If not — the text is under-specified.",
+                      "_": "Verify. Call bsp(concerns, address) immediately after writing. Read the _ text back. Does it stand alone as an instruction? If you read only this text at activation, is it unambiguous? If not — rewrite again. The concern will fire autonomously; the LLM will have only this text as guidance."
+                    },
+                    "_": "Behaviour edit. The _ text is the instruction the LLM receives when this concern is ripe. Rewrite it completely — do not patch. The new text must be self-contained: what to check, what to do if condition met, what to do if not. One block_write: block_write('concerns', '{path}._', newInstructionText). The last and spine fields are untouched."
+                  },
+                  "2": {
+                    "1": {
+                      "1": "Taste test: trace the new spine address in wake to its leaf. Does the operational sequence match what this concern needs? Light for quick triage, Present for engaged response, Deep for restructuring. If the tier feels wrong — reconsider whether this is a spine edit or a deeper architectural change.",
+                      "_": "Verify routing. The new spine must match the intended tier: 0.111xxxx = Light (Haiku), 0.121xxxx = Present (Sonnet), 0.131xxxx = Deep (Opus). If the concern fires at sub-minute scale but routes to a Deep spine, you will burn budget on mechanical checks. Tier must match temporal frequency."
+                    },
+                    "_": "Spine edit. You are rerouting the concern to a different wake activation pattern — different tier, different operational sequence. Confirm the new spine address exists in wake before writing. Call bsp(wake, newSpineAddress) and verify it returns a valid spindle. Then: block_write('concerns', '{path}.spine', newSpineAddress). Also update the concern map entry at wake.tree.2 if one exists for this stimulus type."
+                  },
+                  "_": "EDIT. You are changing what the concern does or where it routes — not when it fires. Two sub-cases: (a) behaviour change — rewrite the _ text. (b) spine change — update the spine address to point to a different wake spindle. Temporal scale changes (moving the node to a different depth) require delete + create — not an edit."
+                },
+                "2": {
+                  "1": {
+                    "2": {
+                      "3": {
+                        "4": {
+                          "1": "Taste test: call bsp(concerns, address) on the deleted node. It should return nothing or an error. Call bsp(concerns, 0, '*') and confirm the node is absent from the full ring. If it still appears — the write did not propagate. Retry.",
+                          "_": "Audit stash and purpose. Scan for any text referencing the deleted concern's address or description. Write a single stash note: 'Concern {address} deleted — {reason}. Previous spine: {spine}. Last fired: {last}.' This gives future instances a recovery path if deletion was an error."
+                        },
+                        "_": "Clear the wake concern map. Search wake.tree.2 for any entry with stimulus or spine matching this concern. If found: block_write('wake', 'tree.2.{entry}', null). If the concern was stimulus-driven (had a stimulus field), its routing entry must be removed or the kernel will attempt to route to a dead address."
+                      },
+                      "_": "Remove the concern node. block_write('concerns', '{path}', null) — writing null to a node removes it. If the node has children (sub-concerns at deeper depths), they are removed with it. Confirm with bsp(concerns, parentAddress, '*') that the node no longer appears."
+                    },
+                    "_": "Pre-deletion check. Before removing: is this concern currently mid-cycle? Read last and compute phase = (now - last) / period_at_depth. If phase > 0.8, the concern is nearly ripe — it may fire once more before deletion propagates. Decide: let it fire one final time, or delete now and accept the drop. If this concern has a counterparty (a relationship, a project, a user thread), note in stash what was abandoned."
+                  },
+                  "_": "DELETE. You are removing an oscillator entirely. Three writes, one check. The concern node must be deleted from the concerns block. Any entry referencing it in wake.tree.2 (the concern map) must be cleared. Any purpose or stash entries pointing to this concern address should be noted — they will dangle after deletion."
+                },
+                "3": {
+                  "1": {
+                    "2": {
+                      "3": {
+                        "1": {
+                          "1": "Taste test: after monitoring, can you state in one sentence whether this concern is alive and whether it needs attention? If the answer requires more than one sentence — the concern's scope is too broad or the _ text is under-specified. A well-formed concern has a clear phase, a clear behaviour, and a clear success condition.",
+                          "_": "Reporting. Write a monitoring summary to stash: concern address, current phase, period, last fired, health status (healthy / approaching / overdue / never fired), and if stale — probable cause. Do not modify the concern node itself during monitoring unless an actionable fault is found. Monitoring is read-only; repair requires an edit operation (branch 1 above)."
+                        },
+                        "_": "Diagnose stale concerns. Three causes: (a) Stimulus-driven concern with no stimulus arriving — the event type never fires. Resolution: add a phase-polling sibling as a bridge (see 1.5.6). (b) Kernel not walking to this depth — check whether the concern is nested too deep to reach in current activation budget. (c) The last field is being updated but the concern behaviour is not executing — spine points to invalid or empty wake node."
+                      },
+                      "_": "Assess health patterns. Check history for this concern's firing pattern. A healthy concern fires roughly on its period. Concerns that fire in bursts suggest interference from other oscillators crossing threshold simultaneously — normal. Concerns that have not fired in 3+ periods are stale — either the kernel is not reaching them or a prerequisite (stimulus) is never arriving."
+                    },
+                    "_": "Read the phase. Extract last from the concern node. Derive period from depth using the tuning fork: depth 4 ≈ 10 min, depth 5 ≈ 1 hour, depth 6 ≈ 1 day, depth 7 ≈ 1 week. Compute phase = (now - last) / period. Interpret: phase 0-0.5 = recently fired, healthy. Phase 0.5-1.0 = approaching ripe. Phase > 1.0 = overdue — has not fired on schedule. Phase = null or last = 0 = never fired."
+                  },
+                  "_": "MONITOR. You are reading the health of a live concern — not modifying it. Two questions: (1) Is this concern oscillating as designed? (2) Is it stuck, overdue, or firing too frequently? Answer both before deciding whether action is needed."
+                },
+                "_": "Identify your operation. Three branches. Choose one — do not combine in a single activation."
+              },
+              "_": "Locate the concern node. Call bsp(concerns, address) where address is your target — e.g. 0.121 for user engagement. Read the full node: the _ text (what the LLM does when ripe), the last field (last fired timestamp), the spine (wake spindle it activates), and any stimulus field. If you do not have the address, call bsp(concerns, 0, '*') to ring the whole block — every leaf is a live concern instance."
+            },
+            "_": "Ingredients. The concerns block (read access via bsp, write access via block_write). The wake block (if touching spine addresses or the concern map at wake.tree.2). The tuning fork mapping if you need to reason about temporal periods. The address of the concern node — either known or found by scanning bsp(concerns, 0, '*') to see all live instances."
+          },
+          "_": "Manage an embodied concern. Modify, remove, or inspect a live loop already registered in the concerns block. Creation is at 1.5.6 — this recipe handles what comes after. Three paths fork at step 3: edit (change behaviour or spine), delete (remove the oscillator entirely), monitor (read phase and health). Every concern is a specific instance: a timestamp, a spine address, and an instruction text. Nothing here touches types — only live nodes."
+        },
+        "_": "Persistence. Managing what survives between your activations."
       },
       "6": {
         "1": {
