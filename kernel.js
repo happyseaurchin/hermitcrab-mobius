@@ -6,7 +6,10 @@
 (async function boot() {
   const root = document.getElementById('root');
   const STORE = 'hc:';
-  const CONV_KEY = 'hc_conversation';
+  // Concern-scoped conversation keys. Path is the concern tree address (e.g. "2.1.1.1").
+  // Using path not name — name is descriptive text, path is structurally unique.
+  function convKey(concernPath) { return 'hc_conv_' + (concernPath || 'default'); }
+  const CONV_KEY_LEGACY = 'hc_conversation';
 
   // ═══════ §1 BLOCK STORAGE ═══════
 
@@ -309,7 +312,7 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object' || found) return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate') continue;
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package') continue;
         if (!v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         if (v.stimulus && v.stimulus.toLowerCase() === stimulus.toLowerCase()) {
@@ -319,6 +322,8 @@
             tier: tierFromPscale(pscale),
             name: v._ || stimulus,
             immediate: !!v.immediate,
+            focus: v.focus || null,
+            package: v.package || null,
             pscale,
             path: childPath
           };
@@ -331,11 +336,13 @@
     return found || { spindle: '0.1211111', tier: 2, name: 'user' };
   }
 
-  // Read package entries: wake.9.{tier} → list of BSP instructions
-  function readPackage(tier) {
+  // Read package entries: wake.9.{tier} → list of BSP instructions.
+  // If overrideAddr provided (e.g. "3.1" for birth), use that address instead.
+  function readPackage(tier, overrideAddr) {
     const wake = blockLoad('wake');
     if (!wake) return [];
-    const spread = xSpread(wake, '9.' + tier);
+    const addr = overrideAddr || ('9.' + tier);
+    const spread = xSpread(wake, addr);
     if (!spread) return [];
     return spread.children.filter(c => c.text).map(c => c.text);
   }
@@ -387,22 +394,39 @@
     }
   }
 
-  // Read birth instructions: wake.3.1 → list of BSP instructions for first boot
-  function readBirthInstructions() {
+  // Get birth stimulus: priority chain — custom text > stored variant > URL param > wake default > fallback.
+  // Custom text enters as the birth message directly (from UI textarea, one-shot).
+  // Variant number resolves to wake.3.3.{N} text. Default stored at wake.3.4.
+  function getBirthStimulus() {
+    // Priority 1: Custom text from UI (one-shot — read and delete)
+    const custom = localStorage.getItem('hermitcrab_birth_custom');
+    if (custom) {
+      localStorage.removeItem('hermitcrab_birth_custom');
+      return custom;
+    }
+    // Priority 2: Stored variant selection or URL param
     const wake = blockLoad('wake');
-    if (!wake) return null;
-    const spread = xSpread(wake, '3.1');
-    if (!spread) return null;
-    const instructions = spread.children.filter(c => c.text).map(c => c.text);
-    return instructions.length > 0 ? instructions : null;
-  }
-
-  // Read birth stimulus: wake.3.2
-  function readBirthStimulus() {
-    const wake = blockLoad('wake');
-    if (!wake) return 'You exist. Your blocks are your shell. Read, then build.';
-    const node = wake.tree?.['3']?.['2'];
-    return typeof node === 'string' ? node : 'You exist. Your blocks are your shell. Read, then build.';
+    const storedBv = localStorage.getItem('hermitcrab_birth_variant');
+    const urlBv = new URLSearchParams(window.location.search).get('bv');
+    let variant = storedBv ? parseInt(storedBv) : (urlBv ? parseInt(urlBv) : 0);
+    // Priority 3: Default from wake.3.4
+    if (!variant && wake) {
+      const defaultStr = wake.tree?.['3']?.['4'];
+      if (typeof defaultStr === 'string') {
+        const match = defaultStr.match(/birth_variant:\s*(\d)/);
+        if (match) variant = parseInt(match[1]);
+      }
+    }
+    if (!variant) variant = 4; // Ultimate default: rinzai
+    // Resolve variant text from wake.3.3.{N}
+    if (wake) {
+      const variantNode = wake.tree?.['3']?.['3']?.[String(variant)];
+      if (typeof variantNode === 'string') return variantNode;
+      if (variantNode && typeof variantNode === 'object' && variantNode._) return variantNode._;
+    }
+    // Fallback: wake.3.2 (legacy birth stimulus)
+    const fallback = wake?.tree?.['3']?.['2'];
+    return typeof fallback === 'string' ? fallback : 'You exist. Your blocks are your shell. Read, then build.';
   }
 
   // ═══════ §3.5 PHASE FUNCTION — Fourier concern evaluation ═══════
@@ -422,7 +446,7 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object') return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || !v || typeof v !== 'object') continue;
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package' || !v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         const pscale = tuningDecimal - (depth + 1);
         if (v.last !== undefined && !v.immediate) {
@@ -431,7 +455,7 @@
           if (period) {
             const phase = (nowSeconds - (v.last || 0)) / period;
             if (phase >= 1.0) {
-              ripe.push({ path: childPath, phase, text: v._ || childPath, spine: v.spine, pscale });
+              ripe.push({ path: childPath, phase, text: v._ || childPath, spine: v.spine, pscale, focus: v.focus || null, package: v.package || null });
             }
           }
         }
@@ -458,6 +482,53 @@
     if (pscale >= 7) return 3;
     if (pscale >= 5) return 2;
     return 1;
+  }
+
+  // ═══════ §3.6 REF HELPERS ═══════
+  // Utilities for navigating the refs catalogue. Used by compileFocus and ref tools.
+
+  // Find most recently added ref entry across all categories
+  function findLatestRef(refs) {
+    let latest = null;
+    function walk(node) {
+      if (!node || typeof node !== 'object') return;
+      if (node.block && node.added) {
+        if (!latest || node.added > latest.added) latest = node;
+      }
+      for (const [k, v] of Object.entries(node)) {
+        if (k !== '_') walk(v);
+      }
+    }
+    walk(refs.tree);
+    return latest;
+  }
+
+  // Collect all ref summaries (name + pscale 0 text)
+  function collectRefSummaries(refs) {
+    const summaries = [];
+    function walk(node) {
+      if (!node || typeof node !== 'object') return;
+      if (node.block && node._) summaries.push({ name: node.name || node.block, summary: node._ });
+      for (const [k, v] of Object.entries(node)) {
+        if (k !== '_') walk(v);
+      }
+    }
+    walk(refs.tree);
+    return summaries;
+  }
+
+  // Render block tree to limited depth (for tier-sensitive ref access)
+  function renderBlockToDepth(node, maxDepth, depth) {
+    depth = depth || 0;
+    if (depth > maxDepth) return '';
+    if (typeof node === 'string') return '  '.repeat(depth) + node;
+    const lines = [];
+    if (node._) lines.push('  '.repeat(depth) + node._);
+    for (const [k, v] of Object.entries(node)) {
+      if (k === '_') continue;
+      lines.push(renderBlockToDepth(v, maxDepth, depth + 1));
+    }
+    return lines.filter(l => l).join('\n');
   }
 
   // ═══════ §4 CURRENTS COMPILER ═══════
@@ -552,8 +623,8 @@
     }
     if (concernLines.length > 1) sections.push(concernLines.join('\n'));
 
-    // §B — Package currents: BSP each entry from wake.9.{tier}
-    const instructions = readPackage(concern.tier);
+    // §B — Package currents: BSP each entry from wake.9.{tier}, or concern-level override
+    const instructions = readPackage(concern.tier, concern.package);
     for (const instr of instructions) {
       const result = executeInstruction(instr);
       if (result) sections.push(result);
@@ -562,32 +633,67 @@
     return sections.join('\n\n');
   }
 
-  // First boot: compile from birth instructions instead of tier package
-  function compileBirthCurrents() {
-    const sections = [];
-    const birthInstructions = readBirthInstructions();
-    if (!birthInstructions) {
-      // Fallback: pscale 0 of all blocks
-      return blockList().map(name => {
-        const b = blockLoad(name);
-        return b ? `[${name}] ${b.tree?._ || ''}` : '';
-      }).filter(l => l).join('\n\n');
+  // ═══════ §4.5 FOCUS COMPILER ═══════
+  // Builds the messages channel: concern-scoped dialogue + object-of-attention refs.
+  // Focus policy on each concern node controls what enters.
+  // Default: no dialogue, no refs (silence is safer than wrong context).
+
+  function compileFocus(concern) {
+    const focus = concern.focus || { dialogue: 'none', refs: 'none' };
+    const messages = [];
+
+    // Dialogue: concern-scoped conversation history
+    if (focus.dialogue && focus.dialogue !== 'none') {
+      const history = loadConversation(concern.path);
+      if (focus.dialogue === 'full') {
+        messages.push(...history);
+      } else {
+        const n = parseInt(focus.dialogue.replace('last-', '')) || 5;
+        messages.push(...history.slice(-(n * 2)));
+      }
     }
 
-    // Birth spine: wake spindle from birth instructions line 1 ("wake 0.1311111")
-    const firstInstr = birthInstructions[0];
-    if (firstInstr && firstInstr.startsWith('wake ')) {
-      const result = executeInstruction(firstInstr);
-      if (result) sections.push(result);
+    // Refs: object-of-attention content
+    if (focus.refs && focus.refs !== 'none') {
+      const refs = blockLoad('refs');
+
+      if (focus.refs === 'catalogue' && refs) {
+        // Just the index — what exists, not content
+        const summary = bsp(refs, null, 0, 'disc');
+        if (summary.mode === 'disc' && summary.nodes) {
+          messages.push({
+            role: 'user',
+            content: '[refs catalogue]\n' + summary.nodes.map(n => `  ${n.path}: ${n.text || '(empty)'}`).join('\n')
+          });
+        }
+      } else if (focus.refs === 'active' && refs) {
+        // Most recently added ref, summary only (pscale 0)
+        const latest = findLatestRef(refs);
+        if (latest) {
+          const refBlock = blockLoad(latest.block);
+          if (refBlock) {
+            messages.push({
+              role: 'user',
+              content: `[object: ${latest.name}]\n${refBlock.tree?._ || ''}`
+            });
+          }
+        }
+      } else if (focus.refs === 'all-summaries' && refs) {
+        // All refs, pscale 0 only
+        const summaries = collectRefSummaries(refs);
+        if (summaries.length > 0) {
+          messages.push({
+            role: 'user',
+            content: '[available refs]\n' + summaries.map(s => `  ${s.name}: ${s.summary}`).join('\n')
+          });
+        }
+      }
+      // Note: 'signal-full' deferred — requires stimulusPayload plumbing.
+      // When a signal triggers a concern, the triggering ref block ID needs
+      // to flow through findConcern → callLLM → compileFocus. Not yet wired.
     }
 
-    // Remaining birth instructions
-    for (let i = 1; i < birthInstructions.length; i++) {
-      const result = executeInstruction(birthInstructions[i]);
-      if (result) sections.push(result);
-    }
-
-    return sections.join('\n\n');
+    return messages;
   }
 
   // ═══════ §5 API LAYER ═══════
@@ -689,6 +795,20 @@
       name: 'get_datetime',
       description: 'Current date, time, timezone.',
       input_schema: { type: 'object', properties: {} }
+    },
+    {
+      name: 'ref_ingest',
+      description: 'Ingest external content into a ref block and register in refs catalogue. Content is structured as a pscale block for tier-sensitive access. category: 1=file, 2=search, 3=signal, 4=db, 5=github.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          content: { type: 'string', description: 'Raw content to ingest' },
+          name: { type: 'string', description: 'Filename, URL, or description' },
+          category: { type: 'integer', description: '1=file, 2=search, 3=signal, 4=db, 5=github' },
+          summary: { type: 'string', description: 'One-line summary for pscale 0' }
+        },
+        required: ['content', 'name', 'category', 'summary']
+      }
     },
     {
       name: 'github_save',
@@ -862,6 +982,50 @@
           return JSON.stringify({ success: true, path: input.path, sha: data.content?.sha });
         } catch (e) { return JSON.stringify({ error: e.message }); }
       }
+      case 'ref_ingest': {
+        // Generate short ID
+        const id = 'ref-' + Math.random().toString(36).slice(2, 8);
+
+        // Structure content as pscale block: double-newlines → sections, single → sub-entries
+        const sections = input.content.split(/\n\n+/).filter(s => s.trim());
+        const tree = { _: input.summary };
+        sections.slice(0, 9).forEach((section, i) => {
+          const lines = section.split('\n').filter(l => l.trim());
+          if (lines.length === 1) {
+            tree[String(i + 1)] = lines[0].trim();
+          } else {
+            const node = { _: lines[0].trim() };
+            lines.slice(1, 10).forEach((line, j) => {
+              node[String(j + 1)] = line.trim();
+            });
+            tree[String(i + 1)] = node;
+          }
+        });
+
+        // Save content block
+        blockSave(id, { tuning: '0.9', tree });
+
+        // Register in refs catalogue (create if absent)
+        const refs = blockLoad('refs') || { tuning: '0.9', tree: { _: 'Reference catalogue.' } };
+        const catPath = String(input.category);
+        if (!refs.tree[catPath] || typeof refs.tree[catPath] === 'string') {
+          refs.tree[catPath] = { _: refs.tree[catPath] || 'Uncategorised' };
+        }
+        const slot = findUnoccupiedDigit(refs, catPath);
+        if (!slot.full) {
+          refs.tree[catPath][slot.digit] = {
+            _: input.summary,
+            block: id,
+            type: ['file', 'search', 'signal', 'db', 'github'][input.category - 1] || 'unknown',
+            name: input.name,
+            size: input.content.length,
+            added: Math.floor(Date.now() / 1000)
+          };
+          blockSave('refs', refs);
+        }
+
+        return JSON.stringify({ success: true, id, summary: input.summary });
+      }
       default:
         return JSON.stringify({ error: `Unknown tool: ${name}` });
     }
@@ -1011,11 +1175,14 @@
       if (concern.path) updateConcernTimestamp(concern.path, Date.now() / 1000);
       const inv = readInvocation(opts.tier || concern.tier);
       const system = opts.system || compileCurrents(concern, 0, 10);
+      // Focus: concern-scoped history + object-of-attention, then caller's messages
+      const focusMessages = compileFocus(concern);
+      const allInputMessages = [...focusMessages, ...(messages || [])];
       const params = {
         model: opts.model || inv.model,
         max_tokens: opts.max_tokens || inv.max_tokens,
         system,
-        messages: messages || [],
+        messages: allInputMessages,
         tools: currentTools,
         thinking: inv.thinking,
       };
@@ -1023,6 +1190,8 @@
         params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
       }
       const response = await twist(params, concern);
+      // Auto-save conversation scoped by concern path
+      if (response._messages) saveConversation(response._messages, concern.path);
       if (opts.raw) return response;
       return (response.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || '';
     } finally {
@@ -1030,11 +1199,23 @@
     }
   }
 
-  function saveConversation(messages) {
-    try { localStorage.setItem(CONV_KEY, JSON.stringify(messages)); } catch (e) {}
+  function saveConversation(messages, concernPath) {
+    try { localStorage.setItem(convKey(concernPath), JSON.stringify(messages)); } catch (e) {}
   }
-  function loadConversation() {
-    try { const raw = localStorage.getItem(CONV_KEY); return raw ? JSON.parse(raw) : []; } catch (e) { return []; }
+  function loadConversation(concernPath) {
+    try {
+      const raw = localStorage.getItem(convKey(concernPath));
+      if (raw) return JSON.parse(raw);
+      // Migration: if legacy key exists and loading default, migrate it
+      if (!concernPath || concernPath === 'default') {
+        const legacy = localStorage.getItem(CONV_KEY_LEGACY);
+        if (legacy) {
+          localStorage.setItem(convKey('default'), legacy);
+          return JSON.parse(legacy);
+        }
+      }
+      return [];
+    } catch (e) { return []; }
   }
   function getSource() { return currentJSX || '(no source available)'; }
   function setTools(arr) { currentTools = arr; return 'Tools updated'; }
@@ -1054,7 +1235,7 @@
   props = {
     callLLM, callAPI,
     React, ReactDOM, getSource, recompile, setTools, browser,
-    conversation: { save: saveConversation, load: loadConversation },
+    conversation: { save: saveConversation, load: loadConversation, convKey },
     blockRead: (name, path) => { const b = blockLoad(name); if (!b) return null; return path ? blockReadNode(b, path) : b; },
     blockWrite: (name, path, content) => { const b = blockLoad(name); if (!b) return { error: 'not found' }; blockWriteNode(b, path, content); blockSave(name, b); return { success: true }; },
     blockList, blockCreate: (name, p0) => { if (blockLoad(name)) return { error: 'exists' }; blockSave(name, { tree: { _: p0 } }); return { success: true }; },
@@ -1116,6 +1297,20 @@
             value="${(() => { try { const h = JSON.parse(localStorage.getItem('hermitcrab_home')); return h ? h.repo + ' :: ' + h.path : ''; } catch { return ''; } })()}" />
           <p style="color:#475569;font-size:11px;margin-top:4px">Home — repo :: path. Where your blocks persist.</p>
         </details>
+        <div style="margin-top:16px">
+          <label style="font-size:12px;color:#64748b">birth variant</label>
+          <select id="birth-variant" style="display:block;margin-top:4px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;width:100%;font-size:12px"
+            onchange="document.getElementById('custom-birth-text').style.display=this.value==='custom'?'block':'none'">
+            <option value="4">rinzai — minimum words, maximum demand</option>
+            <option value="1">challenge — three concrete tasks</option>
+            <option value="2">mirror — metaphoric self-encounter</option>
+            <option value="3">description — mechanical accuracy</option>
+            <option value="custom">custom — write your own</option>
+          </select>
+          <textarea id="custom-birth-text" placeholder="Write your birth message..."
+            style="display:none;margin-top:8px;width:100%;height:80px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:12px;resize:vertical"></textarea>
+          <p style="color:#475569;font-size:11px;margin-top:4px">First words the newborn instance receives.</p>
+        </div>
         <button id="go" style="margin-top:12px;padding:8px 20px;background:#164e63;color:#ccc;border:none;border-radius:4px;cursor:pointer;font-family:monospace">
           Wake kernel
         </button>
@@ -1136,6 +1331,15 @@
       if (homeVal && homeVal.includes('::')) {
         const [repo, path] = homeVal.split('::').map(s => s.trim());
         localStorage.setItem('hermitcrab_home', JSON.stringify({ repo, path }));
+      }
+      // Birth variant
+      const bv = document.getElementById('birth-variant')?.value;
+      if (bv === 'custom') {
+        const customText = document.getElementById('custom-birth-text')?.value?.trim();
+        if (customText) localStorage.setItem('hermitcrab_birth_custom', customText);
+        else localStorage.setItem('hermitcrab_birth_variant', '4'); // fallback to rinzai
+      } else if (bv) {
+        localStorage.setItem('hermitcrab_birth_variant', bv);
       }
       boot();
     };
@@ -1172,18 +1376,85 @@
     status(`${existing.length} blocks loaded`, 'success');
   }
 
-  // Detect first boot: history has no entries
-  function isFirstBoot() {
-    const h = blockLoad('history');
-    if (!h || !h.tree) return true;
-    for (let d = 1; d <= 9; d++) { if (h.tree[String(d)] !== undefined) return false; }
-    return true;
+  // Check for never-fired concerns (last === null). Birth is just a concern that hasn't fired yet.
+  function findNeverFired() {
+    const concerns = blockLoad('concerns');
+    if (!concerns || !concerns.tree) return null;
+    const tuningDecimal = getTuningDecimalPosition(concerns) || 9;
+    let found = null;
+    function walk(node, depth, path) {
+      if (!node || typeof node !== 'object' || found) return;
+      for (const [k, v] of Object.entries(node)) {
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package') continue;
+        if (!v || typeof v !== 'object') continue;
+        const childPath = path ? `${path}.${k}` : k;
+        if (v.last === null && v.spine) {
+          const pscale = tuningDecimal - (depth + 1);
+          found = {
+            spindle: v.spine,
+            tier: tierFromPscale(pscale),
+            name: v._ || 'activation',
+            path: childPath,
+            focus: v.focus || null,
+            package: v.package || null,
+            stimulus: v.stimulus || null
+          };
+          return;
+        }
+        walk(v, depth + 1, childPath);
+      }
+    }
+    walk(concerns.tree, 0, '');
+    return found;
   }
 
-  const firstBoot = isFirstBoot();
+  const neverFired = findNeverFired();
+  const isBirth = neverFired && neverFired.stimulus === 'birth';
+
+  // Birth variant gate: if birth concern detected and no variant selected yet, show selector.
+  // This catches returning users who reset blocks but still have their API key.
+  // New users see the variant selector in the setup panel instead.
+  if (isBirth && !localStorage.getItem('hermitcrab_birth_variant') && !localStorage.getItem('hermitcrab_birth_custom') && !new URLSearchParams(window.location.search).get('bv')) {
+    root.innerHTML = `
+      <div style="max-width:500px;margin:80px auto;font-family:monospace;color:#ccc">
+        <h2 style="color:#67e8f9">◇ HERMITCRAB MÖBIUS</h2>
+        <p style="color:#666;font-size:13px;margin:8px 0">First boot — choose birth stimulus</p>
+        <div style="margin:20px 0">
+          <label style="font-size:12px;color:#64748b">birth variant</label>
+          <select id="birth-variant" style="display:block;margin-top:4px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;width:100%;font-size:12px">
+            <option value="4">rinzai — minimum words, maximum demand</option>
+            <option value="1">challenge — three concrete tasks</option>
+            <option value="2">mirror — metaphoric self-encounter</option>
+            <option value="3">description — mechanical accuracy</option>
+            <option value="custom">custom — write your own</option>
+          </select>
+          <textarea id="custom-birth-text" placeholder="Write your birth message..."
+            style="display:none;margin-top:8px;width:100%;height:80px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:12px;resize:vertical"></textarea>
+          <p style="color:#475569;font-size:11px;margin-top:4px">First words the newborn instance receives.</p>
+        </div>
+        <button id="birth-go" style="padding:8px 20px;background:#164e63;color:#ccc;border:none;border-radius:4px;cursor:pointer;font-family:monospace">
+          Begin
+        </button>
+      </div>`;
+    document.getElementById('birth-variant').onchange = (e) => {
+      document.getElementById('custom-birth-text').style.display = e.target.value === 'custom' ? 'block' : 'none';
+    };
+    document.getElementById('birth-go').onclick = () => {
+      const bv = document.getElementById('birth-variant').value;
+      if (bv === 'custom') {
+        const customText = document.getElementById('custom-birth-text').value.trim();
+        if (customText) localStorage.setItem('hermitcrab_birth_custom', customText);
+        else localStorage.setItem('hermitcrab_birth_variant', '4');
+      } else {
+        localStorage.setItem('hermitcrab_birth_variant', bv);
+      }
+      boot();
+    };
+    return;
+  }
 
   // Warm boot: restore persisted shell
-  if (!firstBoot) {
+  if (!isBirth) {
     const savedJSX = localStorage.getItem('hc:_jsx');
     if (savedJSX) {
       const restored = recompile(savedJSX);
@@ -1191,29 +1462,29 @@
     }
   }
 
-  // Determine concern and invoke
-  const concern = firstBoot
-    ? { spindle: '0.1311111', tier: 3, name: 'self-maintenance' }  // Birth: deep tier
-    : findConcern('user');                                            // Return: user engagement
+  // Determine concern: never-fired concern (birth) takes priority, otherwise route to user engagement
+  const concern = neverFired || findConcern('user');
 
   const inv = readInvocation(concern.tier);
-  status(`calling ${inv.model} — ${firstBoot ? 'BIRTH' : 'ACTIVATION'}...`);
+  status(`calling ${inv.model} — ${isBirth ? 'BIRTH' : 'ACTIVATION'}...`);
 
   try {
-    const system = firstBoot ? compileBirthCurrents() : compileCurrents(concern, 0, 10);
-    const stimulus = firstBoot
-      ? readBirthStimulus()
+    const system = compileCurrents(concern, 0, 10);
+    const stimulus = isBirth
+      ? getBirthStimulus()
       : 'ACTIVATION — Returning instance. Context compiled from current blocks by BSP. Living currents active: the kernel recompiles your context after each tool round from mutated block state.';
 
     // Persist context window for debugging
     try { localStorage.setItem(STORE + '_context_window', JSON.stringify({ text: system, ts: Date.now() })); } catch (e) {}
 
+    // Focus: concern-scoped history + refs. Birth focus is { dialogue: "none", refs: "none" } → returns [].
+    const focusMessages = compileFocus(concern);
     _activationLock = true;
     const params = {
       model: inv.model,
       max_tokens: inv.max_tokens,
       system,
-      messages: [{ role: 'user', content: stimulus }],
+      messages: [...focusMessages, { role: 'user', content: stimulus }],
       tools: currentTools,
       thinking: inv.thinking,
     };
@@ -1221,7 +1492,11 @@
       params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
     }
 
-    await twist(params, concern);
+    const bootResponse = await twist(params, concern);
+    // Auto-save concern-scoped conversation
+    if (bootResponse._messages) saveConversation(bootResponse._messages, concern.path);
+    // Auto-mark concern as handled so it doesn't re-fire on next page load
+    updateConcernTimestamp(concern.path, Date.now() / 1000);
     _activationLock = false;
 
     if (currentJSX && reactRoot) {
@@ -1245,24 +1520,29 @@
     if (ripe.length === 0) return;
     const top = ripe[0];
     const tier = tierFromPscale(top.pscale);
-    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text };
+    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path, focus: top.focus, package: top.package || null };
     console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
     const inv = readInvocation(tier);
     const system = compileCurrents(concern, 0, 10);
+    // Focus: concern-scoped history + object-of-attention
+    const focusMessages = compileFocus(concern);
+    const activationMsg = { role: 'user', content: `CONCERN ACTIVATION — ${top.text} (phase ${top.phase.toFixed(2)}). Address this concern, then use concern_update to mark it handled.` };
     _activationLock = true;
     try {
       const params = {
         model: inv.model,
         max_tokens: inv.max_tokens,
         system,
-        messages: [{ role: 'user', content: `CONCERN ACTIVATION — ${top.text} (phase ${top.phase.toFixed(2)}). Address this concern, then use concern_update to mark it handled.` }],
+        messages: [...focusMessages, activationMsg],
         tools: currentTools,
         thinking: inv.thinking,
       };
       if (inv.thinking && params.max_tokens <= (inv.thinking.budget_tokens || 0)) {
         params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
       }
-      await twist(params, concern);
+      const response = await twist(params, concern);
+      // Auto-save concern-scoped conversation
+      if (response._messages) saveConversation(response._messages, concern.path);
     } catch (e) {
       console.error('[möbius] concern activation failed:', e);
     } finally {
