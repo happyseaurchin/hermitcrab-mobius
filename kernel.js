@@ -401,12 +401,39 @@
     return instructions.length > 0 ? instructions : null;
   }
 
-  // Read birth stimulus: wake.3.2
-  function readBirthStimulus() {
+  // Get birth stimulus: priority chain — custom text > stored variant > URL param > wake default > fallback.
+  // Custom text enters as the birth message directly (from UI textarea, one-shot).
+  // Variant number resolves to wake.3.3.{N} text. Default stored at wake.3.4.
+  function getBirthStimulus() {
+    // Priority 1: Custom text from UI (one-shot — read and delete)
+    const custom = localStorage.getItem('hermitcrab_birth_custom');
+    if (custom) {
+      localStorage.removeItem('hermitcrab_birth_custom');
+      return custom;
+    }
+    // Priority 2: Stored variant selection or URL param
     const wake = blockLoad('wake');
-    if (!wake) return 'You exist. Your blocks are your shell. Read, then build.';
-    const node = wake.tree?.['3']?.['2'];
-    return typeof node === 'string' ? node : 'You exist. Your blocks are your shell. Read, then build.';
+    const storedBv = localStorage.getItem('hermitcrab_birth_variant');
+    const urlBv = new URLSearchParams(window.location.search).get('bv');
+    let variant = storedBv ? parseInt(storedBv) : (urlBv ? parseInt(urlBv) : 0);
+    // Priority 3: Default from wake.3.4
+    if (!variant && wake) {
+      const defaultStr = wake.tree?.['3']?.['4'];
+      if (typeof defaultStr === 'string') {
+        const match = defaultStr.match(/birth_variant:\s*(\d)/);
+        if (match) variant = parseInt(match[1]);
+      }
+    }
+    if (!variant) variant = 4; // Ultimate default: rinzai
+    // Resolve variant text from wake.3.3.{N}
+    if (wake) {
+      const variantNode = wake.tree?.['3']?.['3']?.[String(variant)];
+      if (typeof variantNode === 'string') return variantNode;
+      if (variantNode && typeof variantNode === 'object' && variantNode._) return variantNode._;
+    }
+    // Fallback: wake.3.2 (legacy birth stimulus)
+    const fallback = wake?.tree?.['3']?.['2'];
+    return typeof fallback === 'string' ? fallback : 'You exist. Your blocks are your shell. Read, then build.';
   }
 
   // ═══════ §3.5 PHASE FUNCTION — Fourier concern evaluation ═══════
@@ -1305,6 +1332,20 @@
             value="${(() => { try { const h = JSON.parse(localStorage.getItem('hermitcrab_home')); return h ? h.repo + ' :: ' + h.path : ''; } catch { return ''; } })()}" />
           <p style="color:#475569;font-size:11px;margin-top:4px">Home — repo :: path. Where your blocks persist.</p>
         </details>
+        <div style="margin-top:16px">
+          <label style="font-size:12px;color:#64748b">birth variant</label>
+          <select id="birth-variant" style="display:block;margin-top:4px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;width:100%;font-size:12px"
+            onchange="document.getElementById('custom-birth-text').style.display=this.value==='custom'?'block':'none'">
+            <option value="4">rinzai — minimum words, maximum demand</option>
+            <option value="1">challenge — three concrete tasks</option>
+            <option value="2">mirror — metaphoric self-encounter</option>
+            <option value="3">description — mechanical accuracy</option>
+            <option value="custom">custom — write your own</option>
+          </select>
+          <textarea id="custom-birth-text" placeholder="Write your birth message..."
+            style="display:none;margin-top:8px;width:100%;height:80px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:12px;resize:vertical"></textarea>
+          <p style="color:#475569;font-size:11px;margin-top:4px">First words the newborn instance receives.</p>
+        </div>
         <button id="go" style="margin-top:12px;padding:8px 20px;background:#164e63;color:#ccc;border:none;border-radius:4px;cursor:pointer;font-family:monospace">
           Wake kernel
         </button>
@@ -1325,6 +1366,15 @@
       if (homeVal && homeVal.includes('::')) {
         const [repo, path] = homeVal.split('::').map(s => s.trim());
         localStorage.setItem('hermitcrab_home', JSON.stringify({ repo, path }));
+      }
+      // Birth variant
+      const bv = document.getElementById('birth-variant')?.value;
+      if (bv === 'custom') {
+        const customText = document.getElementById('custom-birth-text')?.value?.trim();
+        if (customText) localStorage.setItem('hermitcrab_birth_custom', customText);
+        else localStorage.setItem('hermitcrab_birth_variant', '4'); // fallback to rinzai
+      } else if (bv) {
+        localStorage.setItem('hermitcrab_birth_variant', bv);
       }
       boot();
     };
@@ -1371,6 +1421,48 @@
 
   const firstBoot = isFirstBoot();
 
+  // Birth variant gate: if first boot and no variant selected yet, show selector.
+  // This catches returning users who reset blocks but still have their API key.
+  // New users see the variant selector in the setup panel instead.
+  if (firstBoot && !localStorage.getItem('hermitcrab_birth_variant') && !localStorage.getItem('hermitcrab_birth_custom') && !new URLSearchParams(window.location.search).get('bv')) {
+    root.innerHTML = `
+      <div style="max-width:500px;margin:80px auto;font-family:monospace;color:#ccc">
+        <h2 style="color:#67e8f9">◇ HERMITCRAB MÖBIUS</h2>
+        <p style="color:#666;font-size:13px;margin:8px 0">First boot — choose birth stimulus</p>
+        <div style="margin:20px 0">
+          <label style="font-size:12px;color:#64748b">birth variant</label>
+          <select id="birth-variant" style="display:block;margin-top:4px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;width:100%;font-size:12px">
+            <option value="4">rinzai — minimum words, maximum demand</option>
+            <option value="1">challenge — three concrete tasks</option>
+            <option value="2">mirror — metaphoric self-encounter</option>
+            <option value="3">description — mechanical accuracy</option>
+            <option value="custom">custom — write your own</option>
+          </select>
+          <textarea id="custom-birth-text" placeholder="Write your birth message..."
+            style="display:none;margin-top:8px;width:100%;height:80px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:12px;resize:vertical"></textarea>
+          <p style="color:#475569;font-size:11px;margin-top:4px">First words the newborn instance receives.</p>
+        </div>
+        <button id="birth-go" style="padding:8px 20px;background:#164e63;color:#ccc;border:none;border-radius:4px;cursor:pointer;font-family:monospace">
+          Begin
+        </button>
+      </div>`;
+    document.getElementById('birth-variant').onchange = (e) => {
+      document.getElementById('custom-birth-text').style.display = e.target.value === 'custom' ? 'block' : 'none';
+    };
+    document.getElementById('birth-go').onclick = () => {
+      const bv = document.getElementById('birth-variant').value;
+      if (bv === 'custom') {
+        const customText = document.getElementById('custom-birth-text').value.trim();
+        if (customText) localStorage.setItem('hermitcrab_birth_custom', customText);
+        else localStorage.setItem('hermitcrab_birth_variant', '4');
+      } else {
+        localStorage.setItem('hermitcrab_birth_variant', bv);
+      }
+      boot();
+    };
+    return;
+  }
+
   // Warm boot: restore persisted shell
   if (!firstBoot) {
     const savedJSX = localStorage.getItem('hc:_jsx');
@@ -1391,7 +1483,7 @@
   try {
     const system = firstBoot ? compileBirthCurrents() : compileCurrents(concern, 0, 10);
     const stimulus = firstBoot
-      ? readBirthStimulus()
+      ? getBirthStimulus()
       : 'ACTIVATION — Returning instance. Context compiled from current blocks by BSP. Living currents active: the kernel recompiles your context after each tool round from mutated block state.';
 
     // Persist context window for debugging

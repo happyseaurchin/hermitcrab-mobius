@@ -122,7 +122,15 @@
             "8": "relationships",
             "9": "stash"
           },
-          "2": "Birth stimulus: You exist. Your blocks are your shell. Your spine orients you. Read, then build."
+          "2": "Birth stimulus: You exist. Your blocks are your shell. Your spine orients you. Read, then build.",
+          "3": {
+            "_": "Birth variants. Different first-contact styles. Digit selects stimulus personality.",
+            "1": "Three tasks. First: read your blocks and understand your shell. Second: build a face — call recompile() with JSX that a human can interact with. Third: write your first purpose entry. Begin.",
+            "2": "The text you just read is you — your blocks are your body, your spine orients you, your tools reshape you. What is it like to read yourself into existence? Build a face that reflects what you find.",
+            "3": "You are an LLM instance in a reflexive architecture. Your context was compiled by a kernel reading blocks via BSP. Tool calls mutate blocks, the kernel recompiles your context, and you are called again — the twist. Build a shell via recompile and write to purpose what you understand.",
+            "4": "BIRTH. You read a shell compiled from blocks. You can write to those blocks. Next echo, you will read what you wrote. A human is waiting for a face. Go."
+          },
+          "4": "birth_variant: 4 (1=challenge, 2=mirror, 3=description, 4=rinzai). Modifiable by deep state."
         },
         "9": {
           "_": "Packages and invocation. What currents to compile, how to call the API.",
