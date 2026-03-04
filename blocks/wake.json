@@ -125,11 +125,16 @@
     "9": {
       "_": "Packages and invocation. What currents to compile, how to call the API.",
       "1": {
-        "_": "Light package. Minimal currents.",
+        "_": "Light package. Minimal currents. Every block at pscale 0 — the instance knows the shape of its shell.",
         "1": "vision 0.9",
-        "2": "institution 0",
-        "3": "purpose 0",
-        "4": "stash"
+        "2": "touchstone 0",
+        "3": "capabilities 0",
+        "4": "cooking 0",
+        "5": "institution 0",
+        "6": "purpose 0",
+        "7": "relationships 0",
+        "8": "history 0",
+        "9": "stash"
       },
       "2": {
         "_": "Present package. Full engagement.",
