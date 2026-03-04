@@ -469,7 +469,7 @@
     const arg4 = parts.length > 3 ? parts[3] : undefined;
     return {
       blockName: parts[0],
-      spindle: arg2 === 'ref' ? 'ref' : (arg2 !== undefined ? parseFloat(arg2) : undefined),
+      spindle: arg2 === 'ref' ? 'ref' : arg2 === 'null' ? null : (arg2 !== undefined ? parseFloat(arg2) : undefined),
       point: (arg3 === 'ring' || arg3 === 'dir') ? arg3 : (arg3 !== undefined ? parseFloat(arg3) : undefined),
       fn: arg4 === 'disc' ? 'disc' : undefined
     };
