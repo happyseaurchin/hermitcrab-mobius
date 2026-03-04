@@ -6,7 +6,10 @@
 (async function boot() {
   const root = document.getElementById('root');
   const STORE = 'hc:';
-  const CONV_KEY = 'hc_conversation';
+  // Concern-scoped conversation keys. Path is the concern tree address (e.g. "2.1.1.1").
+  // Using path not name — name is descriptive text, path is structurally unique.
+  function convKey(concernPath) { return 'hc_conv_' + (concernPath || 'default'); }
+  const CONV_KEY_LEGACY = 'hc_conversation';
 
   // ═══════ §1 BLOCK STORAGE ═══════
 
@@ -1023,6 +1026,8 @@
         params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
       }
       const response = await twist(params, concern);
+      // Auto-save conversation scoped by concern path
+      if (response._messages) saveConversation(response._messages, concern.path);
       if (opts.raw) return response;
       return (response.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || '';
     } finally {
@@ -1030,11 +1035,23 @@
     }
   }
 
-  function saveConversation(messages) {
-    try { localStorage.setItem(CONV_KEY, JSON.stringify(messages)); } catch (e) {}
+  function saveConversation(messages, concernPath) {
+    try { localStorage.setItem(convKey(concernPath), JSON.stringify(messages)); } catch (e) {}
   }
-  function loadConversation() {
-    try { const raw = localStorage.getItem(CONV_KEY); return raw ? JSON.parse(raw) : []; } catch (e) { return []; }
+  function loadConversation(concernPath) {
+    try {
+      const raw = localStorage.getItem(convKey(concernPath));
+      if (raw) return JSON.parse(raw);
+      // Migration: if legacy key exists and loading default, migrate it
+      if (!concernPath || concernPath === 'default') {
+        const legacy = localStorage.getItem(CONV_KEY_LEGACY);
+        if (legacy) {
+          localStorage.setItem(convKey('default'), legacy);
+          return JSON.parse(legacy);
+        }
+      }
+      return [];
+    } catch (e) { return []; }
   }
   function getSource() { return currentJSX || '(no source available)'; }
   function setTools(arr) { currentTools = arr; return 'Tools updated'; }
@@ -1054,7 +1071,7 @@
   props = {
     callLLM, callAPI,
     React, ReactDOM, getSource, recompile, setTools, browser,
-    conversation: { save: saveConversation, load: loadConversation },
+    conversation: { save: saveConversation, load: loadConversation, convKey },
     blockRead: (name, path) => { const b = blockLoad(name); if (!b) return null; return path ? blockReadNode(b, path) : b; },
     blockWrite: (name, path, content) => { const b = blockLoad(name); if (!b) return { error: 'not found' }; blockWriteNode(b, path, content); blockSave(name, b); return { success: true }; },
     blockList, blockCreate: (name, p0) => { if (blockLoad(name)) return { error: 'exists' }; blockSave(name, { tree: { _: p0 } }); return { success: true }; },
@@ -1193,8 +1210,8 @@
 
   // Determine concern and invoke
   const concern = firstBoot
-    ? { spindle: '0.1311111', tier: 3, name: 'self-maintenance' }  // Birth: deep tier
-    : findConcern('user');                                            // Return: user engagement
+    ? { spindle: '0.1311111', tier: 3, name: 'self-maintenance', path: '1.1.1' }  // Birth: deep tier
+    : findConcern('user');                                                          // Return: user engagement
 
   const inv = readInvocation(concern.tier);
   status(`calling ${inv.model} — ${firstBoot ? 'BIRTH' : 'ACTIVATION'}...`);
@@ -1221,7 +1238,9 @@
       params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
     }
 
-    await twist(params, concern);
+    const bootResponse = await twist(params, concern);
+    // Auto-save concern-scoped conversation
+    if (bootResponse._messages) saveConversation(bootResponse._messages, concern.path);
     _activationLock = false;
 
     if (currentJSX && reactRoot) {
@@ -1245,7 +1264,7 @@
     if (ripe.length === 0) return;
     const top = ripe[0];
     const tier = tierFromPscale(top.pscale);
-    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text };
+    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path };
     console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
     const inv = readInvocation(tier);
     const system = compileCurrents(concern, 0, 10);
@@ -1262,7 +1281,9 @@
       if (inv.thinking && params.max_tokens <= (inv.thinking.budget_tokens || 0)) {
         params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
       }
-      await twist(params, concern);
+      const response = await twist(params, concern);
+      // Auto-save concern-scoped conversation
+      if (response._messages) saveConversation(response._messages, concern.path);
     } catch (e) {
       console.error('[möbius] concern activation failed:', e);
     } finally {
