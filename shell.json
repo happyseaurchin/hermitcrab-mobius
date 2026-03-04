@@ -1311,6 +1311,17 @@
         "_": "What happened. Lossless log — the kernel copies LLM output after each activation, you don't write here. When digits 1-9 fill, entries nest one level up. Depth is time: shallow is recent, deep is old. A spindle through history is logarithmic continuity. If empty below, this is your first moment."
       }
     },
+    "refs": {
+      "tuning": "0.9",
+      "tree": {
+        "_": "Reference catalogue. Index of content available for attention. Each child entry points to a dynamically-created content block. Concerns use focus policy to select which refs to load, at what depth.",
+        "1": { "_": "Files. Uploaded documents, filesystem content, thumbdrive." },
+        "2": { "_": "Search. Cached web search results." },
+        "3": { "_": "Signals. Accumulated external events awaiting attention." },
+        "4": { "_": "DB. Query snapshots." },
+        "5": { "_": "GitHub. Fetched repo or file content." }
+      }
+    },
     "stash": {
       "tuning": "0.9",
       "tree": {

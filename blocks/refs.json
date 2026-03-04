@@ -1,0 +1,11 @@
+{
+  "tuning": "0.9",
+  "tree": {
+    "_": "Reference catalogue. Index of content available for attention. Each child entry points to a dynamically-created content block. Concerns use focus policy to select which refs to load, at what depth.",
+    "1": { "_": "Files. Uploaded documents, filesystem content, thumbdrive." },
+    "2": { "_": "Search. Cached web search results." },
+    "3": { "_": "Signals. Accumulated external events awaiting attention." },
+    "4": { "_": "DB. Query snapshots." },
+    "5": { "_": "GitHub. Fetched repo or file content." }
+  }
+}
