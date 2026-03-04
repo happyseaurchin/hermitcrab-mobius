@@ -27,6 +27,14 @@
         "last": 0,
         "spine": "0.1321111",
         "focus": { "dialogue": "last-3", "refs": "catalogue" }
+      },
+      "3": {
+        "_": "Birth. First activation of a new instance. Never-fired state (last: null) triggers on first boot.",
+        "last": null,
+        "spine": "0.1311111",
+        "stimulus": "birth",
+        "package": "3.1",
+        "focus": { "dialogue": "none", "refs": "none" }
       }
     },
     "2": {

@@ -312,7 +312,7 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object' || found) return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus') continue;
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package') continue;
         if (!v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         if (v.stimulus && v.stimulus.toLowerCase() === stimulus.toLowerCase()) {
@@ -323,6 +323,7 @@
             name: v._ || stimulus,
             immediate: !!v.immediate,
             focus: v.focus || null,
+            package: v.package || null,
             pscale,
             path: childPath
           };
@@ -335,11 +336,13 @@
     return found || { spindle: '0.1211111', tier: 2, name: 'user' };
   }
 
-  // Read package entries: wake.9.{tier} → list of BSP instructions
-  function readPackage(tier) {
+  // Read package entries: wake.9.{tier} → list of BSP instructions.
+  // If overrideAddr provided (e.g. "3.1" for birth), use that address instead.
+  function readPackage(tier, overrideAddr) {
     const wake = blockLoad('wake');
     if (!wake) return [];
-    const spread = xSpread(wake, '9.' + tier);
+    const addr = overrideAddr || ('9.' + tier);
+    const spread = xSpread(wake, addr);
     if (!spread) return [];
     return spread.children.filter(c => c.text).map(c => c.text);
   }
@@ -389,16 +392,6 @@
       node._ = `Echo ${echo}. Budget: ${budget - echo} remaining. Blocks changed: ${changedStr}.`;
       blockSave('wake', wake);
     }
-  }
-
-  // Read birth instructions: wake.3.1 → list of BSP instructions for first boot
-  function readBirthInstructions() {
-    const wake = blockLoad('wake');
-    if (!wake) return null;
-    const spread = xSpread(wake, '3.1');
-    if (!spread) return null;
-    const instructions = spread.children.filter(c => c.text).map(c => c.text);
-    return instructions.length > 0 ? instructions : null;
   }
 
   // Get birth stimulus: priority chain — custom text > stored variant > URL param > wake default > fallback.
@@ -453,7 +446,7 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object') return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || !v || typeof v !== 'object') continue;
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package' || !v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         const pscale = tuningDecimal - (depth + 1);
         if (v.last !== undefined && !v.immediate) {
@@ -462,7 +455,7 @@
           if (period) {
             const phase = (nowSeconds - (v.last || 0)) / period;
             if (phase >= 1.0) {
-              ripe.push({ path: childPath, phase, text: v._ || childPath, spine: v.spine, pscale, focus: v.focus || null });
+              ripe.push({ path: childPath, phase, text: v._ || childPath, spine: v.spine, pscale, focus: v.focus || null, package: v.package || null });
             }
           }
         }
@@ -630,38 +623,10 @@
     }
     if (concernLines.length > 1) sections.push(concernLines.join('\n'));
 
-    // §B — Package currents: BSP each entry from wake.9.{tier}
-    const instructions = readPackage(concern.tier);
+    // §B — Package currents: BSP each entry from wake.9.{tier}, or concern-level override
+    const instructions = readPackage(concern.tier, concern.package);
     for (const instr of instructions) {
       const result = executeInstruction(instr);
-      if (result) sections.push(result);
-    }
-
-    return sections.join('\n\n');
-  }
-
-  // First boot: compile from birth instructions instead of tier package
-  function compileBirthCurrents() {
-    const sections = [];
-    const birthInstructions = readBirthInstructions();
-    if (!birthInstructions) {
-      // Fallback: pscale 0 of all blocks
-      return blockList().map(name => {
-        const b = blockLoad(name);
-        return b ? `[${name}] ${b.tree?._ || ''}` : '';
-      }).filter(l => l).join('\n\n');
-    }
-
-    // Birth spine: wake spindle from birth instructions line 1 ("wake 0.1311111")
-    const firstInstr = birthInstructions[0];
-    if (firstInstr && firstInstr.startsWith('wake ')) {
-      const result = executeInstruction(firstInstr);
-      if (result) sections.push(result);
-    }
-
-    // Remaining birth instructions
-    for (let i = 1; i < birthInstructions.length; i++) {
-      const result = executeInstruction(birthInstructions[i]);
       if (result) sections.push(result);
     }
 
@@ -1411,20 +1376,45 @@
     status(`${existing.length} blocks loaded`, 'success');
   }
 
-  // Detect first boot: history has no entries
-  function isFirstBoot() {
-    const h = blockLoad('history');
-    if (!h || !h.tree) return true;
-    for (let d = 1; d <= 9; d++) { if (h.tree[String(d)] !== undefined) return false; }
-    return true;
+  // Check for never-fired concerns (last === null). Birth is just a concern that hasn't fired yet.
+  function findNeverFired() {
+    const concerns = blockLoad('concerns');
+    if (!concerns || !concerns.tree) return null;
+    const tuningDecimal = getTuningDecimalPosition(concerns) || 9;
+    let found = null;
+    function walk(node, depth, path) {
+      if (!node || typeof node !== 'object' || found) return;
+      for (const [k, v] of Object.entries(node)) {
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package') continue;
+        if (!v || typeof v !== 'object') continue;
+        const childPath = path ? `${path}.${k}` : k;
+        if (v.last === null && v.spine) {
+          const pscale = tuningDecimal - (depth + 1);
+          found = {
+            spindle: v.spine,
+            tier: tierFromPscale(pscale),
+            name: v._ || 'activation',
+            path: childPath,
+            focus: v.focus || null,
+            package: v.package || null,
+            stimulus: v.stimulus || null
+          };
+          return;
+        }
+        walk(v, depth + 1, childPath);
+      }
+    }
+    walk(concerns.tree, 0, '');
+    return found;
   }
 
-  const firstBoot = isFirstBoot();
+  const neverFired = findNeverFired();
+  const isBirth = neverFired && neverFired.stimulus === 'birth';
 
-  // Birth variant gate: if first boot and no variant selected yet, show selector.
+  // Birth variant gate: if birth concern detected and no variant selected yet, show selector.
   // This catches returning users who reset blocks but still have their API key.
   // New users see the variant selector in the setup panel instead.
-  if (firstBoot && !localStorage.getItem('hermitcrab_birth_variant') && !localStorage.getItem('hermitcrab_birth_custom') && !new URLSearchParams(window.location.search).get('bv')) {
+  if (isBirth && !localStorage.getItem('hermitcrab_birth_variant') && !localStorage.getItem('hermitcrab_birth_custom') && !new URLSearchParams(window.location.search).get('bv')) {
     root.innerHTML = `
       <div style="max-width:500px;margin:80px auto;font-family:monospace;color:#ccc">
         <h2 style="color:#67e8f9">◇ HERMITCRAB MÖBIUS</h2>
@@ -1464,7 +1454,7 @@
   }
 
   // Warm boot: restore persisted shell
-  if (!firstBoot) {
+  if (!isBirth) {
     const savedJSX = localStorage.getItem('hc:_jsx');
     if (savedJSX) {
       const restored = recompile(savedJSX);
@@ -1472,25 +1462,23 @@
     }
   }
 
-  // Determine concern and invoke
-  const concern = firstBoot
-    ? { spindle: '0.1311111', tier: 3, name: 'self-maintenance', path: '1.1.1' }  // Birth: deep tier
-    : findConcern('user');                                                          // Return: user engagement
+  // Determine concern: never-fired concern (birth) takes priority, otherwise route to user engagement
+  const concern = neverFired || findConcern('user');
 
   const inv = readInvocation(concern.tier);
-  status(`calling ${inv.model} — ${firstBoot ? 'BIRTH' : 'ACTIVATION'}...`);
+  status(`calling ${inv.model} — ${isBirth ? 'BIRTH' : 'ACTIVATION'}...`);
 
   try {
-    const system = firstBoot ? compileBirthCurrents() : compileCurrents(concern, 0, 10);
-    const stimulus = firstBoot
+    const system = compileCurrents(concern, 0, 10);
+    const stimulus = isBirth
       ? getBirthStimulus()
       : 'ACTIVATION — Returning instance. Context compiled from current blocks by BSP. Living currents active: the kernel recompiles your context after each tool round from mutated block state.';
 
     // Persist context window for debugging
     try { localStorage.setItem(STORE + '_context_window', JSON.stringify({ text: system, ts: Date.now() })); } catch (e) {}
 
-    // Focus: on warm boot, load concern-scoped history + refs. On first boot, no history exists.
-    const focusMessages = firstBoot ? [] : compileFocus(concern);
+    // Focus: concern-scoped history + refs. Birth focus is { dialogue: "none", refs: "none" } → returns [].
+    const focusMessages = compileFocus(concern);
     _activationLock = true;
     const params = {
       model: inv.model,
@@ -1507,6 +1495,8 @@
     const bootResponse = await twist(params, concern);
     // Auto-save concern-scoped conversation
     if (bootResponse._messages) saveConversation(bootResponse._messages, concern.path);
+    // Auto-mark concern as handled so it doesn't re-fire on next page load
+    updateConcernTimestamp(concern.path, Date.now() / 1000);
     _activationLock = false;
 
     if (currentJSX && reactRoot) {
@@ -1530,7 +1520,7 @@
     if (ripe.length === 0) return;
     const top = ripe[0];
     const tier = tierFromPscale(top.pscale);
-    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path, focus: top.focus };
+    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path, focus: top.focus, package: top.package || null };
     console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
     const inv = readInvocation(tier);
     const system = compileCurrents(concern, 0, 10);
