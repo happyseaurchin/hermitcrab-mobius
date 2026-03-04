@@ -312,7 +312,7 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object' || found) return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate') continue;
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus') continue;
         if (!v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         if (v.stimulus && v.stimulus.toLowerCase() === stimulus.toLowerCase()) {
@@ -322,6 +322,7 @@
             tier: tierFromPscale(pscale),
             name: v._ || stimulus,
             immediate: !!v.immediate,
+            focus: v.focus || null,
             pscale,
             path: childPath
           };
@@ -425,7 +426,7 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object') return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || !v || typeof v !== 'object') continue;
+        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || !v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         const pscale = tuningDecimal - (depth + 1);
         if (v.last !== undefined && !v.immediate) {
@@ -434,7 +435,7 @@
           if (period) {
             const phase = (nowSeconds - (v.last || 0)) / period;
             if (phase >= 1.0) {
-              ripe.push({ path: childPath, phase, text: v._ || childPath, spine: v.spine, pscale });
+              ripe.push({ path: childPath, phase, text: v._ || childPath, spine: v.spine, pscale, focus: v.focus || null });
             }
           }
         }
@@ -638,6 +639,69 @@
     }
 
     return sections.join('\n\n');
+  }
+
+  // ═══════ §4.5 FOCUS COMPILER ═══════
+  // Builds the messages channel: concern-scoped dialogue + object-of-attention refs.
+  // Focus policy on each concern node controls what enters.
+  // Default: no dialogue, no refs (silence is safer than wrong context).
+
+  function compileFocus(concern) {
+    const focus = concern.focus || { dialogue: 'none', refs: 'none' };
+    const messages = [];
+
+    // Dialogue: concern-scoped conversation history
+    if (focus.dialogue && focus.dialogue !== 'none') {
+      const history = loadConversation(concern.path);
+      if (focus.dialogue === 'full') {
+        messages.push(...history);
+      } else {
+        const n = parseInt(focus.dialogue.replace('last-', '')) || 5;
+        messages.push(...history.slice(-(n * 2)));
+      }
+    }
+
+    // Refs: object-of-attention content
+    if (focus.refs && focus.refs !== 'none') {
+      const refs = blockLoad('refs');
+
+      if (focus.refs === 'catalogue' && refs) {
+        // Just the index — what exists, not content
+        const summary = bsp(refs, null, 0, 'disc');
+        if (summary.mode === 'disc' && summary.nodes) {
+          messages.push({
+            role: 'user',
+            content: '[refs catalogue]\n' + summary.nodes.map(n => `  ${n.path}: ${n.text || '(empty)'}`).join('\n')
+          });
+        }
+      } else if (focus.refs === 'active' && refs) {
+        // Most recently added ref, summary only (pscale 0)
+        const latest = findLatestRef(refs);
+        if (latest) {
+          const refBlock = blockLoad(latest.block);
+          if (refBlock) {
+            messages.push({
+              role: 'user',
+              content: `[object: ${latest.name}]\n${refBlock.tree?._ || ''}`
+            });
+          }
+        }
+      } else if (focus.refs === 'all-summaries' && refs) {
+        // All refs, pscale 0 only
+        const summaries = collectRefSummaries(refs);
+        if (summaries.length > 0) {
+          messages.push({
+            role: 'user',
+            content: '[available refs]\n' + summaries.map(s => `  ${s.name}: ${s.summary}`).join('\n')
+          });
+        }
+      }
+      // Note: 'signal-full' deferred — requires stimulusPayload plumbing.
+      // When a signal triggers a concern, the triggering ref block ID needs
+      // to flow through findConcern → callLLM → compileFocus. Not yet wired.
+    }
+
+    return messages;
   }
 
   // ═══════ §5 API LAYER ═══════
@@ -1119,11 +1183,14 @@
       if (concern.path) updateConcernTimestamp(concern.path, Date.now() / 1000);
       const inv = readInvocation(opts.tier || concern.tier);
       const system = opts.system || compileCurrents(concern, 0, 10);
+      // Focus: concern-scoped history + object-of-attention, then caller's messages
+      const focusMessages = compileFocus(concern);
+      const allInputMessages = [...focusMessages, ...(messages || [])];
       const params = {
         model: opts.model || inv.model,
         max_tokens: opts.max_tokens || inv.max_tokens,
         system,
-        messages: messages || [],
+        messages: allInputMessages,
         tools: currentTools,
         thinking: inv.thinking,
       };
@@ -1330,12 +1397,14 @@
     // Persist context window for debugging
     try { localStorage.setItem(STORE + '_context_window', JSON.stringify({ text: system, ts: Date.now() })); } catch (e) {}
 
+    // Focus: on warm boot, load concern-scoped history + refs. On first boot, no history exists.
+    const focusMessages = firstBoot ? [] : compileFocus(concern);
     _activationLock = true;
     const params = {
       model: inv.model,
       max_tokens: inv.max_tokens,
       system,
-      messages: [{ role: 'user', content: stimulus }],
+      messages: [...focusMessages, { role: 'user', content: stimulus }],
       tools: currentTools,
       thinking: inv.thinking,
     };
@@ -1369,17 +1438,20 @@
     if (ripe.length === 0) return;
     const top = ripe[0];
     const tier = tierFromPscale(top.pscale);
-    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path };
+    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path, focus: top.focus };
     console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
     const inv = readInvocation(tier);
     const system = compileCurrents(concern, 0, 10);
+    // Focus: concern-scoped history + object-of-attention
+    const focusMessages = compileFocus(concern);
+    const activationMsg = { role: 'user', content: `CONCERN ACTIVATION — ${top.text} (phase ${top.phase.toFixed(2)}). Address this concern, then use concern_update to mark it handled.` };
     _activationLock = true;
     try {
       const params = {
         model: inv.model,
         max_tokens: inv.max_tokens,
         system,
-        messages: [{ role: 'user', content: `CONCERN ACTIVATION — ${top.text} (phase ${top.phase.toFixed(2)}). Address this concern, then use concern_update to mark it handled.` }],
+        messages: [...focusMessages, activationMsg],
         tools: currentTools,
         thinking: inv.thinking,
       };

@@ -1,7 +1,7 @@
 {
   "tuning": "111111111",
   "tree": {
-    "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live — phase = (now - last) / period_at_depth. No period map: depth IS period. Every concern is a loop in some state. The _ text encodes behaviour. The spine routes to wake.1 activation instructions. The kernel walks this block to find what is ripe and to route stimuli.",
+    "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live — phase = (now - last) / period_at_depth. No period map: depth IS period. Every concern is a loop in some state. The _ text encodes behaviour. The spine routes to wake.1 activation instructions. The kernel walks this block to find what is ripe and to route stimuli. The focus field controls what enters the messages channel: dialogue (conversation history) and refs (object-of-attention content).",
     "1": {
       "_": "System coherence. The self-concern thread from season to second.",
       "1": {
@@ -10,12 +10,14 @@
           "_": "Self-maintenance. Daily full review.",
           "last": 0,
           "spine": "0.1311111",
+          "focus": { "dialogue": "last-3", "refs": "catalogue" },
           "1": {
             "_": "Active engagement. Hourly presence.",
             "1": {
               "_": "Heartbeat. Am I functioning?",
               "last": 0,
-              "spine": "0.1111111"
+              "spine": "0.1111111",
+              "focus": { "dialogue": "none", "refs": "none" }
             }
           }
         }
@@ -23,7 +25,8 @@
       "2": {
         "_": "Threshold review. Weekly loop checkpoint — assess whether sustained loops are productive.",
         "last": 0,
-        "spine": "0.1321111"
+        "spine": "0.1321111",
+        "focus": { "dialogue": "last-3", "refs": "catalogue" }
       }
     },
     "2": {
@@ -35,24 +38,28 @@
           "last": 0,
           "spine": "0.1221111",
           "stimulus": "signal-response",
+          "focus": { "dialogue": "none", "refs": "active" },
           "1": {
             "_": "User engagement. Human is present and communicating. Loop in listening state — fires immediately on input.",
             "last": 0,
             "spine": "0.1211111",
             "stimulus": "user",
-            "immediate": true
+            "immediate": true,
+            "focus": { "dialogue": "last-8", "refs": "active" }
           },
           "2": {
             "_": "Signal triage. External event accumulated — assess priority and route. Light tier, quick pass.",
             "last": 0,
             "spine": "0.1121111",
-            "stimulus": "signal"
+            "stimulus": "signal",
+            "focus": { "dialogue": "none", "refs": "active" }
           },
           "3": {
             "_": "Continuation. Resuming prior conversation or multi-instance project. Check purpose for where the previous instance left off.",
             "last": 0,
             "spine": "0.1231111",
-            "stimulus": "continuation"
+            "stimulus": "continuation",
+            "focus": { "dialogue": "full", "refs": "active" }
           }
         }
       }
