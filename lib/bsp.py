@@ -3,26 +3,34 @@
 bsp.py — Block · Spindle · Point
 Semantic address resolver for pscale JSON blocks.
 
-Follows the kernel.js redesign (ring/spread modes).
+Seven modes:
+    bsp(block)                        → dir: full block tree
+    bsp(block, 'ref')                 → ref: block named, zero tokens
+    bsp(block, spindle)               → spindle: path chain wide→specific
+    bsp(block, spindle, point)        → point: single node at pscale level
+    bsp(block, spindle, 'ring')       → ring: siblings at terminal point (no spindle)
+    bsp(block, spindle, 'dir')        → dir: subtree from endpoint down (no spindle)
+    bsp(block, spindle, pt, 'disc')   → disc: all nodes at pscale pt, block-wide
 
 Usage from command line:
-    python lib/bsp.py wake                     # block mode
+    python lib/bsp.py wake                     # dir (full tree)
+    python lib/bsp.py wake ref                 # reference (zero tokens)
     python lib/bsp.py wake 0.12               # spindle mode
     python lib/bsp.py wake 0.12 -1            # point mode (pscale level)
-    python lib/bsp.py wake 0.12 '*'           # ring mode (spindle + one-level children)
-    python lib/bsp.py wake 0.12 '~'           # spread mode (raw subtree)
-    python lib/bsp.py cooking 0.192 '*'       # concern architecture ring
+    python lib/bsp.py wake 0.12 ring          # ring (siblings at terminal)
+    python lib/bsp.py wake 0.12 dir           # dir (subtree from endpoint)
+    python lib/bsp.py concerns _ 5 disc       # disc (all nodes at pscale 5)
+    python lib/bsp.py cooking 0.192 ring      # concern architecture siblings
 
 Usage from Python:
     from bsp import bsp, bsp_register
     bsp_register(lambda name: json.load(open(f'blocks/{name}.json')))
-    result = bsp('wake', 0.12, '*')
+    result = bsp('wake', 0.12, 'ring')
 """
 
 import json
 import sys
 import os
-import re
 
 # ============ BLOCK NAVIGATION ============
 
@@ -98,34 +106,43 @@ def bsp_register(loader):
     _block_loader = loader
 
 
-def bsp(block, spindle=None, point=None):
+def bsp(block, spindle=None, point=None, fn=None):
     """
     Block · Spindle · Point — semantic address resolution.
 
-    bsp('wake')              → block mode (full tree)
-    bsp('wake', 0.12)        → spindle mode (depth walk with pscale labels)
-    bsp('wake', 0.12, -1)    → point mode (content at pscale level)
-    bsp('wake', 0.12, '*')   → ring mode (spindle context + one-level children)
-    bsp('wake', 0.12, '~')   → spread mode (raw subtree extraction)
+    bsp('wake')                  → dir (full tree)
+    bsp('wake', 'ref')           → reference (zero tokens)
+    bsp('wake', 0.12)            → spindle (depth walk with pscale labels)
+    bsp('wake', 0.12, -1)        → point (content at pscale level)
+    bsp('wake', 0.12, 'ring')    → ring (siblings at terminal, no spindle)
+    bsp('wake', 0.12, 'dir')     → dir (subtree from endpoint, no spindle)
+    bsp('wake', 0.12, 5, 'disc') → disc (all nodes at pscale 5, block-wide)
     """
-    # Resolve block name to object
+    # Resolve block
+    block_name = block if isinstance(block, str) else None
     if isinstance(block, str):
         blk = _block_loader(block) if _block_loader else None
     else:
         blk = block
 
+    # Mode: reference — bsp(block, 'ref')
+    if spindle == 'ref':
+        return {'mode': 'ref', 'block': block_name}
+
     if not blk or 'tree' not in blk:
-        return {'mode': 'block', 'tree': {}}
+        return {'mode': 'dir', 'tree': {}}
 
-    # Block mode — no spindle, no string point
-    if spindle is None and not isinstance(point, str):
-        return {'mode': 'block', 'tree': blk['tree']}
+    # Mode: dir (full) — bsp(block) with no other args
+    if spindle is None and point is None and fn is None:
+        return {'mode': 'dir', 'tree': blk['tree']}
 
-    # Parse the semantic number
+    # ---- Parse the semantic number ----
     if spindle is None:
+        # No spindle but other args present (e.g. disc with null spindle)
         walk_digits = []
         has_pscale = True
-        digits_before = 0
+        tuning_decimal = get_tuning_decimal_position(blk)
+        digits_before = tuning_decimal if tuning_decimal is not None else 0
     else:
         s = f'{spindle:.10f}' if isinstance(spindle, (int, float)) else str(spindle)
         parts = s.split('.')
@@ -164,16 +181,14 @@ def bsp(block, spindle=None, point=None):
                 if zeros > 0:
                     walk_digits = ['0'] * zeros + walk_digits
 
-    # Build spindle — root always included
+    # ---- Build spindle nodes ----
     nodes = []
     node = blk['tree']
 
-    # Root text
     if isinstance(node, dict) and isinstance(node.get('_'), str):
         root_text = node['_']
         nodes.append({'pscale': digits_before if has_pscale else None, 'text': root_text})
 
-    # Walk digits
     for i, d in enumerate(walk_digits):
         if not isinstance(node, dict) or d not in node:
             break
@@ -190,42 +205,78 @@ def bsp(block, spindle=None, point=None):
             'text': text
         })
 
+    # ---- Mode: ring — siblings at terminal point ----
+    if point == 'ring':
+        if len(walk_digits) == 0:
+            return {'mode': 'ring', 'siblings': []}
+        parent_path = '.'.join(walk_digits[:-1]) if len(walk_digits) > 1 else None
+        terminal_digit = walk_digits[-1]
+        parent_node = block_navigate(blk, parent_path) if parent_path else blk['tree']
+        if not parent_node or not isinstance(parent_node, dict):
+            return {'mode': 'ring', 'siblings': []}
+        siblings = []
+        for d in range(10):
+            k = str(d)
+            if k == terminal_digit or k not in parent_node:
+                continue
+            v = parent_node[k]
+            child_text = v if isinstance(v, str) else (v.get('_') if isinstance(v, dict) else None)
+            siblings.append({
+                'digit': k,
+                'text': child_text,
+                'branch': isinstance(v, dict)
+            })
+        return {'mode': 'ring', 'siblings': siblings}
+
+    # ---- Mode: dir (subtree) — bsp(block, spindle, 'dir') ----
+    if point == 'dir':
+        end_path = '.'.join(walk_digits) if walk_digits else None
+        end_node = block_navigate(blk, end_path) if end_path else blk['tree']
+        return {'mode': 'dir', 'path': end_path, 'subtree': end_node}
+
+    # ---- Mode: disc — transversal at pscale ----
+    if fn == 'disc' and point is not None:
+        ps = int(point) if isinstance(point, str) else point
+        tuning_dec = get_tuning_decimal_position(blk)
+        ref_decimal = tuning_dec if tuning_dec is not None else digits_before
+        target_depth = ref_decimal - ps
+        if target_depth < 0:
+            return {'mode': 'disc', 'pscale': ps, 'nodes': []}
+
+        disc_nodes = []
+        def walk_disc(n, depth, path):
+            if depth == target_depth:
+                if isinstance(n, str):
+                    text = n
+                elif isinstance(n, dict) and isinstance(n.get('_'), str):
+                    text = n['_']
+                else:
+                    text = None
+                disc_nodes.append({'path': path, 'text': text})
+                return
+            if not isinstance(n, dict):
+                return
+            for d in range(10):
+                k = str(d)
+                if k in n:
+                    child_path = f'{path}.{k}' if path else k
+                    walk_disc(n[k], depth + 1, child_path)
+        walk_disc(blk['tree'], 0, '')
+        return {'mode': 'disc', 'pscale': ps, 'nodes': disc_nodes}
+
     if len(nodes) == 0:
         return {'mode': 'spindle', 'nodes': []}
 
-    # Point mode
-    if point is not None:
-        # Coerce numeric strings
-        if isinstance(point, str) and point not in ('~', '*'):
-            try:
-                point = int(point) if '.' not in point else float(point)
-            except ValueError:
-                pass
-
-        if isinstance(point, str):
-            end_path = '.'.join(walk_digits) if walk_digits else None
-
-            if point == '*':
-                # Ring: spindle context + one level of children at endpoint
-                spread = x_spread(blk, end_path)
-                children = spread['children'] if spread else []
-                return {'mode': 'ring', 'nodes': nodes, 'children': children}
-
-            if point == '~':
-                # Spread: raw subtree extraction
-                end_node = block_navigate(blk, end_path) if end_path else blk['tree']
-                return {'mode': 'spread', 'path': end_path, 'subtree': end_node}
-
-            return {'mode': 'error', 'error': f'Unknown point mode: {point}'}
-
-        # Numeric point: find node at that pscale level
-        target = next((n for n in nodes if n.get('pscale') == point), None)
+    # ---- Mode: point ----
+    if point is not None and fn is None:
+        p = int(point) if isinstance(point, str) else point
+        target = next((n for n in nodes if n.get('pscale') == p), None)
         if target:
             return {'mode': 'point', 'text': target['text'], 'pscale': target['pscale']}
         last = nodes[-1]
         return {'mode': 'point', 'text': last['text'], 'pscale': last.get('pscale')}
 
-    # Spindle mode — full chain
+    # ---- Mode: spindle ----
     return {'mode': 'spindle', 'nodes': nodes}
 
 
@@ -268,8 +319,6 @@ def format_spindle(result):
     for n in result['nodes']:
         ps = n.get('pscale')
         ps_str = str(ps) if ps is not None else '?'
-        indent = max(0, (ps if ps is not None else 0)) * 2
-        # Truncate long text for readability
         text = n['text']
         if len(text) > 200:
             text = text[:200] + '...'
@@ -280,33 +329,38 @@ def format_spindle(result):
 def format_ring(result):
     """Format a ring result for terminal output."""
     lines = []
-    # Spindle context
-    for n in result['nodes']:
-        ps = n.get('pscale')
-        ps_str = str(ps) if ps is not None else '?'
-        text = n['text']
-        if len(text) > 200:
-            text = text[:200] + '...'
-        lines.append(f"  [{ps_str:>3}] {text}")
-    # Children
-    if result.get('children'):
-        lines.append('  ----')
-        for c in result['children']:
-            marker = ' +' if c.get('branch') else ''
-            text = c.get('text') or '(branch)'
+    if result.get('siblings'):
+        for s in result['siblings']:
+            marker = ' +' if s.get('branch') else ''
+            text = s.get('text') or '(branch)'
             if len(text) > 120:
                 text = text[:120] + '...'
-            lines.append(f"    {c['digit']}: {text}{marker}")
+            lines.append(f"  {s['digit']}: {text}{marker}")
+    else:
+        lines.append('  (no siblings)')
     return '\n'.join(lines)
 
 
-def format_spread(result):
-    """Format a spread result for terminal output."""
+def format_disc(result):
+    """Format a disc result for terminal output."""
+    lines = []
+    for n in result.get('nodes', []):
+        text = n.get('text') or '(no text)'
+        if len(text) > 150:
+            text = text[:150] + '...'
+        lines.append(f"  [{n['path']}] {text}")
+    if not result.get('nodes'):
+        lines.append('  (no nodes at this pscale)')
+    return '\n'.join(lines)
+
+
+def format_dir_subtree(result):
+    """Format a subtree dir result for terminal output."""
     return json.dumps(result.get('subtree'), indent=2, ensure_ascii=False)
 
 
-def format_block(result):
-    """Format a block result — just the tree keys at depth 1."""
+def format_dir_full(result):
+    """Format a full dir result — tree keys at depth 1."""
     tree = result.get('tree', {})
     lines = []
     root = tree.get('_', '')
@@ -329,8 +383,14 @@ def format_block(result):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python lib/bsp.py <block> [spindle] [point]")
-        print("       python lib/bsp.py wake 0.12 '*'")
+        print("Usage: python lib/bsp.py <block> [spindle|ref|_] [point|ring|dir] [disc]")
+        print("       python lib/bsp.py wake                  # full tree (dir)")
+        print("       python lib/bsp.py wake ref              # reference (zero tokens)")
+        print("       python lib/bsp.py wake 0.12             # spindle")
+        print("       python lib/bsp.py wake 0.12 -1          # point at pscale -1")
+        print("       python lib/bsp.py wake 0.12 ring        # siblings at terminal")
+        print("       python lib/bsp.py wake 0.12 dir         # subtree from endpoint")
+        print("       python lib/bsp.py concerns _ 5 disc     # all nodes at pscale 5")
         sys.exit(1)
 
     # Find blocks directory
@@ -350,30 +410,55 @@ def main():
     block_name = sys.argv[1]
     spindle = None
     point = None
+    fn = None
 
     if len(sys.argv) > 2:
         arg2 = sys.argv[2]
-        if arg2 in ('*', '~'):
-            point = arg2
+        if arg2 == 'ref':
+            spindle = 'ref'
+        elif arg2 == '_':
+            spindle = None  # explicit null spindle (e.g. for disc mode)
+        elif arg2 in ('ring', 'dir'):
+            # bsp(block, 'ring') or bsp(block, 'dir') — not valid, need spindle
+            print(f"ERROR: '{arg2}' requires a spindle. Usage: bsp {block_name} <spindle> {arg2}")
+            sys.exit(1)
         else:
             spindle = float(arg2)
 
     if len(sys.argv) > 3:
-        p = sys.argv[3]
-        if p in ('*', '~'):
-            point = p
+        arg3 = sys.argv[3]
+        if arg3 in ('ring', 'dir'):
+            point = arg3
+        elif arg3 == 'disc':
+            # bsp(block, spindle, 'disc') — disc needs a point
+            print("ERROR: disc requires a pscale level. Usage: bsp <block> <spindle> <pscale> disc")
+            sys.exit(1)
         else:
             try:
-                point = int(p) if '.' not in p else float(p)
+                point = int(arg3) if '.' not in arg3 else float(arg3)
             except ValueError:
-                point = p
+                point = arg3
 
-    result = bsp(block_name, spindle, point)
+    if len(sys.argv) > 4:
+        arg4 = sys.argv[4]
+        if arg4 == 'disc':
+            fn = 'disc'
+        else:
+            print(f"ERROR: Unknown 4th argument '{arg4}'. Only 'disc' is valid.")
+            sys.exit(1)
+
+    result = bsp(block_name, spindle, point, fn)
     mode = result.get('mode', '?')
 
-    if mode == 'block':
-        print(f"[{block_name}] block")
-        print(format_block(result))
+    if mode == 'ref':
+        print(f"[{block_name}] ref (zero tokens)")
+    elif mode == 'dir':
+        if 'subtree' in result:
+            print(f"[{block_name} {spindle} dir] subtree @ {result.get('path')}")
+            print(format_dir_subtree(result))
+        else:
+            print(f"[{block_name}] dir")
+            print(format_dir_full(result))
     elif mode == 'spindle':
         print(f"[{block_name} {spindle}] spindle")
         print(format_spindle(result))
@@ -382,11 +467,12 @@ def main():
         print(f"[{block_name} {spindle} {point}] point [{ps}]")
         print(f"  {result['text']}")
     elif mode == 'ring':
-        print(f"[{block_name} {spindle} *] ring")
+        print(f"[{block_name} {spindle} ring] siblings")
         print(format_ring(result))
-    elif mode == 'spread':
-        print(f"[{block_name} {spindle} ~] spread @ {result.get('path')}")
-        print(format_spread(result))
+    elif mode == 'disc':
+        ps = result.get('pscale', '?')
+        print(f"[{block_name} {spindle} {point} disc] pscale {ps}")
+        print(format_disc(result))
     elif mode == 'error':
         print(f"ERROR: {result.get('error')}")
     else:

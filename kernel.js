@@ -106,21 +106,28 @@
     return depth;
   }
 
-  function bsp(block, spindle, point) {
+  function bsp(block, spindle, point, fn) {
     const blk = typeof block === 'string' ? blockLoad(block) : block;
-    if (!blk || !blk.tree) return { mode: 'block', tree: {} };
 
-    // Block mode
-    if ((spindle === undefined || spindle === null) && typeof point !== 'string') {
-      return { mode: 'block', tree: blk.tree };
+    // Mode: reference — bsp(block, 'ref')
+    if (spindle === 'ref') {
+      return { mode: 'ref', block: typeof block === 'string' ? block : null };
+    }
+
+    if (!blk || !blk.tree) return { mode: 'dir', tree: {} };
+
+    // Mode: dir (full) — bsp(block) with no other args
+    if (spindle == null && point == null && fn == null) {
+      return { mode: 'dir', tree: blk.tree };
     }
 
     // Parse semantic number
     let walkDigits, hasPscale, digitsBefore;
-    if (spindle === undefined || spindle === null) {
+    if (spindle == null) {
       walkDigits = [];
       hasPscale = true;
-      digitsBefore = 0;
+      const tuningDecimal = getTuningDecimalPosition(blk);
+      digitsBefore = tuningDecimal !== null ? tuningDecimal : 0;
     } else {
       const str = typeof spindle === 'number' ? spindle.toFixed(10) : String(spindle);
       const parts = str.split('.');
@@ -168,29 +175,64 @@
       nodes.push({ pscale: hasPscale ? (digitsBefore - 1) - i : null, digit: d, text });
     }
 
+    // Mode: ring — siblings at terminal point (no spindle)
+    if (point === 'ring') {
+      if (walkDigits.length === 0) return { mode: 'ring', siblings: [] };
+      const parentPath = walkDigits.length > 1 ? walkDigits.slice(0, -1).join('.') : null;
+      const terminalDigit = walkDigits[walkDigits.length - 1];
+      const parentNode = parentPath ? blockNavigate(blk, parentPath) : blk.tree;
+      if (!parentNode || typeof parentNode !== 'object') return { mode: 'ring', siblings: [] };
+      const siblings = [];
+      for (let d = 0; d <= 9; d++) {
+        const k = String(d);
+        if (k === terminalDigit || parentNode[k] === undefined) continue;
+        const v = parentNode[k];
+        const childText = typeof v === 'string' ? v : (v && typeof v === 'object' && v._) ? v._ : null;
+        siblings.push({ digit: k, text: childText, branch: typeof v === 'object' && v !== null });
+      }
+      return { mode: 'ring', siblings };
+    }
+
+    // Mode: dir (subtree) — bsp(block, spindle, 'dir')
+    if (point === 'dir') {
+      const endPath = walkDigits.length > 0 ? walkDigits.join('.') : null;
+      const endNode = endPath ? blockNavigate(blk, endPath) : blk.tree;
+      return { mode: 'dir', path: endPath, subtree: endNode || null };
+    }
+
+    // Mode: disc — transversal at pscale, block-wide
+    if (fn === 'disc' && point != null) {
+      const pscale = typeof point === 'string' ? Number(point) : point;
+      const tuningDecimal = getTuningDecimalPosition(blk);
+      const refDecimal = tuningDecimal !== null ? tuningDecimal : digitsBefore;
+      const targetDepth = refDecimal - pscale;
+      if (targetDepth < 0) return { mode: 'disc', pscale, nodes: [] };
+      const discNodes = [];
+      function walkDisc(n, depth, path) {
+        if (depth === targetDepth) {
+          const text = typeof n === 'string' ? n
+            : (n && typeof n === 'object' && typeof n._ === 'string') ? n._
+            : null;
+          discNodes.push({ path, text });
+          return;
+        }
+        if (!n || typeof n !== 'object') return;
+        for (let d = 0; d <= 9; d++) {
+          const k = String(d);
+          if (n[k] !== undefined) walkDisc(n[k], depth + 1, path ? `${path}.${k}` : k);
+        }
+      }
+      walkDisc(blk.tree, 0, '');
+      return { mode: 'disc', pscale, nodes: discNodes };
+    }
+
     if (nodes.length === 0) return { mode: 'spindle', nodes: [] };
 
-    // Point mode
-    if (point !== undefined && point !== null) {
-      if (typeof point === 'string' && !isNaN(Number(point)) && point !== '~' && point !== '*') {
-        point = Number(point);
-      }
-      if (typeof point === 'string') {
-        const endPath = walkDigits.length > 0 ? walkDigits.join('.') : null;
-        if (point === '*') {
-          // Ring: spindle context + one level of children at endpoint
-          const spread = xSpread(blk, endPath);
-          const children = spread ? spread.children : [];
-          return { mode: 'ring', nodes, children };
-        }
-        if (point === '~') {
-          // Spread: raw subtree extraction at endpoint (for merging, manipulation)
-          const endNode = endPath ? blockNavigate(blk, endPath) : blk.tree;
-          return { mode: 'spread', path: endPath, subtree: endNode || null };
-        }
-        return { mode: 'error', error: `Unknown point mode: ${point}` };
-      }
-      const target = nodes.find(n => n.pscale === point);
+    // Mode: point — single node at pscale level
+    if (point != null && fn == null) {
+      const p = typeof point === 'string' ? Number(point) : point;
+      if (isNaN(p)) return { mode: 'error', error: `Unknown mode: ${point}` };
+      const target = nodes.find(n => n.pscale === p);
       if (target) return { mode: 'point', text: target.text, pscale: target.pscale };
       const last = nodes[nodes.length - 1];
       return { mode: 'point', text: last.text, pscale: last.pscale };
@@ -422,11 +464,14 @@
 
   function parseInstruction(instr) {
     const parts = instr.trim().split(/\s+/);
-    const point = parts.length > 2 ? parts[2] : undefined;
+    const arg2 = parts.length > 1 ? parts[1] : undefined;
+    const arg3 = parts.length > 2 ? parts[2] : undefined;
+    const arg4 = parts.length > 3 ? parts[3] : undefined;
     return {
       blockName: parts[0],
-      spindle: parts.length > 1 ? parseFloat(parts[1]) : undefined,
-      point: (point === '~' || point === '*') ? point : (point !== undefined ? parseFloat(point) : undefined)
+      spindle: arg2 === 'ref' ? 'ref' : (arg2 !== undefined ? parseFloat(arg2) : undefined),
+      point: (arg3 === 'ring' || arg3 === 'dir') ? arg3 : (arg3 !== undefined ? parseFloat(arg3) : undefined),
+      fn: arg4 === 'disc' ? 'disc' : undefined
     };
   }
 
@@ -447,25 +492,27 @@
   }
 
   function executeInstruction(instr) {
-    const { blockName, spindle, point } = parseInstruction(instr);
+    const { blockName, spindle, point, fn } = parseInstruction(instr);
     const block = blockLoad(blockName);
     if (!block) return '';
-    const result = bsp(block, spindle, point);
-    if (result.mode === 'block') return `[${blockName}]\n${formatBlockContent(block)}`;
+    const result = bsp(block, spindle, point, fn);
+    if (result.mode === 'dir') {
+      if (result.subtree) return `[${blockName} ${spindle} dir]\n${JSON.stringify(result.subtree, null, 2)}`;
+      return `[${blockName}]\n${formatBlockContent(block)}`;
+    }
+    if (result.mode === 'ref') return '';
     if (result.mode === 'spindle') {
       if (result.nodes.length === 0) return '';
       return `[${blockName} ${spindle}]\n${result.nodes.map(n => `  [${n.pscale}] ${n.text}`).join('\n')}`;
     }
     if (result.mode === 'point') return `[${blockName} ${spindle} ${point}] ${result.text}`;
     if (result.mode === 'ring') {
-      // Spindle context + one level of children
-      const spine = result.nodes.map(n => `  [${n.pscale}] ${n.text}`);
-      const kids = (result.children || []).map(c => `    ${c.digit}: ${c.text || '(branch)'}${c.branch ? ' +' : ''}`);
-      return `[${blockName} ${spindle} *]\n${spine.join('\n')}\n${kids.join('\n')}`;
+      const sibs = (result.siblings || []).map(c => `  ${c.digit}: ${c.text || '(branch)'}${c.branch ? ' +' : ''}`);
+      return `[${blockName} ${spindle} ring]\n${sibs.join('\n')}`;
     }
-    if (result.mode === 'spread') {
-      // Raw subtree — format as JSON for extraction
-      return `[${blockName} ${spindle} ~]\n${JSON.stringify(result.subtree, null, 2)}`;
+    if (result.mode === 'disc') {
+      const entries = (result.nodes || []).map(n => `  [${n.path}] ${n.text || '(no text)'}`);
+      return `[${blockName} ${spindle} ${point} disc]\n${entries.join('\n')}`;
     }
     return '';
   }
@@ -480,13 +527,12 @@
       sections.push(`[spine ${concern.spindle}]\n${spineResult.nodes.map(n => `  [${n.pscale}] ${n.text}`).join('\n')}`);
     }
 
-    // §A.5 — Concern dashboard. Ring at root for structure + ripe set for urgency.
-    const concernRing = bsp('concerns', 0, '*');
-    if (concernRing.mode === 'ring') {
+    // §A.5 — Concern dashboard. Disc at pscale 8 for top-level structure + ripe set for urgency.
+    const concernDisc = bsp('concerns', null, 8, 'disc');
+    if (concernDisc.mode === 'disc') {
       const ringLines = [`[concerns]`];
-      for (const c of concernRing.children) {
-        if (c.digit === '_') continue;
-        ringLines.push(`  ${c.digit}: ${c.text || '(branch)'}${c.branch ? ' +' : ''}`);
+      for (const c of concernDisc.nodes) {
+        ringLines.push(`  ${c.path}: ${c.text || '(branch)'}`);
       }
       const ripeSet = whatsRipe(Date.now() / 1000);
       if (ripeSet.length > 0) {
@@ -585,13 +631,14 @@
     },
     {
       name: 'bsp',
-      description: 'Block·Spindle·Point — semantic address resolution.\nbsp(name) → full block\nbsp(name, 0.21) → spindle (depth walk)\nbsp(name, 0.21, -1) → point at pscale\nbsp(name, 0.21, "*") → ring (spindle context + one level of children)\nbsp(name, 0.21, "~") → spread (raw subtree extraction)',
+      description: 'Block·Spindle·Point — semantic address resolution.\nbsp(name) → dir (full tree)\nbsp(name, "ref") → reference (zero tokens)\nbsp(name, 0.21) → spindle (depth walk)\nbsp(name, 0.21, -1) → point at pscale\nbsp(name, 0.21, "ring") → siblings at terminal point\nbsp(name, 0.21, "dir") → subtree from endpoint\nbsp(name, null, 5, "disc") → all nodes at pscale 5, block-wide\nbulb = spindle + ring (named compound)',
       input_schema: {
         type: 'object',
         properties: {
           name: { type: 'string' },
-          spindle: { type: 'number' },
-          point: { description: "Number: pscale level. '*': ring (spindle + one-level children). '~': spread (raw subtree extraction).", oneOf: [{ type: 'number' }, { type: 'string', enum: ['*', '~'] }] }
+          spindle: { description: "Semantic number (e.g. 0.21) or 'ref' for reference mode.", oneOf: [{ type: 'number' }, { type: 'string', enum: ['ref'] }] },
+          point: { description: "Number: pscale level. 'ring': siblings at terminal. 'dir': subtree from endpoint.", oneOf: [{ type: 'number' }, { type: 'string', enum: ['ring', 'dir'] }] },
+          fn: { description: "'disc': transversal — all nodes at the pscale specified by point, block-wide.", type: 'string', enum: ['disc'] }
         },
         required: ['name']
       }
@@ -689,8 +736,8 @@
         return JSON.stringify({ success: true, name: input.name });
       }
       case 'bsp': {
-        const result = bsp(input.name, input.spindle, input.point);
-        if (result.mode === 'block' && Object.keys(result.tree).length === 0) {
+        const result = bsp(input.name, input.spindle, input.point, input.fn);
+        if (result.mode === 'dir' && result.tree && Object.keys(result.tree).length === 0) {
           return JSON.stringify({ error: `Block "${input.name}" not found` });
         }
         return JSON.stringify(result);
