@@ -65,7 +65,9 @@
       if (!node[k]) node[k] = {};
       node = node[k];
     }
-    if (node[last] && typeof node[last] === 'object') {
+    if (content === null || content === undefined) {
+      delete node[last];
+    } else if (node[last] && typeof node[last] === 'object') {
       node[last]._ = content;
     } else {
       node[last] = content;
