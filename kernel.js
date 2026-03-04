@@ -527,23 +527,28 @@
       sections.push(`[spine ${concern.spindle}]\n${spineResult.nodes.map(n => `  [${n.pscale}] ${n.text}`).join('\n')}`);
     }
 
-    // §A.5 — Concern dashboard. Disc at pscale 8 for top-level structure + ripe set for urgency.
-    const concernDisc = bsp('concerns', null, 8, 'disc');
-    if (concernDisc.mode === 'disc') {
-      const ringLines = [`[concerns]`];
-      for (const c of concernDisc.nodes) {
-        ringLines.push(`  ${c.path}: ${c.text || '(branch)'}`);
-      }
-      const ripeSet = whatsRipe(Date.now() / 1000);
-      if (ripeSet.length > 0) {
-        ringLines.push(`  [ripe]`);
-        for (const r of ripeSet) {
-          const urgency = r.phase > 2.0 ? ' (significantly overdue)' : r.phase > 1.5 ? ' (overdue)' : '';
-          ringLines.push(`    [${r.pscale}] ${r.text} — phase ${r.phase.toFixed(2)}${urgency}`);
+    // §A.5 — Concern dashboard. Tier-sensitive: light=ripe, present=roots+ripe, deep=full+ripe.
+    const concernLines = ['[concerns]'];
+    if (concern.tier >= 3) {
+      const concernsBlock = blockLoad('concerns');
+      if (concernsBlock) concernLines.push(formatBlockContent(concernsBlock));
+    } else if (concern.tier >= 2) {
+      const concernDisc = bsp('concerns', null, 8, 'disc');
+      if (concernDisc.mode === 'disc') {
+        for (const c of concernDisc.nodes) {
+          concernLines.push(`  ${c.path}: ${c.text || '(branch)'}`);
         }
       }
-      sections.push(ringLines.join('\n'));
     }
+    const ripeSet = whatsRipe(Date.now() / 1000);
+    if (ripeSet.length > 0) {
+      concernLines.push('  [ripe]');
+      for (const r of ripeSet) {
+        const urgency = r.phase > 2.0 ? ' (significantly overdue)' : r.phase > 1.5 ? ' (overdue)' : '';
+        concernLines.push(`    [${r.pscale}] ${r.text} — phase ${r.phase.toFixed(2)}${urgency}`);
+      }
+    }
+    if (concernLines.length > 1) sections.push(concernLines.join('\n'));
 
     // §B — Package currents: BSP each entry from wake.9.{tier}
     const instructions = readPackage(concern.tier);
