@@ -2,23 +2,11 @@
 
 ## Session startup
 - Always `git pull origin main` before starting work to keep local main in sync with GitHub.
-- Ensure the pre-commit hook exists. If `.git/hooks/pre-commit` is missing, create it:
-  ```sh
-  cat > .git/hooks/pre-commit << 'HOOK'
-  #!/bin/sh
-  if git diff --cached --name-only | grep -q '^blocks/'; then
-    node build-shell.js
-    git add shell.json
-  fi
-  HOOK
-  chmod +x .git/hooks/pre-commit
-  ```
 
 ## Architecture
 - **blocks/** is the source of truth for shell data. Individual JSON files, one per block.
 - **shell.json** is a build artifact assembled from blocks/. Never edit it by hand.
-- A pre-commit hook auto-rebuilds shell.json when blocks/ files are staged. No manual rebuild needed.
-- `node build-shell.js` can still be run manually if needed.
+- Before pushing to main (or merging a PR), run `node build-shell.js` and stage the updated shell.json. Not needed on every commit — only before the changes reach main.
 - **kernel.js** loads shell.json at boot via `loadSeed()` and writes it to localStorage.
 
 ## Navigating blocks — use BSP, not raw JSON
