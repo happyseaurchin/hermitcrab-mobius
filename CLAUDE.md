@@ -2,6 +2,17 @@
 
 ## Session startup
 - Always `git pull origin main` before starting work to keep local main in sync with GitHub.
+- Ensure the pre-commit hook exists. If `.git/hooks/pre-commit` is missing, create it:
+  ```sh
+  cat > .git/hooks/pre-commit << 'HOOK'
+  #!/bin/sh
+  if git diff --cached --name-only | grep -q '^blocks/'; then
+    node build-shell.js
+    git add shell.json
+  fi
+  HOOK
+  chmod +x .git/hooks/pre-commit
+  ```
 
 ## Architecture
 - **blocks/** is the source of truth for shell data. Individual JSON files, one per block.
