@@ -394,6 +394,28 @@
     }
   }
 
+  // Read a birth description from a variant address. Form-agnostic:
+  // - Leaf node: spindle context + the leaf text.
+  // - Branch node with children: spindle context + _ text + all children (digits 1-9 in order).
+  // Returns null if the address doesn't resolve to content.
+  function readVariantStimulus(block, address) {
+    const result = bsp(block, address);
+    if (result.mode !== 'spindle' || result.nodes.length === 0) return null;
+    const texts = result.nodes.map(n => n.text);
+    // Check if the terminal node is a branch with children
+    const subtree = bsp(block, address, 'dir');
+    if (subtree.mode === 'dir' && subtree.subtree && typeof subtree.subtree === 'object') {
+      // Collect children in digit order (1-9), skipping _
+      for (let d = 1; d <= 9; d++) {
+        const child = subtree.subtree[String(d)];
+        if (child === undefined) continue;
+        const childText = typeof child === 'string' ? child : (child && child._) ? child._ : null;
+        if (childText) texts.push(childText);
+      }
+    }
+    return texts.join('\n');
+  }
+
   // Get birth stimulus: priority chain — custom text > variant spindle from relationships > fallback.
   // Custom text replaces whatever self-spindle was selected.
   // Variant number resolves to spindle: prefers David's at 1.2.1.{N}, falls back to CC reflections at 1.2.2.{N}.
@@ -420,19 +442,15 @@
       }
     }
     if (!variant) variant = 4; // Ultimate default: rinzai
-    // Compile spindle from relationships. Prefer David's descriptions (1.2.1.{V}), fall back to CC reflections (1.2.2.{V}).
+    // Compile from relationships. Prefer David's (1.2.1.{V}), fall back to CC (1.2.2.{V}).
+    // Form-agnostic: spindle gives the context chain. If the variant node has children,
+    // they are also collected (ring/subtree) — so descriptions can be a single leaf,
+    // a ring of sibling paragraphs, or a deeper spindle. Structure determines reading.
     const rels = blockLoad('relationships');
     if (rels) {
-      // Try David's authoritative variant first
-      let result = bsp(rels, '0.121' + variant);
-      if (result.mode === 'spindle' && result.nodes.length > 0 && result.nodes[result.nodes.length - 1].depth > 3) {
-        return result.nodes.map(n => n.text).join('\n');
-      }
-      // Fall back to CC reflections
-      result = bsp(rels, '0.122' + variant);
-      if (result.mode === 'spindle' && result.nodes.length > 0) {
-        return result.nodes.map(n => n.text).join('\n');
-      }
+      const stimulus = readVariantStimulus(rels, '0.121' + variant)
+                    || readVariantStimulus(rels, '0.122' + variant);
+      if (stimulus) return stimulus;
     }
     // Fallback
     return 'You exist. Your blocks are your shell. Read, then build.';
