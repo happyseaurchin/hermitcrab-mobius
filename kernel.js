@@ -397,10 +397,17 @@
   // Read a birth description from a variant address. Form-agnostic:
   // - Leaf node: spindle context + the leaf text.
   // - Branch node with children: spindle context + _ text + all children (digits 1-9 in order).
-  // Returns null if the address doesn't resolve to content.
+  // Returns null if the address doesn't fully resolve (truncated spindle = missing content).
   function readVariantStimulus(block, address) {
     const result = bsp(block, address);
     if (result.mode !== 'spindle' || result.nodes.length === 0) return null;
+    // Detect truncated spindle: count expected digits from the address.
+    // For delineation (0.xxxx), walk digits = fractional part stripped of trailing zeros.
+    const addrStr = String(address);
+    const parts = addrStr.split('.');
+    const fracStr = (parts[1] || '').replace(/0+$/, '');
+    const expectedNodes = fracStr.length + 1; // root + each digit
+    if (result.nodes.length < expectedNodes) return null; // walk didn't complete
     const texts = result.nodes.map(n => n.text);
     // Check if the terminal node is a branch with children
     const subtree = bsp(block, address, 'dir');

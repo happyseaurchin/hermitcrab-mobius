@@ -29,7 +29,7 @@ Two BSP CLI tools exist at `lib/bsp.py` (Python) and `lib/bsp-cli.js` (Node). Us
 python3 lib/bsp.py touchstone 0.21          # spindle: root → section 2 → subsection 1
 python3 lib/bsp.py wake                      # dir: full tree
 python3 lib/bsp.py relationships 0.122 ring  # ring: siblings at CC birth descriptions
-python3 lib/bsp.py concerns null 5 disc      # disc: all nodes at pscale 5 (hourly concerns)
+python3 lib/bsp.py concerns _ 5 disc         # disc: all nodes at pscale 5 (hourly concerns)
 python3 lib/bsp.py touchstone 0.21 -2        # point: just the content at pscale -2
 ```
 
@@ -37,7 +37,7 @@ python3 lib/bsp.py touchstone 0.21 -2        # point: just the content at pscale
 ```sh
 node lib/bsp-cli.js touchstone 0.21          # spindle
 node lib/bsp-cli.js wake                     # dir
-node lib/bsp-cli.js relationships 0.122 '*'  # ring (note: uses '*' not 'ring')
+node lib/bsp-cli.js relationships 0.122 '*'  # '*' = spindle + children at terminal (not canonical ring — use Python for true ring)
 ```
 
 When writing or verifying BSP addresses in code (wake block stimulus fields, kernel references, cooking recipes), always run the BSP call first to confirm the output matches what the consumer expects. See cooking 0.1923 for the reference verification principle.
