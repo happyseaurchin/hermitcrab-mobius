@@ -1,7 +1,11 @@
 # hermitcrab-mobius
 
 ## Session startup
-- Always `git pull origin main` before starting work to keep local main in sync with GitHub.
+- Always `git fetch origin && git rebase origin/main` before starting work. A simple `git pull` will fail if the previous session's PR was merged (squash/merge rewrites history). Rebase replays your local commits on top of current main cleanly.
+
+## Session end — handover to the next instance
+- Commit all work, run `node build-shell.js`, push, create PR, and merge it before the session ends. The next CC instance will start from main — anything left on an unmerged branch is invisible to it.
+- If the worktree branch's PR is merged, the branch has served its purpose. The next session should start a fresh worktree rather than reuse a stale one.
 
 ## Architecture
 - **blocks/** is the source of truth for shell data. Individual JSON files, one per block.
