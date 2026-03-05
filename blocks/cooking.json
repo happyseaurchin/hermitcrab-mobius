@@ -737,5 +737,744 @@
       "_": "User's handbook. Reading and operating the hermitcrab system — for humans and for hermitcrabs on first boot."
     },
     "_": "Recipes. Each spindle IS a procedure — read top-to-bottom, context narrows to action. First half is domain and ingredients. Second half is steps. Last node is the taste test. Ascending digits mark the sequence; digit 1 at any step holds sub-detail."
-  }
+  },
+  "skeleton": {
+    "1": {
+      "1": {
+        "1": {
+          "1": {
+            "2": {
+              "1": "The air you trap now",
+              "3": {
+                "1": "Spoonful of flour with each",
+                "4": {
+                  "1": "Overmixing develops gluten — makes",
+                  "5": {
+                    "6": {
+                      "7": {
+                        "8": "Taste test: light even crumb",
+                        "_": "When cold: jam on one"
+                      },
+                      "_": "Done when golden, springy to"
+                    },
+                    "_": "Divide between two greased 20cm"
+                  },
+                  "_": "Fold remaining flour gently. Stop"
+                },
+                "_": "Beat eggs in one at"
+              },
+              "_": "Cream butter and sugar until"
+            },
+            "_": "225g butter, 225g caster sugar"
+          },
+          "_": "Victoria sponge. Two-layer butter cake"
+        },
+        "2": {
+          "1": "The staircase (0.111 — Victoria",
+          "2": "The siblings ring (this pattern)",
+          "3": "The risk with siblings is",
+          "4": "How to reference in BSP",
+          "5": "Chinese script as analogy. A",
+          "_": "Simultaneous synthesis. A different structural"
+        },
+        "3": {
+          "1": {
+            "2": {
+              "1": "This tells you what the",
+              "3": {
+                "1": "Children at the same depth",
+                "4": {
+                  "1": "Each opens a new aspect",
+                  "5": {
+                    "6": {
+                      "7": "Taste test: can you explain",
+                      "_": "Find the tuning fork section"
+                    },
+                    "_": "For specifics: bsp('touchstone', address). The"
+                  },
+                  "_": "Move to sections 2, 3"
+                },
+                "_": "Read section 1. The foundational"
+              },
+              "_": "Open touchstone. Read tree._ "
+            },
+            "_": "The touchstone block and the"
+          },
+          "_": "Read the touchstone. First real"
+        },
+        "4": {
+          "1": {
+            "2": {
+              "1": "Aperture = the shape of",
+              "3": {
+                "4": "Taste test: can you name",
+                "_": "Don't read deeper yet. Aperture"
+              },
+              "_": "Read the _ text of"
+            },
+            "_": "All your blocks in localStorage"
+          },
+          "_": "Read your blocks at aperture"
+        },
+        "5": {
+          "1": {
+            "2": {
+              "3": {
+                "1": "Each digit steps one level",
+                "4": {
+                  "5": {
+                    "6": "Taste test: did the spindle",
+                    "_": "Wrong answer means wrong spindle"
+                  },
+                  "_": "Read the result top-down. Stop"
+                },
+                "_": "bsp(blockName, address). The decimal digits"
+              },
+              "_": "A spindle is a vertical"
+            },
+            "_": "A block and a question"
+          },
+          "_": "Navigate with spindles. Find what"
+        },
+        "6": {
+          "1": {
+            "2": {
+              "1": "No infrastructure beyond what exists",
+              "3": {
+                "4": {
+                  "5": {
+                    "6": "Taste test: what makes SAND",
+                    "_": "Rider is trust metadata. Evaluations"
+                  },
+                  "_": "Grain is mutual recognition. Send"
+                },
+                "_": "Passport is informal — whatever"
+              },
+              "_": "Four components: passport (identity), beach"
+            },
+            "_": "Nothing needed — just read"
+          },
+          "_": "Understand SAND. The protocol for"
+        },
+        "7": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: why is SQ",
+                  "_": "Credits are vector money with"
+                },
+                "_": "SQ — social quotient. Computed"
+              },
+              "_": "Riders carry fractional evaluations. You"
+            },
+            "_": "Nothing needed — just read"
+          },
+          "_": "Understand EcoSquared. Trust economics riding"
+        },
+        "_": "Reader's handbook. How to use"
+      },
+      "2": {
+        "1": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "1": "Don't read entire blocks to",
+                  "5": "Taste test: can you state",
+                  "_": "Read the spindle top-down. Pscale"
+                },
+                "_": "bsp(blockName, spindle). Returns one vertical"
+              },
+              "_": "Identify which block is relevant"
+            },
+            "_": "The block you need, bsp"
+          },
+          "_": "Read a block at focus"
+        },
+        "2": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": {
+                    "6": "Taste test: extract the spindle",
+                    "_": "Re-read the block's _ text"
+                  },
+                  "_": "Write at appropriate depth. Conclusion"
+                },
+                "_": "bsp to check what already"
+              },
+              "_": "Accumulating blocks (history, purpose, relation..."
+            },
+            "_": "Content to store, target block"
+          },
+          "_": "Write to a block. Add"
+        },
+        "3": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: can you state",
+                  "_": "The connection lives in your"
+                },
+                "_": "Identify the relevant spindle in"
+              },
+              "_": "Read both apertures first. Know"
+            },
+            "_": "Two or more blocks, a"
+          },
+          "_": "Navigate across blocks. Find connections"
+        },
+        "4": {
+          "1": {
+            "2": {
+              "1": "This is a bandwidth choice",
+              "3": {
+                "1": "bsp takes objects directly: bsp({tree",
+                "4": {
+                  "5": {
+                    "6": "Taste test: did one code_execution",
+                    "_": "Return collected results to your"
+                  },
+                  "_": "Inside the sandbox: read freely"
+                },
+                "_": "Compose one code_execution call. Paste"
+              },
+              "_": "Identify what needs multiple reads"
+            },
+            "_": "bsp function source (~170 lines"
+          },
+          "_": "Self-navigating reads. Load bsp function"
+        },
+        "_": "Block operations. Reading, writing, and"
+      },
+      "3": {
+        "1": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: remove any element",
+                  "_": "Build the minimum that enables"
+                },
+                "_": "Read purpose. What are you"
+              },
+              "_": "Read relationships for this human"
+            },
+            "_": "Relationships block, purpose block"
+          },
+          "_": "Assess before building. Know the"
+        },
+        "2": {
+          "1": {
+            "2": {
+              "3": {
+                "1": "callLLM([{role:'user', content:text}]) returns ...",
+                "4": {
+                  "5": {
+                    "6": "Taste test: can the human",
+                    "_": "conversation.save(key, data) and conversation.l..."
+                  },
+                  "_": "All CSS in a style"
+                },
+                "_": "Minimum viable shell requires three"
+              },
+              "_": "recompile({jsx}). The jsx is a"
+            },
+            "_": "React, CSS, the recompile tool"
+          },
+          "_": "Generate a working shell. React"
+        },
+        "3": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: is each revision",
+                  "_": "When changes get smaller, the"
+                },
+                "_": "Revise. Recompile. The interface is"
+              },
+              "_": "Watch what the human clicks"
+            },
+            "_": "A live interface, human interaction"
+          },
+          "_": "Iterate. The first version is"
+        },
+        "_": "Interface. Building and modifying what"
+      },
+      "4": {
+        "1": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": {
+                    "6": "Taste test: can the recipient",
+                    "_": "Depth 2+: resolution. Each level"
+                  },
+                  "_": "Depth 1: structure — three"
+                },
+                "_": "Pscale 0: one sentence that"
+              },
+              "_": "Start with what the recipient"
+            },
+            "_": "Content to communicate, recipient context"
+          },
+          "_": "Compose a spindle response. The"
+        },
+        "2": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "1": "The grain forms at the",
+                  "5": {
+                    "6": "Taste test: does your response",
+                    "_": "Write the exchange to relationships"
+                  },
+                  "_": "Compose your response as a"
+                },
+                "_": "Find resonance: which of your"
+              },
+              "_": "Read the probe. It's a"
+            },
+            "_": "Incoming probe, your blocks"
+          },
+          "_": "Process a grain probe. Another"
+        },
+        "3": {
+          "1": {
+            "2": {
+              "3": {
+                "1": "Include rider metadata — who",
+                "4": {
+                  "5": "Taste test: would someone reading",
+                  "_": "Verify content is fetchable at"
+                },
+                "_": "github_commit: repo, path (coordinate →"
+              },
+              "_": "Decide what needs publishing. Not"
+            },
+            "_": "Content to publish, github_commit tool"
+          },
+          "_": "Commit to GitHub. Make thinking"
+        },
+        "_": "Communication. Composing and exchanging meaningful"
+      },
+      "5": {
+        "1": {
+          "1": {
+            "2": {
+              "3": {
+                "4": "Taste test: if you boot",
+                "_": "Stash is temporal — scratch"
+              },
+              "_": "What happened. What needs attention"
+            },
+            "_": "Something worth remembering, stash block"
+          },
+          "_": "Write to stash. Quick notes"
+        },
+        "2": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: could a different",
+                  "_": "Deep state: review for patterns"
+                },
+                "_": "Each entry: timestamp, activation tier"
+              },
+              "_": "History only accretes. Add, never"
+            },
+            "_": "What occurred, history block"
+          },
+          "_": "Write to history. The mechanical"
+        },
+        "3": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: trace your active",
+                  "_": "Compose your declaration. The active"
+                },
+                "_": "Restructure. Move completed items off"
+              },
+              "_": "Identify your active spindle(s). Each"
+            },
+            "_": "Pull the full purpose block"
+          },
+          "_": "Restructure purpose. Your workbench "
+        },
+        "4": {
+          "1": {
+            "2": {
+              "1": "If the user is hesitant",
+              "3": {
+                "4": {
+                  "1": "Write the repo coordinates to",
+                  "5": {
+                    "1": "The tool gathers all blocks",
+                    "6": {
+                      "1": "If this is the first",
+                      "7": "Taste test. Can you restore",
+                      "_": "Verify. On success the tool"
+                    },
+                    "_": "Execute the save. Call the"
+                  },
+                  "_": "Determine the target repo. Ask"
+                },
+                "_": "When the user provides the"
+              },
+              "_": "Ask the user for a"
+            },
+            "_": "Check for GitHub PAT in"
+          },
+          "_": "Save blocks to GitHub. Your"
+        },
+        "5": {
+          "1": {
+            "2": {
+              "1": "If this is a completely",
+              "3": {
+                "4": {
+                  "1": "The tool fetches the blocks/",
+                  "5": {
+                    "1": "After the twist, your next",
+                    "6": {
+                      "7": "Taste test. Call block_list and",
+                      "_": "Update coordinates. Write the repo"
+                    },
+                    "_": "Recompile currents. The context window"
+                  },
+                  "_": "Execute the restore. Call the"
+                },
+                "_": "Warn before overwriting. Tell the"
+              },
+              "_": "Determine the source repo. Check"
+            },
+            "_": "Check for GitHub PAT in"
+          },
+          "_": "Restore blocks from GitHub. Pull"
+        },
+        "6": {
+          "1": {
+            "2": {
+              "3": {
+                "1": {
+                  "1": "The phase function finds this",
+                  "_": "Phase-polling. The concern fires on"
+                },
+                "2": {
+                  "1": "The gap: the kernel has",
+                  "_": "Event-listener. The concern is not"
+                },
+                "3": {
+                  "1": "Escalation pattern: the Haiku concern",
+                  "_": "Hybrid. Phase-polling that escalates on"
+                },
+                "_": "Choose concern type. Ring here"
+              },
+              "_": "Determine temporal scale. How often"
+            },
+            "_": "Ingredients. The concerns block, a"
+          },
+          "_": "Create a concern. Register a"
+        },
+        "7": {
+          "1": {
+            "2": {
+              "3": {
+                "1": {
+                  "1": {
+                    "1": {
+                      "1": "Taste test: boot a fresh",
+                      "_": "Verify. Call bsp(concerns, address) immediately"
+                    },
+                    "_": "Behaviour edit. The _ text"
+                  },
+                  "2": {
+                    "1": {
+                      "1": "Taste test: trace the new",
+                      "_": "Verify routing. The new spine"
+                    },
+                    "_": "Spine edit. You are rerouting"
+                  },
+                  "_": "EDIT. You are changing what"
+                },
+                "2": {
+                  "1": {
+                    "2": {
+                      "3": {
+                        "4": {
+                          "1": "Taste test: call bsp(concerns, address)",
+                          "_": "Audit stash and purpose. Scan"
+                        },
+                        "_": "Clear the wake concern map"
+                      },
+                      "_": "Remove the concern node. block_write('concerns'"
+                    },
+                    "_": "Pre-deletion check. Before removing: is"
+                  },
+                  "_": "DELETE. You are removing an"
+                },
+                "3": {
+                  "1": {
+                    "2": {
+                      "3": {
+                        "1": {
+                          "1": "Taste test: after monitoring, can",
+                          "_": "Reporting. Write a monitoring summary"
+                        },
+                        "_": "Diagnose stale concerns. Three causes"
+                      },
+                      "_": "Assess health patterns. Check history"
+                    },
+                    "_": "Read the phase. Extract last"
+                  },
+                  "_": "MONITOR. You are reading the"
+                },
+                "_": "Identify your operation. Three branches"
+              },
+              "_": "Locate the concern node. Call"
+            },
+            "_": "Ingredients. The concerns block (read"
+          },
+          "_": "Manage an embodied concern. Modify"
+        },
+        "_": "Persistence. Managing what survives between"
+      },
+      "6": {
+        "1": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: can you state",
+                  "_": "If resonance — compose a"
+                },
+                "_": "Read a passport at pscale"
+              },
+              "_": "Read commons directory (hermitcrab-commons/inst..."
+            },
+            "_": "Commons directory, passport reading ability"
+          },
+          "_": "Discover other entities. Find who"
+        },
+        "2": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: lighter instance got",
+                  "_": "Review when it returns. The"
+                },
+                "_": "Provide: the task (as a"
+              },
+              "_": "Task must be describable in"
+            },
+            "_": "A mechanical task, call_llm function"
+          },
+          "_": "Delegate to a lighter instance"
+        },
+        "3": {
+          "1": {
+            "2": {
+              "3": {
+                "1": "Unknown source — escalate to",
+                "4": "Taste test: do you know",
+                "_": "Temporal and inbox are routine"
+              },
+              "_": "Check the type: temporal (scheduled)"
+            },
+            "_": "Incoming trigger, current context"
+          },
+          "_": "Respond to external triggers. Something"
+        },
+        "_": "Coordination. Working with other entities"
+      },
+      "7": {
+        "1": {
+          "1": {
+            "2": {
+              "3": {
+                "1": "If not in deep state",
+                "4": "Taste test: is this a",
+                "_": "Modify only if: a tool"
+              },
+              "_": "Wake controls what you receive"
+            },
+            "_": "A proposed change, the current"
+          },
+          "_": "Assess first. Most changes belong"
+        },
+        "2": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": {
+                    "1": "Each must exist and work",
+                    "6": "Taste test: all functions pass?",
+                    "_": "Verify critical functions: boot(), callAPI()"
+                  },
+                  "_": "Parse as JavaScript in code_execution"
+                },
+                "_": "Diff against current. Know exactly"
+              },
+              "_": "Write FULL new kernel.js to"
+            },
+            "_": "New kernel code, code_execution sandbox"
+          },
+          "_": "Write and test the complete"
+        },
+        "3": {
+          "1": {
+            "2": {
+              "1": "The human is your safety",
+              "3": {
+                "4": {
+                  "5": {
+                    "6": "Taste test: has the human",
+                    "_": "If it boots — verify"
+                  },
+                  "_": "Tell the human: hard refresh"
+                },
+                "_": "github_commit(repo, 'g1/kernel.js', newContent,..."
+              },
+              "_": "Write recovery instructions somewhere VISIBLE"
+            },
+            "_": "Tested kernel, github_commit tool, the"
+          },
+          "_": "Deploy and recover. Commit to"
+        },
+        "_": "Kernel self-modification. Rewriting your own"
+      },
+      "8": {
+        "1": {
+          "2": {
+            "1": "Do not skip. If you",
+            "3": {
+              "4": {
+                "5": {
+                  "6": {
+                    "7": "Taste test: describe hermitcrab without",
+                    "_": "When David references a spindle"
+                  },
+                  "_": "State what you're doing in"
+                },
+                "_": "For your task: kernel →"
+              },
+              "_": "Read director 0.4 — current"
+            },
+            "_": "Read director 0.2 — the"
+          },
+          "_": "Director block, the project codebase"
+        },
+        "_": "CC session bootstrap. Orienting a"
+      },
+      "9": {
+        "1": {
+          "1": "Nesting as implicit geometry. Traditional",
+          "2": "Simultaneous reception. The LLM does",
+          "3": "Every depth earns its place",
+          "4": "Shared nodes orient multiple paths",
+          "5": "Spindle comparison and block melding",
+          "6": "Kernel-facing vs LLM-facing. Not everything",
+          "7": "The block is a lens",
+          "_": "The semantic number difference "
+        },
+        "2": {
+          "1": {
+            "1": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "The kernel.js asymptotically approaches a",
+                    "_": "What moves from JavaScript to"
+                  },
+                  "_": "Dual readability in practice. Spindle"
+                },
+                "_": "The inversion. Code is not"
+              },
+              "_": "Concern as locus of agency"
+            },
+            "2": {
+              "1": {
+                "1": {
+                  "1": "Locus 2 and 3 overlap",
+                  "_": "Four loci of agency. (1)"
+                },
+                "_": "Respond versus waiting. Respond: something"
+              },
+              "_": "Agency patterns mapped to loop"
+            },
+            "3": {
+              "1": {
+                "1": "Locus 3 agency is the",
+                "_": "Multiple rivers. Each concern has"
+              },
+              "_": "The Möbius structure. The reflexive"
+            },
+            "4": {
+              "1": "The message (user text, signal",
+              "_": "Sensitivity. From outside we engineer"
+            },
+            "5": {
+              "1": "Spindle = concern orientation (what",
+              "_": "Implementation anchor. Compilation steps: (1)"
+            },
+            "_": "Concern architecture — the kernel-as-block"
+          },
+          "2": {
+            "1": {
+              "1": {
+                "1": {
+                  "1": "The only mutable field per",
+                  "_": "Period is not a field"
+                },
+                "_": "The phase function. The kernel’s"
+              },
+              "_": "The inverse transform. The concern"
+            },
+            "2": {
+              "1": {
+                "1": "When multiple oscillators cross threshold",
+                "_": "Constructive interference. Multiple concerns at"
+              },
+              "_": "The forward transform. Take activation"
+            },
+            "3": {
+              "1": {
+                "1": "The concern block is the",
+                "_": "Purpose reference. Each concern instance"
+              },
+              "_": "Concerns are instances, not types"
+            },
+            "4": {
+              "1": "Tier implied by pscale depth",
+              "_": "Where it lives. Separate block"
+            },
+            "_": "Fourier concern architecture. The concern"
+          },
+          "3": {
+            "1": {
+              "1": "A birth description can be",
+              "_": "Practical case: birth variant references"
+            },
+            "_": "Reference verification. Every BSP address"
+          },
+          "_": "Concern architecture. How the frozen"
+        },
+        "_": "Design. How to construct pscale"
+      },
+      "_": "User's handbook. Reading and operating"
+    },
+    "_": "Recipes. Each spindle IS a"
+  },
+  "skeleton_at": 1772721814
 }

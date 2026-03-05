@@ -381,9 +381,18 @@ def format_dir_full(result):
     return '\n'.join(lines)
 
 
+def block_view(block, view):
+    """Swap tree with skeleton or mask for BSP navigation."""
+    if view == 'skeleton' and 'skeleton' in block:
+        return {**block, 'tree': block['skeleton']}
+    if view == 'mask' and 'mask' in block:
+        return {**block, 'tree': block['mask']}
+    return block
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python lib/bsp.py <block> [spindle|ref|_] [point|ring|dir] [disc]")
+        print("Usage: python lib/bsp.py <block> [skeleton|mask] [spindle|ref|_] [point|ring|dir] [disc]")
         print("       python lib/bsp.py wake                  # full tree (dir)")
         print("       python lib/bsp.py wake ref              # reference (zero tokens)")
         print("       python lib/bsp.py wake 0.12             # spindle")
@@ -391,6 +400,8 @@ def main():
         print("       python lib/bsp.py wake 0.12 ring        # siblings at terminal")
         print("       python lib/bsp.py wake 0.12 dir         # subtree from endpoint")
         print("       python lib/bsp.py concerns _ 5 disc     # all nodes at pscale 5")
+        print("       python lib/bsp.py horizon skeleton      # skeleton dir")
+        print("       python lib/bsp.py horizon mask 0.11     # mask along spindle")
         sys.exit(1)
 
     # Find blocks directory
@@ -408,12 +419,19 @@ def main():
     bsp_register(loader)
 
     block_name = sys.argv[1]
+    view = None
     spindle = None
     point = None
     fn = None
 
-    if len(sys.argv) > 2:
-        arg2 = sys.argv[2]
+    # Detect view selector (skeleton/mask) as second arg, shift remaining args
+    args = sys.argv[2:]
+    if args and args[0] in ('skeleton', 'mask'):
+        view = args[0]
+        args = args[1:]
+
+    if len(args) > 0:
+        arg2 = args[0]
         if arg2 == 'ref':
             spindle = 'ref'
         elif arg2 == '_':
@@ -425,8 +443,8 @@ def main():
         else:
             spindle = float(arg2)
 
-    if len(sys.argv) > 3:
-        arg3 = sys.argv[3]
+    if len(args) > 1:
+        arg3 = args[1]
         if arg3 in ('ring', 'dir'):
             point = arg3
         elif arg3 == 'disc':
@@ -439,15 +457,27 @@ def main():
             except ValueError:
                 point = arg3
 
-    if len(sys.argv) > 4:
-        arg4 = sys.argv[4]
+    if len(args) > 2:
+        arg4 = args[2]
         if arg4 == 'disc':
             fn = 'disc'
         else:
-            print(f"ERROR: Unknown 4th argument '{arg4}'. Only 'disc' is valid.")
+            print(f"ERROR: Unknown argument '{arg4}'. Only 'disc' is valid.")
             sys.exit(1)
 
-    result = bsp(block_name, spindle, point, fn)
+    # Apply view selector — swap tree before BSP sees it
+    if view:
+        raw = loader(block_name)
+        if not raw:
+            print(f"Block not found: {block_name}")
+            sys.exit(1)
+        viewed = block_view(raw, view)
+        if viewed is raw and view in ('skeleton', 'mask'):
+            print(f"No {view} on block '{block_name}'")
+            sys.exit(1)
+        result = bsp(viewed, spindle, point, fn)
+    else:
+        result = bsp(block_name, spindle, point, fn)
     mode = result.get('mode', '?')
 
     if mode == 'ref':

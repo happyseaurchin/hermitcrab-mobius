@@ -33,6 +33,12 @@
     return names;
   }
 
+  function blockView(block, view) {
+    if (view === 'skeleton' && block.skeleton) return { ...block, tree: block.skeleton };
+    if (view === 'mask' && block.mask) return { ...block, tree: block.mask };
+    return block;
+  }
+
   // ═══════ §2 BSP — Block · Spindle · Point ═══════
 
   function blockNavigate(block, path) {
