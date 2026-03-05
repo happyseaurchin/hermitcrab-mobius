@@ -764,6 +764,36 @@
           },
           "_": "Concern architecture. How the frozen JSON tree IS the program — dual-readable by kernel and LLM. Every concern is a loop; the point in the loop determines agency locus. Loads the full design context for the kernel-as-block redesign. Walk bsp(cooking, 0.192) for the full spindle. Three facets: (1) kernel-as-block hypothesis at 0.1921. (2) Fourier temporal structure at 0.1922. (3) Reference verification at 0.1923."
         },
+        "3": {
+          "1": {
+            "1": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": {
+                      "_": "Taste test: each trajectory section should read as a natural walk from the next thing to build toward why it matters in the long run. If a section opens with abstraction and narrows to action, the reversal failed — check that the deepest node really is the most concrete and immediate."
+                    },
+                    "_": "Branches are noted but never inlined — a parenthetical count with a BSP command lets the reader explore laterally without breaking the narrative spine. The document is a map of ridgelines, not a topographic survey."
+                  },
+                  "_": "Reverse the collected sequence so the deepest node (nearest to the present, most actionable) appears first and the shallowest (the vanishing point, the aspiration) appears last. Mark the endpoints: here for the deepest actionable item, horizon for the trajectory objective at the root."
+                },
+                "_": "For each top-level digit (1-9) that holds a trajectory, follow the primary spindle — first-child recursion at every depth, collecting the _ text into an ordered list. This is the backbone path BSP walks with a simple spindle call. Note the branch count at each fork parenthetically so the reader knows the spindle is a slice, not the whole tree."
+              },
+              "_": "Read the block root _ text as the document opening frame — this declares the block domain, its digit semantics, and what the tuning fork means for reading direction. For the horizon block, this tells the reader that digits 1-6 parallel the autonomy gradient and 7-9 extend toward irreversibility, phase change, and emergence."
+            },
+            "_": "Backcasting extraction produces documents from blocks where depth approaches the present — horizon projections, roadmaps, any structure where the deepest nodes are the most immediately actionable and the root is the distant aspiration."
+          },
+          "2": {
+            "1": {
+              "_": "To be fleshed out when the first forward extraction is needed — the base recipe at 0.193 establishes the mechanism and the backcasting variant at 0.1931 demonstrates the pattern. This variant presents shallowest-first, which is often the default BSP spindle output with no transformation needed."
+            },
+            "_": "Forward extraction produces documents from blocks where depth approaches detail or completion — cooking sequences, touchstone principles, vision layers. The document reads from aperture to focus, matching the natural tree order. Each section starts with the broad statement and narrows toward the specific."
+          },
+          "3": {
+            "_": "Legal and formal document extraction — for blocks whose content needs to be rendered in regulatory, contractual, or compliance-oriented formats. A future variant sharing the same base extraction mechanism but applying domain-specific presentation conventions."
+          },
+          "_": "Creating readable documents from pscale blocks. The block is the source of truth; the document is a narrative view for human consumption. All extraction variants share this base: identify the block tuning fork to determine reading direction, extract primary spindles via first-child recursion collecting _ text at every depth, and format the collected paths as sequential markdown sections. The tuning fork is the key — it declares what depth means, which determines whether to present deepest-first or shallowest-first."
+        },
         "4": {
           "1": {
             "1": "The attaching block does not retrieve the content at its target — it declares presence. The BSP address in _ is a location marker, not a retrieval instruction. A pin dropped on a map. The pin does not contain the map. It says: this is where I belong. The content of the attaching block — whether two lines or an entire book — lives in its own tree, independently navigable. The attachment mechanism is the same regardless of block size. What changes is only what the hermitcrab writes into the tree beneath _.",
@@ -1564,7 +1594,13 @@
           },
           "_": "Attachment architecture. How blocks form"
         },
-        "_": "Design. How to construct pscale"
+        "_": "Design. How to construct pscale",
+        "3": {
+          "1": "Backcasting extraction. Horizon-type blocks",
+          "2": "Forward extraction. Aperture-to-focus blocks",
+          "3": "Legal and formal document extraction",
+          "_": "Creating readable documents from pscale"
+        }
       },
       "_": "User's handbook. Reading and operating"
     },
