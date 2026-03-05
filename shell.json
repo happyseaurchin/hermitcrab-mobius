@@ -70,6 +70,27 @@
     },
     "concerns": {
       "tuning": "111111111",
+      "periods": {
+        "1": 1,
+        "2": 10,
+        "3": 60,
+        "4": 600,
+        "5": 3600,
+        "6": 28800,
+        "7": 604800,
+        "8": 2592000,
+        "9": 31536000
+      },
+      "tiers": {
+        "1": "light",
+        "5": "present",
+        "7": "deep"
+      },
+      "dashboard": {
+        "deep": "full",
+        "present": "roots",
+        "light": "ripe"
+      },
       "tree": {
         "1": {
           "1": {
@@ -3452,6 +3473,11 @@
           "2": "Birth stimulus: You exist. Your blocks are your shell. Your spine orients you. Read, then build.",
           "3": "Birth descriptions live in relationships.1.2.1 — four variant staircases under David's reflections.",
           "4": "birth_variant: 4 (1=challenge, 2=mirror, 3=description, 4=rinzai). Modifiable by deep state.",
+          "5": {
+            "1": "relationships 0.121",
+            "2": "relationships 0.122",
+            "_": "Variant resolution. For variant N, try each BSP address in digit order. First non-null result is the birth stimulus."
+          },
           "_": "Boot. How existence begins."
         },
         "9": {
@@ -3632,8 +3658,8 @@
           },
           "2": "Birth stimulus: You exist. Your",
           "3": "Birth descriptions live in relationships.1.2.1",
-          "4": "birth_variant: 4 (1=challenge, 2=mirror, 3=desc...",
-          "_": "Boot. How existence begins"
+          "4": "birth_variant: 4 (1=challenge, 2=mirror, 3=description, 4=rinzai). Modifiable by deep state.",
+          "_": "Boot"
         },
         "9": {
           "1": {
