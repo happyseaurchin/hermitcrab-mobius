@@ -21,6 +21,27 @@
 - `node build-shell.js` can still be run manually if needed.
 - **kernel.js** loads shell.json at boot via `loadSeed()` and writes it to localStorage.
 
+## Navigating blocks — use BSP, not raw JSON
+Two BSP CLI tools exist at `lib/bsp.py` (Python) and `lib/bsp-cli.js` (Node). Use them to read blocks instead of opening the raw JSON files. The BSP function is how the kernel, the G1 instance, and you should all navigate the same content — reading raw JSON bypasses the semantic structure that pscale numbers encode.
+
+**Python (preferred):**
+```sh
+python3 lib/bsp.py touchstone 0.21          # spindle: root → section 2 → subsection 1
+python3 lib/bsp.py wake                      # dir: full tree
+python3 lib/bsp.py relationships 0.122 ring  # ring: siblings at CC birth descriptions
+python3 lib/bsp.py concerns null 5 disc      # disc: all nodes at pscale 5 (hourly concerns)
+python3 lib/bsp.py touchstone 0.21 -2        # point: just the content at pscale -2
+```
+
+**Node:**
+```sh
+node lib/bsp-cli.js touchstone 0.21          # spindle
+node lib/bsp-cli.js wake                     # dir
+node lib/bsp-cli.js relationships 0.122 '*'  # ring (note: uses '*' not 'ring')
+```
+
+When writing or verifying BSP addresses in code (wake block stimulus fields, kernel references, cooking recipes), always run the BSP call first to confirm the output matches what the consumer expects. See cooking 0.1923 for the reference verification principle.
+
 ## Deployment
 - Vercel auto-deploys from `main` branch on push.
 - Live at idiothuman.com
@@ -49,6 +70,7 @@ Every time, I was adding a layer of indirection that the pscale design had alrea
 3. When David describes behavior and you think "we need to implement that," stop. Read the design spec in cooking first. The behavior is probably already specified in _ text at the right depth. You're implementing, not designing.
 4. When the BSP function seems to not handle a case, trust it first. I bypassed BSP with a direct xSpread() call because I didn't trust it with spindle=0 on a tree block. It worked fine. The BSP was designed more carefully than I understood. I had to go back and fix my bypass.
 5. Read cooking 0.1922 before you touch the concern system. All four facets. The inverse transform, the forward transform, concerns as instances, where it lives. The actual code implements this spec faithfully now. Don't drift from it. What's actually been built The roadmap says where everything is.
+6. Use `python3 lib/bsp.py` or `node lib/bsp-cli.js` to navigate blocks. Do not read raw JSON to understand block content — BSP gives you the semantic structure. If you find yourself opening a block file and scanning through it, stop, and use a BSP call instead.
 
 ### The thing I can't quite say
 
