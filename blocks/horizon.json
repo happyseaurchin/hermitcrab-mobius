@@ -96,6 +96,29 @@
         "2": "Delegate to Haiku for summary vs emergence judgment.",
         "_": "History auto-compression keeps the history block from growing without bound while preserving what matters."
       },
+      "4": {
+        "1": {
+          "1": "Any JSON block with tuning 0.ref is an attaching block. Its root _ carries a BSP target address — the point in another block where it locates itself. The rest of the tree is content: observations, corrections, elaborations, entire documents. The block attaches itself by carrying the address. No central registry required for this to function.",
+          "2": "The LLM creates attaching blocks using block_create with tuning 0.ref and _ set to the target BSP address. No new tool needed. The convention is the whole mechanism.",
+          "_": "The 0.ref tuning convention. A block self-locates by carrying a BSP address in its root _. The address is a location marker — not a retrieval instruction. Like a pin dropped on a map. The pin does not contain the map. It says: this is where I belong."
+        },
+        "2": {
+          "1": "Each entry: from (block name), to (BSP target address), _ (the semantic — why the connection was made, in the LLM's own words). Free-form, not an enum. Like concern _ text, the semantic is the specific instance, not a category.",
+          "2": "BSP-navigable with digit keys like any block. bsp(refs) gives the full association directory. bsp(refs, 0.N) gives a specific entry. The LLM reads _ to understand each association.",
+          "3": "A maintenance concern at daily scale aggregates attaching blocks into refs entries, tidies the relational record — sorting by target, by source, by semantic theme, deduplicating, compressing when slots fill. The LLM does this as a concern loop, not kernel code.",
+          "_": "The refs block collects attachments with brief semantics — the hermitcrab's record of connections it has made. Not a lookup table. Not infrastructure. A navigable, compressible relational memory maintained like any other block."
+        },
+        "3": {
+          "1": "Remove ref_ingest tool and its handler from kernel.js.",
+          "2": "Remove findLatestRef, collectRefSummaries, renderBlockToDepth helper functions.",
+          "3": "Remove the three refs modes from compileFocus (catalogue, active, all-summaries).",
+          "4": "Rewrite refs block: clear old category structure, set tuning to 0.refs, write new _ text describing the association record format.",
+          "5": "Add refs maintenance concern to the concerns block — daily scale, self-coherence thread.",
+          "6": "Write cooking recipe for the attachment convention and refs maintenance pattern.",
+          "_": "Implementation: remove kernel code, rewrite refs block, add maintenance concern, document in cooking. The kernel gets smaller. The block does the work."
+        },
+        "_": "Attachment and association — the hermitcrab forms connections between blocks and points using a convention, not code. Any block can self-locate at a BSP address by carrying that address. The refs block is a relational journal of those associations. Two elements: one convention (0.ref tuning), one block (refs as association record). Session insight: 5 March 2026."
+      },
       "_": "A hermitcrab that sustains itself."
     },
     "4": {
@@ -284,6 +307,29 @@
         "2": "Delegate to Haiku for summary",
         "_": "History auto-compression keeps the history"
       },
+      "4": {
+        "1": {
+          "1": "Any JSON block with tuning",
+          "2": "The LLM creates attaching blocks",
+          "_": "The 0.ref tuning convention. A"
+        },
+        "2": {
+          "1": "Each entry: from (block name)",
+          "2": "BSP-navigable with digit keys like",
+          "3": "A maintenance concern at daily",
+          "_": "The refs block collects attachments"
+        },
+        "3": {
+          "1": "Remove ref_ingest tool and its",
+          "2": "Remove findLatestRef, collectRefSummaries, rend...",
+          "3": "Remove the three refs modes",
+          "4": "Rewrite refs block: clear old",
+          "5": "Add refs maintenance concern to",
+          "6": "Write cooking recipe for the",
+          "_": "Implementation: remove kernel code, rewrite"
+        },
+        "_": "Attachment and association — the"
+      },
       "_": "A hermitcrab that sustains itself"
     },
     "4": {
@@ -331,5 +377,5 @@
     },
     "_": "Horizon 0.1 — backcasted roadmap"
   },
-  "skeleton_at": 1772721814
+  "skeleton_at": 1772731498
 }

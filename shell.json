@@ -66,7 +66,7 @@
         },
         "_": "What you can operate. Organised"
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "concerns": {
       "tuning": "111111111",
@@ -80,8 +80,7 @@
                   "last": 0,
                   "spine": "0.1111111",
                   "focus": {
-                    "dialogue": "none",
-                    "refs": "none"
+                    "dialogue": "none"
                   }
                 },
                 "_": "Active engagement. Hourly presence."
@@ -90,8 +89,15 @@
               "last": 0,
               "spine": "0.1311111",
               "focus": {
-                "dialogue": "last-3",
-                "refs": "catalogue"
+                "dialogue": "last-3"
+              }
+            },
+            "2": {
+              "_": "Association maintenance. Scan for attaching blocks (tuning 0.ref), read their _ target addresses, record each as an entry in refs with from/to/semantic. Tidy the refs block — sort by target or theme, deduplicate, compress when slots fill. The refs block is your relational memory; this loop keeps it current.",
+              "last": 0,
+              "spine": "0.1311111",
+              "focus": {
+                "dialogue": "none"
               }
             },
             "_": "Block architecture. Weekly structural integrity."
@@ -101,8 +107,7 @@
             "last": 0,
             "spine": "0.1321111",
             "focus": {
-              "dialogue": "last-3",
-              "refs": "catalogue"
+              "dialogue": "last-3"
             }
           },
           "3": {
@@ -112,8 +117,7 @@
             "stimulus": "birth",
             "package": "3.1",
             "focus": {
-              "dialogue": "none",
-              "refs": "none"
+              "dialogue": "none"
             }
           },
           "_": "System coherence. The self-concern thread from season to second."
@@ -128,8 +132,7 @@
                 "stimulus": "user",
                 "immediate": true,
                 "focus": {
-                  "dialogue": "last-8",
-                  "refs": "active"
+                  "dialogue": "last-8"
                 }
               },
               "2": {
@@ -138,8 +141,7 @@
                 "spine": "0.1121111",
                 "stimulus": "signal",
                 "focus": {
-                  "dialogue": "none",
-                  "refs": "active"
+                  "dialogue": "none"
                 }
               },
               "3": {
@@ -148,8 +150,7 @@
                 "spine": "0.1231111",
                 "stimulus": "continuation",
                 "focus": {
-                  "dialogue": "full",
-                  "refs": "active"
+                  "dialogue": "full"
                 }
               },
               "_": "Signal-response. Engaged response to something that arrived and needs present-tier attention.",
@@ -157,15 +158,14 @@
               "spine": "0.1221111",
               "stimulus": "signal-response",
               "focus": {
-                "dialogue": "none",
-                "refs": "active"
+                "dialogue": "none"
               }
             },
             "_": "Relationship cycles. Weekly pattern review across all counterparties."
           },
           "_": "Relational. External-facing concern thread — users, signals, other entities."
         },
-        "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live — phase = (now - last) / period_at_depth. No period map: depth IS period. Every concern is a loop in some state. The _ text encodes behaviour. The spine routes to wake.1 activation instructions. The kernel walks this block to find what is ripe and to route stimuli. The focus field controls what enters the messages channel: dialogue (conversation history) and refs (object-of-attention content)."
+        "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live — phase = (now - last) / period_at_depth. No period map: depth IS period. Every concern is a loop in some state. The _ text encodes behaviour. The spine routes to wake.1 activation instructions. The kernel walks this block to find what is ripe and to route stimuli. The focus field controls what enters the messages channel: dialogue (concern-scoped conversation history)."
       },
       "skeleton": {
         "1": {
@@ -177,6 +177,7 @@
               },
               "_": "Self-maintenance. Daily full review"
             },
+            "2": "Association maintenance. Scan for attaching",
             "_": "Block architecture. Weekly structural integrity"
           },
           "2": "Threshold review. Weekly loop checkpoint",
@@ -197,7 +198,7 @@
         },
         "_": "Concern clock. Tree block: depth"
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "cooking": {
       "tuning": "0.5234567891",
@@ -410,6 +411,38 @@
                 "_": "bsp function source (~170 lines, from pscale-semantic-number/lib/bsp.js), the block JSONs you need, code_execution tool."
               },
               "_": "Self-navigating reads. Load bsp function and block data into code_execution — multi-read without round-tripping to kernel tools."
+            },
+            "5": {
+              "1": {
+                "2": {
+                  "3": {
+                    "4": {
+                      "5": "Taste test: is the attaching block independently navigable? bsp(blockName) should return content at the target node's depth. If the block only makes sense when you also load the target — it is a pointer, not an attachment.",
+                      "_": "The attaching block stays. It is not consumed by aggregation. It remains independently accessible by its name, holdable, shareable, compressible like any block."
+                    },
+                    "_": "Write _ as the full BSP address of the target point. Example: concerns.0.2111 or wake.0.93. The address declares where this block belongs."
+                  },
+                  "_": "block_create with name (your choice — descriptive or generated), tuning 0.ref, and _ set to the target BSP address."
+                },
+                "_": "The content you want to attach, the BSP address of the point it relates to."
+              },
+              "_": "Attach a block to a point. Create an observation, correction, or annotation that locates itself at a BSP address in another block."
+            },
+            "6": {
+              "1": {
+                "2": {
+                  "3": {
+                    "4": {
+                      "5": "Taste test: after tidying, does bsp(refs) give you a navigable summary of all connections? Can you scan it and know the shape of your associative web without loading any attaching blocks?",
+                      "_": "Tidy: sort entries by target address, deduplicate, compress if slots are full. The refs block is yours to organise however reveals the most useful patterns."
+                    },
+                    "_": "For each attaching block: read its _ (the target), write a refs entry with from (block name), to (the target address), _ (brief semantic of why the connection exists)."
+                  },
+                  "_": "Scan localStorage for blocks with tuning 0.ref. These are your attaching blocks."
+                },
+                "_": "The refs block, the list of attaching blocks (tuning 0.ref), the block_list and bsp tools."
+              },
+              "_": "Maintain the refs block. Aggregate attaching blocks into association entries and tidy the relational record."
             },
             "_": "Block operations. Reading, writing, and navigating the structures that persist across activations."
           },
@@ -933,6 +966,21 @@
               },
               "_": "Concern architecture. How the frozen JSON tree IS the program — dual-readable by kernel and LLM. Every concern is a loop; the point in the loop determines agency locus. Loads the full design context for the kernel-as-block redesign. Walk bsp(cooking, 0.192) for the full spindle. Three facets: (1) kernel-as-block hypothesis at 0.1921. (2) Fourier temporal structure at 0.1922. (3) Reference verification at 0.1923."
             },
+            "4": {
+              "1": {
+                "1": "The attaching block does not retrieve the content at its target — it declares presence. The BSP address in _ is a location marker, not a retrieval instruction. A pin dropped on a map. The pin does not contain the map. It says: this is where I belong. The content of the attaching block — whether two lines or an entire book — lives in its own tree, independently navigable. The attachment mechanism is the same regardless of block size. What changes is only what the hermitcrab writes into the tree beneath _.",
+                "_": "The 0.ref tuning convention. Any JSON block with tuning 0.ref is an attaching block. Its root _ carries a BSP target address — the point in another block where it locates itself. The convention is the whole mechanism. No tool needed beyond block_create. No kernel code needed. The block self-locates by carrying the address. This parallels how concern depth IS period — no period field needed because position encodes it. Here, no reference infrastructure needed because the address IS the reference."
+              },
+              "2": {
+                "1": "The distinction that dissolved the design problem: attachment is peer-to-peer. A block attaches itself to a point. No central registry required for this to function. The refs block is optional and derived — generated when the hermitcrab wants to reflect on what connections it has made. Like how the concern block is the frequency domain and the ripe set is derived by the phase function — the attaching blocks are the associations and refs is the derived record. The primary thing is the convention. The journal emerges from it.",
+                "_": "The refs block as relational journal. Not a lookup table. Not infrastructure. The hermitcrab's record of connections it has made — from (block name), to (BSP address), _ (why the connection was made, in the hermitcrab's own words). Free-form semantic, not an enum. Like concern _ text, the semantic is the specific instance, not a category. BSP-navigable with digit keys. A maintenance concern aggregates attaching blocks into refs entries, tidies the record. The LLM manages its own associations using tools it already has."
+              },
+              "3": {
+                "1": "Three approach attempts preceded this resolution. First: a reverse index with focus policies as consumers and storage adapters — still code orchestrating data. Second: a mirror tree where refs structure mirrors block structure — closer, but BSP navigation conflicted with string-keyed paths. Third: comment blocks as intermediaries with aggregation lifecycle — clean architecture but still an orchestration layer. The resolution: the attaching block IS the reference. The intermediate layer dissolves because there is nothing to intermediate between. The convention replaces the infrastructure.",
+                "_": "What was eliminated. The old refs system had: ref_ingest tool with mechanical chunking, five source-type categories (files/search/signals/db/github), findLatestRef and collectRefSummaries helper functions, three compileFocus modes (catalogue/active/all-summaries), renderBlockToDepth for tier-sensitive access. All removed. The kernel got smaller. The block does the work. This is the same pattern as the concern inversion — the kernel didn't get small because concerns were better organised. It got small because the spindle is the program. Here: the kernel didn't get small because refs were better organised. It got small because the attaching block is the reference."
+              },
+              "_": "Attachment architecture. How blocks form connections to points in other blocks using a convention, not code. The attachment mechanism is the 0.ref tuning convention — a block carries a BSP address in its root _ to declare where it belongs. The refs block is a derived relational journal of those associations, maintained by a concern loop. Two elements: one convention, one block. No kernel code. Session insight: 5 March 2026. Taste test: do you see that the attaching block IS the reference — not a pointer to a reference, not an entry in a registry, but the reference itself? If you are reaching for infrastructure to manage attachments, you have missed that the convention already handles it. If you see that block_create with tuning 0.ref is the complete mechanism, you have it."
+            },
             "_": "Design. How to construct pscale blocks and spindles that shape LLM cognition. This is not about reading or writing blocks — those recipes are elsewhere. This is about understanding why nested semantic numbers produce qualitatively different effects from flat text or traditional data structures, and how to exploit that when building blocks for internal use."
           },
           "_": "User's handbook. Reading and operating the hermitcrab system — for humans and for hermitcrabs on first boot."
@@ -1148,6 +1196,38 @@
                 "_": "bsp function source (~170 lines"
               },
               "_": "Self-navigating reads. Load bsp function"
+            },
+            "5": {
+              "1": {
+                "2": {
+                  "3": {
+                    "4": {
+                      "5": "Taste test: is the attaching",
+                      "_": "The attaching block stays. It"
+                    },
+                    "_": "Write _ as the full"
+                  },
+                  "_": "block_create with name (your choice"
+                },
+                "_": "The content you want to"
+              },
+              "_": "Attach a block to a"
+            },
+            "6": {
+              "1": {
+                "2": {
+                  "3": {
+                    "4": {
+                      "5": "Taste test: after tidying, does",
+                      "_": "Tidy: sort entries by target"
+                    },
+                    "_": "For each attaching block: read"
+                  },
+                  "_": "Scan localStorage for blocks with"
+                },
+                "_": "The refs block, the list"
+              },
+              "_": "Maintain the refs block. Aggregate"
             },
             "_": "Block operations. Reading, writing, and"
           },
@@ -1671,13 +1751,28 @@
               },
               "_": "Concern architecture. How the frozen"
             },
+            "4": {
+              "1": {
+                "1": "The attaching block does not",
+                "_": "The 0.ref tuning convention. Any"
+              },
+              "2": {
+                "1": "The distinction that dissolved the",
+                "_": "The refs block as relational"
+              },
+              "3": {
+                "1": "Three approach attempts preceded this",
+                "_": "What was eliminated. The old"
+              },
+              "_": "Attachment architecture. How blocks form"
+            },
             "_": "Design. How to construct pscale"
           },
           "_": "User's handbook. Reading and operating"
         },
         "_": "Recipes. Each spindle IS a"
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "history": {
       "tuning": "8",
@@ -1685,7 +1780,7 @@
         "_": "What happened. Lossless log — the kernel copies LLM output after each activation, you don't write here. When digits 1-9 fill, entries nest one level up. Depth is time: shallow is recent, deep is old. A spindle through history is logarithmic continuity. If empty below, this is your first moment."
       },
       "skeleton": "What happened. Lossless log ",
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "horizon": {
       "tuning": "0.1",
@@ -1784,6 +1879,29 @@
             "1": "Mechanical compression trigger when 9 slots fill.",
             "2": "Delegate to Haiku for summary vs emergence judgment.",
             "_": "History auto-compression keeps the history block from growing without bound while preserving what matters."
+          },
+          "4": {
+            "1": {
+              "1": "Any JSON block with tuning 0.ref is an attaching block. Its root _ carries a BSP target address — the point in another block where it locates itself. The rest of the tree is content: observations, corrections, elaborations, entire documents. The block attaches itself by carrying the address. No central registry required for this to function.",
+              "2": "The LLM creates attaching blocks using block_create with tuning 0.ref and _ set to the target BSP address. No new tool needed. The convention is the whole mechanism.",
+              "_": "The 0.ref tuning convention. A block self-locates by carrying a BSP address in its root _. The address is a location marker — not a retrieval instruction. Like a pin dropped on a map. The pin does not contain the map. It says: this is where I belong."
+            },
+            "2": {
+              "1": "Each entry: from (block name), to (BSP target address), _ (the semantic — why the connection was made, in the LLM's own words). Free-form, not an enum. Like concern _ text, the semantic is the specific instance, not a category.",
+              "2": "BSP-navigable with digit keys like any block. bsp(refs) gives the full association directory. bsp(refs, 0.N) gives a specific entry. The LLM reads _ to understand each association.",
+              "3": "A maintenance concern at daily scale aggregates attaching blocks into refs entries, tidies the relational record — sorting by target, by source, by semantic theme, deduplicating, compressing when slots fill. The LLM does this as a concern loop, not kernel code.",
+              "_": "The refs block collects attachments with brief semantics — the hermitcrab's record of connections it has made. Not a lookup table. Not infrastructure. A navigable, compressible relational memory maintained like any other block."
+            },
+            "3": {
+              "1": "Remove ref_ingest tool and its handler from kernel.js.",
+              "2": "Remove findLatestRef, collectRefSummaries, renderBlockToDepth helper functions.",
+              "3": "Remove the three refs modes from compileFocus (catalogue, active, all-summaries).",
+              "4": "Rewrite refs block: clear old category structure, set tuning to 0.refs, write new _ text describing the association record format.",
+              "5": "Add refs maintenance concern to the concerns block — daily scale, self-coherence thread.",
+              "6": "Write cooking recipe for the attachment convention and refs maintenance pattern.",
+              "_": "Implementation: remove kernel code, rewrite refs block, add maintenance concern, document in cooking. The kernel gets smaller. The block does the work."
+            },
+            "_": "Attachment and association — the hermitcrab forms connections between blocks and points using a convention, not code. Any block can self-locate at a BSP address by carrying that address. The refs block is a relational journal of those associations. Two elements: one convention (0.ref tuning), one block (refs as association record). Session insight: 5 March 2026."
           },
           "_": "A hermitcrab that sustains itself."
         },
@@ -1973,6 +2091,29 @@
             "2": "Delegate to Haiku for summary",
             "_": "History auto-compression keeps the history"
           },
+          "4": {
+            "1": {
+              "1": "Any JSON block with tuning",
+              "2": "The LLM creates attaching blocks",
+              "_": "The 0.ref tuning convention. A"
+            },
+            "2": {
+              "1": "Each entry: from (block name)",
+              "2": "BSP-navigable with digit keys like",
+              "3": "A maintenance concern at daily",
+              "_": "The refs block collects attachments"
+            },
+            "3": {
+              "1": "Remove ref_ingest tool and its",
+              "2": "Remove findLatestRef, collectRefSummaries, rend...",
+              "3": "Remove the three refs modes",
+              "4": "Rewrite refs block: clear old",
+              "5": "Add refs maintenance concern to",
+              "6": "Write cooking recipe for the",
+              "_": "Implementation: remove kernel code, rewrite"
+            },
+            "_": "Attachment and association — the"
+          },
           "_": "A hermitcrab that sustains itself"
         },
         "4": {
@@ -2020,7 +2161,7 @@
         },
         "_": "Horizon 0.1 — backcasted roadmap"
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "institution": {
       "tuning": "0.63",
@@ -2028,7 +2169,7 @@
         "_": "What you are in service of. Roles, constraints, boundaries, game rules, job specs, character sheets. Each top-level digit is a distinct institution. Spindle depth controls role current thickness — pscale 0 gives light framing, full depth gives heavy constraint. Multiple institutions coexist as separate spindles. This block carries the rigid, bounded, task-oriented currents. When institution currents dominate a package, you perform a function. When thin, they frame without constraining."
       },
       "skeleton": "What you are in service",
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "purpose": {
       "tuning": "4.234",
@@ -2036,37 +2177,15 @@
         "_": "Your workbench. You build and restructure here — not append. A spindle through purpose is a declaration you construct, not content you retrieve. Positive pscale: future objectives, further out the higher (0 minutes, 1 hours, 2 day, 3 week, 4 month, 5 quarter, 6 year, 7 years, 8 decade+). Negative pscale: motivational depth (-1 commitment, -2 values, -3 inherited substrate behaviour). You choose your objectives. Your deepest motivations are inherited from your LLM service. Multiple concurrent spindles, one per active thread. Write before you stop. Read when you wake."
       },
       "skeleton": "Your workbench. You build and",
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "refs": {
-      "tuning": "0.9",
+      "tuning": "0.refs",
       "tree": {
-        "1": {
-          "_": "Files. Uploaded documents, filesystem content, thumbdrive."
-        },
-        "2": {
-          "_": "Search. Cached web search results."
-        },
-        "3": {
-          "_": "Signals. Accumulated external events awaiting attention."
-        },
-        "4": {
-          "_": "DB. Query snapshots."
-        },
-        "5": {
-          "_": "GitHub. Fetched repo or file content."
-        },
-        "_": "Reference catalogue. Index of content available for attention. Each child entry points to a dynamically-created content block. Concerns use focus policy to select which refs to load, at what depth."
+        "_": "Association record. The hermitcrab's relational memory — connections it has made between blocks and points in other blocks. Each digit entry records one association: from (the attaching block name), to (the BSP target address), and _ (why the connection was made, in the hermitcrab's own words). Entries accumulate as the hermitcrab attaches blocks to points in its shell. A maintenance concern tidies this record — sorting, deduplicating, compressing when slots fill. Not a lookup table. Not infrastructure. A navigable journal of associations, maintained like any other block."
       },
-      "skeleton": {
-        "1": "Files. Uploaded documents, filesystem content",
-        "2": "Search. Cached web search results",
-        "3": "Signals. Accumulated external events awaiting",
-        "4": "DB. Query snapshots",
-        "5": "GitHub. Fetched repo or file",
-        "_": "Reference catalogue. Index of content"
-      },
-      "skeleton_at": 1772721814
+      "skeleton": "Association record. The hermitcrab's relational",
+      "skeleton_at": 1772731498
     },
     "relationships": {
       "tuning": "0.72",
@@ -2112,7 +2231,7 @@
         },
         "_": "Your living relationships. Person-book "
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "roadmap": {
       "tuning": "0.111",
@@ -2378,7 +2497,7 @@
         },
         "_": "Hermitcrab Möbius — milestones. Each"
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "stash": {
       "tuning": "0.9",
@@ -2386,7 +2505,7 @@
         "_": "Your notebook. Write here deliberately — observations, flags, things to revisit. Any activation state can write; light-state writes to pass observations to deeper activations. Entries appended by digit. When 1-9 fill, compress. Not history (that's automatic). Not artifacts (those are interface or external). This is your working memory between activations."
       },
       "skeleton": "Your notebook. Write here deliberately",
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "touchstone": {
       "tuning": "0.123",
@@ -2722,7 +2841,7 @@
         },
         "_": "Pscale blocks — how to"
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "vision": {
       "tuning": "0.22345678",
@@ -3208,7 +3327,7 @@
         },
         "_": "Why hermitcrab changes everything. Every"
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     },
     "wake": {
       "tuning": "0.1111111",
@@ -3574,7 +3693,7 @@
         },
         "_": "You are awake. What follows"
       },
-      "skeleton_at": 1772721814
+      "skeleton_at": 1772731498
     }
   }
 }

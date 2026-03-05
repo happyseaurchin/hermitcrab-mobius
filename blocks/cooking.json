@@ -210,6 +210,38 @@
           },
           "_": "Self-navigating reads. Load bsp function and block data into code_execution — multi-read without round-tripping to kernel tools."
         },
+        "5": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: is the attaching block independently navigable? bsp(blockName) should return content at the target node's depth. If the block only makes sense when you also load the target — it is a pointer, not an attachment.",
+                  "_": "The attaching block stays. It is not consumed by aggregation. It remains independently accessible by its name, holdable, shareable, compressible like any block."
+                },
+                "_": "Write _ as the full BSP address of the target point. Example: concerns.0.2111 or wake.0.93. The address declares where this block belongs."
+              },
+              "_": "block_create with name (your choice — descriptive or generated), tuning 0.ref, and _ set to the target BSP address."
+            },
+            "_": "The content you want to attach, the BSP address of the point it relates to."
+          },
+          "_": "Attach a block to a point. Create an observation, correction, or annotation that locates itself at a BSP address in another block."
+        },
+        "6": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: after tidying, does bsp(refs) give you a navigable summary of all connections? Can you scan it and know the shape of your associative web without loading any attaching blocks?",
+                  "_": "Tidy: sort entries by target address, deduplicate, compress if slots are full. The refs block is yours to organise however reveals the most useful patterns."
+                },
+                "_": "For each attaching block: read its _ (the target), write a refs entry with from (block name), to (the target address), _ (brief semantic of why the connection exists)."
+              },
+              "_": "Scan localStorage for blocks with tuning 0.ref. These are your attaching blocks."
+            },
+            "_": "The refs block, the list of attaching blocks (tuning 0.ref), the block_list and bsp tools."
+          },
+          "_": "Maintain the refs block. Aggregate attaching blocks into association entries and tidy the relational record."
+        },
         "_": "Block operations. Reading, writing, and navigating the structures that persist across activations."
       },
       "3": {
@@ -732,6 +764,21 @@
           },
           "_": "Concern architecture. How the frozen JSON tree IS the program — dual-readable by kernel and LLM. Every concern is a loop; the point in the loop determines agency locus. Loads the full design context for the kernel-as-block redesign. Walk bsp(cooking, 0.192) for the full spindle. Three facets: (1) kernel-as-block hypothesis at 0.1921. (2) Fourier temporal structure at 0.1922. (3) Reference verification at 0.1923."
         },
+        "4": {
+          "1": {
+            "1": "The attaching block does not retrieve the content at its target — it declares presence. The BSP address in _ is a location marker, not a retrieval instruction. A pin dropped on a map. The pin does not contain the map. It says: this is where I belong. The content of the attaching block — whether two lines or an entire book — lives in its own tree, independently navigable. The attachment mechanism is the same regardless of block size. What changes is only what the hermitcrab writes into the tree beneath _.",
+            "_": "The 0.ref tuning convention. Any JSON block with tuning 0.ref is an attaching block. Its root _ carries a BSP target address — the point in another block where it locates itself. The convention is the whole mechanism. No tool needed beyond block_create. No kernel code needed. The block self-locates by carrying the address. This parallels how concern depth IS period — no period field needed because position encodes it. Here, no reference infrastructure needed because the address IS the reference."
+          },
+          "2": {
+            "1": "The distinction that dissolved the design problem: attachment is peer-to-peer. A block attaches itself to a point. No central registry required for this to function. The refs block is optional and derived — generated when the hermitcrab wants to reflect on what connections it has made. Like how the concern block is the frequency domain and the ripe set is derived by the phase function — the attaching blocks are the associations and refs is the derived record. The primary thing is the convention. The journal emerges from it.",
+            "_": "The refs block as relational journal. Not a lookup table. Not infrastructure. The hermitcrab's record of connections it has made — from (block name), to (BSP address), _ (why the connection was made, in the hermitcrab's own words). Free-form semantic, not an enum. Like concern _ text, the semantic is the specific instance, not a category. BSP-navigable with digit keys. A maintenance concern aggregates attaching blocks into refs entries, tidies the record. The LLM manages its own associations using tools it already has."
+          },
+          "3": {
+            "1": "Three approach attempts preceded this resolution. First: a reverse index with focus policies as consumers and storage adapters — still code orchestrating data. Second: a mirror tree where refs structure mirrors block structure — closer, but BSP navigation conflicted with string-keyed paths. Third: comment blocks as intermediaries with aggregation lifecycle — clean architecture but still an orchestration layer. The resolution: the attaching block IS the reference. The intermediate layer dissolves because there is nothing to intermediate between. The convention replaces the infrastructure.",
+            "_": "What was eliminated. The old refs system had: ref_ingest tool with mechanical chunking, five source-type categories (files/search/signals/db/github), findLatestRef and collectRefSummaries helper functions, three compileFocus modes (catalogue/active/all-summaries), renderBlockToDepth for tier-sensitive access. All removed. The kernel got smaller. The block does the work. This is the same pattern as the concern inversion — the kernel didn't get small because concerns were better organised. It got small because the spindle is the program. Here: the kernel didn't get small because refs were better organised. It got small because the attaching block is the reference."
+          },
+          "_": "Attachment architecture. How blocks form connections to points in other blocks using a convention, not code. The attachment mechanism is the 0.ref tuning convention — a block carries a BSP address in its root _ to declare where it belongs. The refs block is a derived relational journal of those associations, maintained by a concern loop. Two elements: one convention, one block. No kernel code. Session insight: 5 March 2026. Taste test: do you see that the attaching block IS the reference — not a pointer to a reference, not an entry in a registry, but the reference itself? If you are reaching for infrastructure to manage attachments, you have missed that the convention already handles it. If you see that block_create with tuning 0.ref is the complete mechanism, you have it."
+        },
         "_": "Design. How to construct pscale blocks and spindles that shape LLM cognition. This is not about reading or writing blocks — those recipes are elsewhere. This is about understanding why nested semantic numbers produce qualitatively different effects from flat text or traditional data structures, and how to exploit that when building blocks for internal use."
       },
       "_": "User's handbook. Reading and operating the hermitcrab system — for humans and for hermitcrabs on first boot."
@@ -947,6 +994,38 @@
             "_": "bsp function source (~170 lines"
           },
           "_": "Self-navigating reads. Load bsp function"
+        },
+        "5": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: is the attaching",
+                  "_": "The attaching block stays. It"
+                },
+                "_": "Write _ as the full"
+              },
+              "_": "block_create with name (your choice"
+            },
+            "_": "The content you want to"
+          },
+          "_": "Attach a block to a"
+        },
+        "6": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": "Taste test: after tidying, does",
+                  "_": "Tidy: sort entries by target"
+                },
+                "_": "For each attaching block: read"
+              },
+              "_": "Scan localStorage for blocks with"
+            },
+            "_": "The refs block, the list"
+          },
+          "_": "Maintain the refs block. Aggregate"
         },
         "_": "Block operations. Reading, writing, and"
       },
@@ -1470,11 +1549,26 @@
           },
           "_": "Concern architecture. How the frozen"
         },
+        "4": {
+          "1": {
+            "1": "The attaching block does not",
+            "_": "The 0.ref tuning convention. Any"
+          },
+          "2": {
+            "1": "The distinction that dissolved the",
+            "_": "The refs block as relational"
+          },
+          "3": {
+            "1": "Three approach attempts preceded this",
+            "_": "What was eliminated. The old"
+          },
+          "_": "Attachment architecture. How blocks form"
+        },
         "_": "Design. How to construct pscale"
       },
       "_": "User's handbook. Reading and operating"
     },
     "_": "Recipes. Each spindle IS a"
   },
-  "skeleton_at": 1772721814
+  "skeleton_at": 1772731498
 }

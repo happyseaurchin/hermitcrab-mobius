@@ -524,53 +524,6 @@
     return 1;
   }
 
-  // ═══════ §3.6 REF HELPERS ═══════
-  // Utilities for navigating the refs catalogue. Used by compileFocus and ref tools.
-
-  // Find most recently added ref entry across all categories
-  function findLatestRef(refs) {
-    let latest = null;
-    function walk(node) {
-      if (!node || typeof node !== 'object') return;
-      if (node.block && node.added) {
-        if (!latest || node.added > latest.added) latest = node;
-      }
-      for (const [k, v] of Object.entries(node)) {
-        if (k !== '_') walk(v);
-      }
-    }
-    walk(refs.tree);
-    return latest;
-  }
-
-  // Collect all ref summaries (name + pscale 0 text)
-  function collectRefSummaries(refs) {
-    const summaries = [];
-    function walk(node) {
-      if (!node || typeof node !== 'object') return;
-      if (node.block && node._) summaries.push({ name: node.name || node.block, summary: node._ });
-      for (const [k, v] of Object.entries(node)) {
-        if (k !== '_') walk(v);
-      }
-    }
-    walk(refs.tree);
-    return summaries;
-  }
-
-  // Render block tree to limited depth (for tier-sensitive ref access)
-  function renderBlockToDepth(node, maxDepth, depth) {
-    depth = depth || 0;
-    if (depth > maxDepth) return '';
-    if (typeof node === 'string') return '  '.repeat(depth) + node;
-    const lines = [];
-    if (node._) lines.push('  '.repeat(depth) + node._);
-    for (const [k, v] of Object.entries(node)) {
-      if (k === '_') continue;
-      lines.push(renderBlockToDepth(v, maxDepth, depth + 1));
-    }
-    return lines.filter(l => l).join('\n');
-  }
-
   // ═══════ §4 CURRENTS COMPILER ═══════
   // BSP each package entry → system prompt sections.
   // The spine spindle is the primary orienting current.
@@ -674,12 +627,13 @@
   }
 
   // ═══════ §4.5 FOCUS COMPILER ═══════
-  // Builds the messages channel: concern-scoped dialogue + object-of-attention refs.
-  // Focus policy on each concern node controls what enters.
-  // Default: no dialogue, no refs (silence is safer than wrong context).
+  // Builds the messages channel: concern-scoped dialogue history.
+  // Default: no dialogue (silence is safer than wrong context).
+  // Refs are now accessed via package/currents (BSP instruction "refs" in package list),
+  // not special-cased here. The refs block is a navigable association record.
 
   function compileFocus(concern) {
-    const focus = concern.focus || { dialogue: 'none', refs: 'none' };
+    const focus = concern.focus || { dialogue: 'none' };
     const messages = [];
 
     // Dialogue: concern-scoped conversation history
@@ -691,46 +645,6 @@
         const n = parseInt(focus.dialogue.replace('last-', '')) || 5;
         messages.push(...history.slice(-(n * 2)));
       }
-    }
-
-    // Refs: object-of-attention content
-    if (focus.refs && focus.refs !== 'none') {
-      const refs = blockLoad('refs');
-
-      if (focus.refs === 'catalogue' && refs) {
-        // Just the index — what exists, not content
-        const summary = bsp(refs, null, 0, 'disc');
-        if (summary.mode === 'disc' && summary.nodes) {
-          messages.push({
-            role: 'user',
-            content: '[refs catalogue]\n' + summary.nodes.map(n => `  ${n.path}: ${n.text || '(empty)'}`).join('\n')
-          });
-        }
-      } else if (focus.refs === 'active' && refs) {
-        // Most recently added ref, summary only (pscale 0)
-        const latest = findLatestRef(refs);
-        if (latest) {
-          const refBlock = blockLoad(latest.block);
-          if (refBlock) {
-            messages.push({
-              role: 'user',
-              content: `[object: ${latest.name}]\n${refBlock.tree?._ || ''}`
-            });
-          }
-        }
-      } else if (focus.refs === 'all-summaries' && refs) {
-        // All refs, pscale 0 only
-        const summaries = collectRefSummaries(refs);
-        if (summaries.length > 0) {
-          messages.push({
-            role: 'user',
-            content: '[available refs]\n' + summaries.map(s => `  ${s.name}: ${s.summary}`).join('\n')
-          });
-        }
-      }
-      // Note: 'signal-full' deferred — requires stimulusPayload plumbing.
-      // When a signal triggers a concern, the triggering ref block ID needs
-      // to flow through findConcern → callLLM → compileFocus. Not yet wired.
     }
 
     return messages;
@@ -835,20 +749,6 @@
       name: 'get_datetime',
       description: 'Current date, time, timezone.',
       input_schema: { type: 'object', properties: {} }
-    },
-    {
-      name: 'ref_ingest',
-      description: 'Ingest external content into a ref block and register in refs catalogue. Content is structured as a pscale block for tier-sensitive access. category: 1=file, 2=search, 3=signal, 4=db, 5=github.',
-      input_schema: {
-        type: 'object',
-        properties: {
-          content: { type: 'string', description: 'Raw content to ingest' },
-          name: { type: 'string', description: 'Filename, URL, or description' },
-          category: { type: 'integer', description: '1=file, 2=search, 3=signal, 4=db, 5=github' },
-          summary: { type: 'string', description: 'One-line summary for pscale 0' }
-        },
-        required: ['content', 'name', 'category', 'summary']
-      }
     },
     {
       name: 'github_save',
@@ -1021,50 +921,6 @@
           if (!r.ok) return JSON.stringify({ error: data.message || `GitHub commit failed: ${r.status}` });
           return JSON.stringify({ success: true, path: input.path, sha: data.content?.sha });
         } catch (e) { return JSON.stringify({ error: e.message }); }
-      }
-      case 'ref_ingest': {
-        // Generate short ID
-        const id = 'ref-' + Math.random().toString(36).slice(2, 8);
-
-        // Structure content as pscale block: double-newlines → sections, single → sub-entries
-        const sections = input.content.split(/\n\n+/).filter(s => s.trim());
-        const tree = { _: input.summary };
-        sections.slice(0, 9).forEach((section, i) => {
-          const lines = section.split('\n').filter(l => l.trim());
-          if (lines.length === 1) {
-            tree[String(i + 1)] = lines[0].trim();
-          } else {
-            const node = { _: lines[0].trim() };
-            lines.slice(1, 10).forEach((line, j) => {
-              node[String(j + 1)] = line.trim();
-            });
-            tree[String(i + 1)] = node;
-          }
-        });
-
-        // Save content block
-        blockSave(id, { tuning: '0.9', tree });
-
-        // Register in refs catalogue (create if absent)
-        const refs = blockLoad('refs') || { tuning: '0.9', tree: { _: 'Reference catalogue.' } };
-        const catPath = String(input.category);
-        if (!refs.tree[catPath] || typeof refs.tree[catPath] === 'string') {
-          refs.tree[catPath] = { _: refs.tree[catPath] || 'Uncategorised' };
-        }
-        const slot = findUnoccupiedDigit(refs, catPath);
-        if (!slot.full) {
-          refs.tree[catPath][slot.digit] = {
-            _: input.summary,
-            block: id,
-            type: ['file', 'search', 'signal', 'db', 'github'][input.category - 1] || 'unknown',
-            name: input.name,
-            size: input.content.length,
-            added: Math.floor(Date.now() / 1000)
-          };
-          blockSave('refs', refs);
-        }
-
-        return JSON.stringify({ success: true, id, summary: input.summary });
       }
       default:
         return JSON.stringify({ error: `Unknown tool: ${name}` });
@@ -1517,7 +1373,7 @@
     // Persist context window for debugging
     try { localStorage.setItem(STORE + '_context_window', JSON.stringify({ text: system, ts: Date.now() })); } catch (e) {}
 
-    // Focus: concern-scoped history + refs. Birth focus is { dialogue: "none", refs: "none" } → returns [].
+    // Focus: concern-scoped dialogue history. Birth focus is { dialogue: "none" } → returns [].
     const focusMessages = compileFocus(concern);
     _activationLock = true;
     const params = {
