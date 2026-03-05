@@ -396,8 +396,7 @@
 
   // Get birth stimulus: priority chain — custom text > variant spindle from relationships > fallback.
   // Custom text replaces whatever self-spindle was selected.
-  // Variant number resolves to spindle through relationships.1.2.2.{N} (CC reflections).
-  // When David writes his descriptions at 1.2.1, update the source digit below.
+  // Variant number resolves to spindle: prefers David's at 1.2.1.{N}, falls back to CC reflections at 1.2.2.{N}.
   // Default variant stored at wake.3.4.
   function getBirthStimulus() {
     // Priority 1: Custom text from UI (one-shot — read and delete)
@@ -421,11 +420,16 @@
       }
     }
     if (!variant) variant = 4; // Ultimate default: rinzai
-    // Compile spindle from relationships — each description is a rich single node, not a fragmented staircase.
-    // Source: 1.2.2 (CC reflections). Spindle gives context chain from root to the description.
+    // Compile spindle from relationships. Prefer David's descriptions (1.2.1.{V}), fall back to CC reflections (1.2.2.{V}).
     const rels = blockLoad('relationships');
     if (rels) {
-      const result = bsp(rels, '0.122' + variant);
+      // Try David's authoritative variant first
+      let result = bsp(rels, '0.121' + variant);
+      if (result.mode === 'spindle' && result.nodes.length > 0 && result.nodes[result.nodes.length - 1].depth > 3) {
+        return result.nodes.map(n => n.text).join('\n');
+      }
+      // Fall back to CC reflections
+      result = bsp(rels, '0.122' + variant);
       if (result.mode === 'spindle' && result.nodes.length > 0) {
         return result.nodes.map(n => n.text).join('\n');
       }
