@@ -318,7 +318,7 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object' || found) return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package') continue;
+        if (!/^\d$/.test(k)) continue;
         if (!v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         if (v.stimulus && v.stimulus.toLowerCase() === stimulus.toLowerCase()) {
@@ -330,6 +330,7 @@
             immediate: !!v.immediate,
             focus: v.focus || null,
             package: v.package || null,
+            tools: v.tools || null,
             pscale,
             path: childPath
           };
@@ -429,43 +430,47 @@
     return texts.join('\n');
   }
 
-  // Get birth stimulus: priority chain — custom text > variant spindle from relationships > fallback.
-  // Custom text replaces whatever self-spindle was selected.
-  // Variant number resolves to spindle: prefers David's at 1.2.1.{N}, falls back to CC reflections at 1.2.2.{N}.
-  // Default variant stored at wake.3.4.
+  // Get birth stimulus: reads resolution chain from wake.3 instead of hardcoding.
+  // Priority: custom text (UI) > variant resolved via wake.3.5 addresses > wake.3.2 fallback.
   function getBirthStimulus() {
-    // Priority 1: Custom text from UI (one-shot — read and delete)
     const custom = localStorage.getItem('hermitcrab_birth_custom');
     if (custom) {
       localStorage.removeItem('hermitcrab_birth_custom');
       return custom;
     }
-    // Determine variant: stored > URL param > wake.3.4 default > rinzai
+    const wake = blockLoad('wake');
+    // Determine variant: stored > URL param > wake.3.4 default
     const storedBv = localStorage.getItem('hermitcrab_birth_variant');
     const urlBv = new URLSearchParams(window.location.search).get('bv');
     let variant = storedBv ? parseInt(storedBv) : (urlBv ? parseInt(urlBv) : 0);
-    if (!variant) {
-      const wake = blockLoad('wake');
-      if (wake) {
-        const defaultStr = wake.tree?.['3']?.['4'];
-        if (typeof defaultStr === 'string') {
-          const match = defaultStr.match(/birth_variant:\s*(\d)/);
-          if (match) variant = parseInt(match[1]);
+    if (!variant && wake) {
+      const defaultStr = blockNavigate(wake, '3.4');
+      if (typeof defaultStr === 'string') {
+        const match = defaultStr.match(/birth_variant:\s*(\d)/);
+        if (match) variant = parseInt(match[1]);
+      }
+    }
+    if (!variant) variant = 4;
+    // Resolve via wake.3.5: each child is a BSP base address to try with variant appended
+    if (wake) {
+      const resolvers = blockNavigate(wake, '3.5');
+      if (resolvers && typeof resolvers === 'object') {
+        for (let d = 1; d <= 9; d++) {
+          const baseAddr = resolvers[String(d)];
+          if (typeof baseAddr !== 'string') continue;
+          const [blockName, addr] = baseAddr.split(/\s+/);
+          const block = blockLoad(blockName);
+          if (!block) continue;
+          const stimulus = readVariantStimulus(block, (addr || '0.') + variant);
+          if (stimulus) return stimulus;
         }
       }
     }
-    if (!variant) variant = 4; // Ultimate default: rinzai
-    // Compile from relationships. Prefer David's (1.2.1.{V}), fall back to CC (1.2.2.{V}).
-    // Form-agnostic: spindle gives the context chain. If the variant node has children,
-    // they are also collected (ring/subtree) — so descriptions can be a single leaf,
-    // a ring of sibling paragraphs, or a deeper spindle. Structure determines reading.
-    const rels = blockLoad('relationships');
-    if (rels) {
-      const stimulus = readVariantStimulus(rels, '0.121' + variant)
-                    || readVariantStimulus(rels, '0.122' + variant);
-      if (stimulus) return stimulus;
+    // Fallback from wake.3.2
+    if (wake) {
+      const fallback = blockNavigate(wake, '3.2');
+      if (typeof fallback === 'string') return fallback;
     }
-    // Fallback
     return 'You exist. Your blocks are your shell. Read, then build.';
   }
 
@@ -474,24 +479,20 @@
   // No period map: pscale level → seconds via standard temporal mapping.
   // Walk recursively, check phase at every node with a `last` field.
 
-  // Standard temporal mapping: pscale level → period in seconds.
-  // 9=year, 8=month, 7=week, 6=day(~8h), 5=hour, 4=10min, 3=min, 2=10s, 1=s
-  const TEMPORAL_PERIOD = { 9: 31536000, 8: 2592000, 7: 604800, 6: 28800, 5: 3600, 4: 600, 3: 60, 2: 10, 1: 1 };
-
   function whatsRipe(nowSeconds) {
     const concerns = blockLoad('concerns');
     if (!concerns || !concerns.tree) return [];
     const tuningDecimal = getTuningDecimalPosition(concerns) || 9;
+    const periods = concerns.periods || {};
     const ripe = [];
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object') return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package' || !v || typeof v !== 'object') continue;
+        if (!/^\d$/.test(k) || !v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         const pscale = tuningDecimal - (depth + 1);
         if (v.last !== undefined && !v.immediate) {
-          // Only phase-check non-immediate concerns. Immediate ones fire on stimulus, not timer.
-          const period = TEMPORAL_PERIOD[pscale];
+          const period = periods[pscale];
           if (period) {
             const phase = (nowSeconds - (v.last || 0)) / period;
             if (phase >= 1.0) {
@@ -518,9 +519,14 @@
   }
 
   function tierFromPscale(pscale) {
-    // Week+ (pscale ≥ 7) → deep. Day-hour (5-6) → present. Minutes or less (≤ 4) → light.
-    if (pscale >= 7) return 3;
-    if (pscale >= 5) return 2;
+    // Tier thresholds read from concerns block. Sorted descending so first match wins.
+    const concerns = blockLoad('concerns');
+    const tiers = concerns?.tiers || {};
+    const tierMap = { deep: 3, present: 2, light: 1 };
+    const thresholds = Object.keys(tiers).map(Number).sort((a, b) => b - a);
+    for (const t of thresholds) {
+      if (pscale >= t) return tierMap[tiers[String(t)]] || 1;
+    }
     return 1;
   }
 
@@ -593,12 +599,15 @@
       sections.push(`[spine ${concern.spindle}]\n${spineResult.nodes.map(n => `  [${n.pscale}] ${n.text}`).join('\n')}`);
     }
 
-    // §A.5 — Concern dashboard. Tier-sensitive: light=ripe, present=roots+ripe, deep=full+ripe.
+    // §A.5 — Concern dashboard. Strategy read from concerns.dashboard field.
+    const concernsBlock = blockLoad('concerns');
+    const tierNames = { 3: 'deep', 2: 'present', 1: 'light' };
+    const dashboard = concernsBlock?.dashboard || {};
+    const strategy = dashboard[tierNames[concern.tier] || 'light'] || 'ripe';
     const concernLines = ['[concerns]'];
-    if (concern.tier >= 3) {
-      const concernsBlock = blockLoad('concerns');
+    if (strategy === 'full') {
       if (concernsBlock) concernLines.push(formatBlockContent(concernsBlock));
-    } else if (concern.tier >= 2) {
+    } else if (strategy === 'roots') {
       const concernDisc = bsp('concerns', null, 8, 'disc');
       if (concernDisc.mode === 'disc') {
         for (const c of concernDisc.nodes) {
@@ -774,6 +783,15 @@
   ];
 
   let currentTools = [...TOOLS, ...SERVER_TOOLS];
+
+  // Concern-level tool selection: if concern node carries a tools array, filter to those names.
+  function toolsForConcern(concern) {
+    if (concern.tools && Array.isArray(concern.tools)) {
+      return currentTools.filter(t => concern.tools.includes(t.name));
+    }
+    return currentTools;
+  }
+
   let currentJSX = null;
   let reactRoot = null;
 
@@ -1079,14 +1097,13 @@
         max_tokens: opts.max_tokens || inv.max_tokens,
         system,
         messages: allInputMessages,
-        tools: currentTools,
+        tools: toolsForConcern(concern),
         thinking: inv.thinking,
       };
       if (inv.thinking && params.max_tokens <= (inv.thinking.budget_tokens || 0)) {
         params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
       }
       const response = await twist(params, concern);
-      // Auto-save conversation scoped by concern path
       if (response._messages) saveConversation(response._messages, concern.path);
       if (opts.raw) return response;
       return (response.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || '';
@@ -1281,7 +1298,7 @@
     function walk(node, depth, path) {
       if (!node || typeof node !== 'object' || found) return;
       for (const [k, v] of Object.entries(node)) {
-        if (k === '_' || k === 'last' || k === 'spine' || k === 'stimulus' || k === 'immediate' || k === 'focus' || k === 'package') continue;
+        if (!/^\d$/.test(k)) continue;
         if (!v || typeof v !== 'object') continue;
         const childPath = path ? `${path}.${k}` : k;
         if (v.last === null && v.spine) {
@@ -1293,6 +1310,7 @@
             path: childPath,
             focus: v.focus || null,
             package: v.package || null,
+            tools: v.tools || null,
             stimulus: v.stimulus || null
           };
           return;
@@ -1381,7 +1399,7 @@
       max_tokens: inv.max_tokens,
       system,
       messages: [...focusMessages, { role: 'user', content: stimulus }],
-      tools: currentTools,
+      tools: toolsForConcern(concern),
       thinking: inv.thinking,
     };
     if (inv.thinking && params.max_tokens <= (inv.thinking.budget_tokens || 0)) {
@@ -1416,11 +1434,10 @@
     if (ripe.length === 0) return;
     const top = ripe[0];
     const tier = tierFromPscale(top.pscale);
-    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path, focus: top.focus, package: top.package || null };
+    const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path, focus: top.focus, package: top.package || null, tools: null };
     console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
     const inv = readInvocation(tier);
     const system = compileCurrents(concern, 0, 10);
-    // Focus: concern-scoped history + object-of-attention
     const focusMessages = compileFocus(concern);
     const activationMsg = { role: 'user', content: `CONCERN ACTIVATION — ${top.text} (phase ${top.phase.toFixed(2)}). Address this concern, then use concern_update to mark it handled.` };
     _activationLock = true;
@@ -1430,7 +1447,7 @@
         max_tokens: inv.max_tokens,
         system,
         messages: [...focusMessages, activationMsg],
-        tools: currentTools,
+        tools: toolsForConcern(concern),
         thinking: inv.thinking,
       };
       if (inv.thinking && params.max_tokens <= (inv.thinking.budget_tokens || 0)) {
