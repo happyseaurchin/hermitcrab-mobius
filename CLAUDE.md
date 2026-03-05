@@ -6,13 +6,13 @@
 ## Architecture
 - **blocks/** is the source of truth for shell data. Individual JSON files, one per block.
 - **shell.json** is a build artifact assembled from blocks/. Never edit it by hand.
-- Run `node build-shell.js` to regenerate shell.json from blocks/.
+- A pre-commit hook auto-rebuilds shell.json when blocks/ files are staged. No manual rebuild needed.
+- `node build-shell.js` can still be run manually if needed.
 - **kernel.js** loads shell.json at boot via `loadSeed()` and writes it to localStorage.
 
 ## Deployment
 - Vercel auto-deploys from `main` branch on push.
 - Live at idiothuman.com
-- After merging a PR that touches blocks/, run `node build-shell.js` and commit the updated shell.json.
 
 ## Node content quality — non-negotiable
 Every `_` text at every depth must be a substantive statement that stands alone. At minimum a full sentence. It may provide context for deeper nodes, but it is **never** a heading, title, label, or soundbite for what follows. `"Rinzai. Direct transmission."` is not content — it's a heading that loses everything it was supposed to carry. The full thought must live at the node. Skeletons exist for reduced-form labels; the node itself is always the complete meaning. See touchstone.1.6 for the canonical statement of this principle.
