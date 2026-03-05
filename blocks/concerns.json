@@ -10,8 +10,7 @@
               "last": 0,
               "spine": "0.1111111",
               "focus": {
-                "dialogue": "none",
-                "refs": "none"
+                "dialogue": "none"
               }
             },
             "_": "Active engagement. Hourly presence."
@@ -20,8 +19,15 @@
           "last": 0,
           "spine": "0.1311111",
           "focus": {
-            "dialogue": "last-3",
-            "refs": "catalogue"
+            "dialogue": "last-3"
+          }
+        },
+        "2": {
+          "_": "Association maintenance. Scan for attaching blocks (tuning 0.ref), read their _ target addresses, record each as an entry in refs with from/to/semantic. Tidy the refs block — sort by target or theme, deduplicate, compress when slots fill. The refs block is your relational memory; this loop keeps it current.",
+          "last": 0,
+          "spine": "0.1311111",
+          "focus": {
+            "dialogue": "none"
           }
         },
         "_": "Block architecture. Weekly structural integrity."
@@ -31,8 +37,7 @@
         "last": 0,
         "spine": "0.1321111",
         "focus": {
-          "dialogue": "last-3",
-          "refs": "catalogue"
+          "dialogue": "last-3"
         }
       },
       "3": {
@@ -42,8 +47,7 @@
         "stimulus": "birth",
         "package": "3.1",
         "focus": {
-          "dialogue": "none",
-          "refs": "none"
+          "dialogue": "none"
         }
       },
       "_": "System coherence. The self-concern thread from season to second."
@@ -58,8 +62,7 @@
             "stimulus": "user",
             "immediate": true,
             "focus": {
-              "dialogue": "last-8",
-              "refs": "active"
+              "dialogue": "last-8"
             }
           },
           "2": {
@@ -68,8 +71,7 @@
             "spine": "0.1121111",
             "stimulus": "signal",
             "focus": {
-              "dialogue": "none",
-              "refs": "active"
+              "dialogue": "none"
             }
           },
           "3": {
@@ -78,8 +80,7 @@
             "spine": "0.1231111",
             "stimulus": "continuation",
             "focus": {
-              "dialogue": "full",
-              "refs": "active"
+              "dialogue": "full"
             }
           },
           "_": "Signal-response. Engaged response to something that arrived and needs present-tier attention.",
@@ -87,15 +88,14 @@
           "spine": "0.1221111",
           "stimulus": "signal-response",
           "focus": {
-            "dialogue": "none",
-            "refs": "active"
+            "dialogue": "none"
           }
         },
         "_": "Relationship cycles. Weekly pattern review across all counterparties."
       },
       "_": "Relational. External-facing concern thread — users, signals, other entities."
     },
-    "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live — phase = (now - last) / period_at_depth. No period map: depth IS period. Every concern is a loop in some state. The _ text encodes behaviour. The spine routes to wake.1 activation instructions. The kernel walks this block to find what is ripe and to route stimuli. The focus field controls what enters the messages channel: dialogue (conversation history) and refs (object-of-attention content)."
+    "_": "Concern clock. Tree block: depth IS temporal scale. Pscale 9 (year) at root, descending to pscale 1 (second). Digit at each depth = concern aspect at that scale. Nodes with 'last' are live — phase = (now - last) / period_at_depth. No period map: depth IS period. Every concern is a loop in some state. The _ text encodes behaviour. The spine routes to wake.1 activation instructions. The kernel walks this block to find what is ripe and to route stimuli. The focus field controls what enters the messages channel: dialogue (concern-scoped conversation history)."
   },
   "skeleton": {
     "1": {
@@ -107,6 +107,7 @@
           },
           "_": "Self-maintenance. Daily full review"
         },
+        "2": "Association maintenance. Scan for attaching",
         "_": "Block architecture. Weekly structural integrity"
       },
       "2": "Threshold review. Weekly loop checkpoint",
@@ -127,5 +128,5 @@
     },
     "_": "Concern clock. Tree block: depth"
   },
-  "skeleton_at": 1772721814
+  "skeleton_at": 1772731498
 }

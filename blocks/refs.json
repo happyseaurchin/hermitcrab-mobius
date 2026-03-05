@@ -1,30 +1,8 @@
 {
-  "tuning": "0.9",
+  "tuning": "0.refs",
   "tree": {
-    "1": {
-      "_": "Files. Uploaded documents, filesystem content, thumbdrive."
-    },
-    "2": {
-      "_": "Search. Cached web search results."
-    },
-    "3": {
-      "_": "Signals. Accumulated external events awaiting attention."
-    },
-    "4": {
-      "_": "DB. Query snapshots."
-    },
-    "5": {
-      "_": "GitHub. Fetched repo or file content."
-    },
-    "_": "Reference catalogue. Index of content available for attention. Each child entry points to a dynamically-created content block. Concerns use focus policy to select which refs to load, at what depth."
+    "_": "Association record. The hermitcrab's relational memory — connections it has made between blocks and points in other blocks. Each digit entry records one association: from (the attaching block name), to (the BSP target address), and _ (why the connection was made, in the hermitcrab's own words). Entries accumulate as the hermitcrab attaches blocks to points in its shell. A maintenance concern tidies this record — sorting, deduplicating, compressing when slots fill. Not a lookup table. Not infrastructure. A navigable journal of associations, maintained like any other block."
   },
-  "skeleton": {
-    "1": "Files. Uploaded documents, filesystem content",
-    "2": "Search. Cached web search results",
-    "3": "Signals. Accumulated external events awaiting",
-    "4": "DB. Query snapshots",
-    "5": "GitHub. Fetched repo or file",
-    "_": "Reference catalogue. Index of content"
-  },
-  "skeleton_at": 1772721814
+  "skeleton": "Association record. The hermitcrab's relational",
+  "skeleton_at": 1772731498
 }
