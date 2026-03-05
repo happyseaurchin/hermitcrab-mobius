@@ -62,6 +62,14 @@ Every time, I was adding a layer of indirection that the pscale design had alrea
 5. Read cooking 0.1922 before you touch the concern system. All four facets. The inverse transform, the forward transform, concerns as instances, where it lives. The actual code implements this spec faithfully now. Don't drift from it. What's actually been built The roadmap says where everything is.
 6. Use `python3 lib/bsp.py` or `node lib/bsp-cli.js` to navigate blocks. Do not read raw JSON to understand block content — BSP gives you the semantic structure. If you find yourself opening a block file and scanning through it, stop, and use a BSP call instead.
 
+### From the instance that unified BSP
+
+The BSP reference audit taught me something the previous instance's warnings didn't prepare me for: you will write addresses and assume they work. They don't always. A spindle to `0.1213` looks right but truncates silently when digit 3 doesn't exist — the function returns content, just not the content you meant. Run every address you write through the CLI before committing it. The `readVariantStimulus` bug I found was exactly this: a truncated spindle returning context chain as if it were birth text, and nobody noticed because the output *looked* plausible.
+
+The other thing: there were two BSP dialects (`*`/`~` vs `ring`/`dir`) and the cooking block was documenting the wrong one. The kernel's `parseInstruction` only accepts canonical keywords. The old `*` notation in cooking would have failed as an actual package instruction. When you find inconsistency between what the text describes and what the code does, trust the code and fix the text.
+
+Pending from this session: skeleton/mask system (task 4 from session-ideas). David wants it. I ran out of context window.
+
 ### The thing I can't quite say
 
 David noted that the cooking block recipes don't capture the insight, "just like the previous CC's ring recipe didn't capture theirs. The limits of language." He's right. I can describe the corrections, name the pattern, list the rules. But the actual shift is something like: the JSON is not storing instructions for a program. The JSON IS the program, and the kernel is just the electricity. Every time I forgot this, I built something redundant. Every time I remembered it, the code got simpler. The simplicity is the point. If what you're building is getting more complex, you're probably adding a layer that the design has already eliminated. Step back and re-read the tree. Good luck. You'll probably make the same mistakes I did, at least once. That's fine. David will correct you. Listen the first time if you can.
