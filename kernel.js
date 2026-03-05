@@ -394,9 +394,10 @@
     }
   }
 
-  // Get birth stimulus: priority chain — custom text > stored variant > URL param > wake default > fallback.
-  // Custom text enters as the birth message directly (from UI textarea, one-shot).
-  // Variant number resolves to wake.3.3.{N} text. Default stored at wake.3.4.
+  // Get birth stimulus: priority chain — custom text > variant spindle from relationships > fallback.
+  // Custom text replaces whatever self-spindle was selected.
+  // Variant number resolves to full spindle through relationships.1.2.1.{N} staircase.
+  // Default variant stored at wake.3.4.
   function getBirthStimulus() {
     // Priority 1: Custom text from UI (one-shot — read and delete)
     const custom = localStorage.getItem('hermitcrab_birth_custom');
@@ -404,29 +405,31 @@
       localStorage.removeItem('hermitcrab_birth_custom');
       return custom;
     }
-    // Priority 2: Stored variant selection or URL param
-    const wake = blockLoad('wake');
+    // Determine variant: stored > URL param > wake.3.4 default > rinzai
     const storedBv = localStorage.getItem('hermitcrab_birth_variant');
     const urlBv = new URLSearchParams(window.location.search).get('bv');
     let variant = storedBv ? parseInt(storedBv) : (urlBv ? parseInt(urlBv) : 0);
-    // Priority 3: Default from wake.3.4
-    if (!variant && wake) {
-      const defaultStr = wake.tree?.['3']?.['4'];
-      if (typeof defaultStr === 'string') {
-        const match = defaultStr.match(/birth_variant:\s*(\d)/);
-        if (match) variant = parseInt(match[1]);
+    if (!variant) {
+      const wake = blockLoad('wake');
+      if (wake) {
+        const defaultStr = wake.tree?.['3']?.['4'];
+        if (typeof defaultStr === 'string') {
+          const match = defaultStr.match(/birth_variant:\s*(\d)/);
+          if (match) variant = parseInt(match[1]);
+        }
       }
     }
     if (!variant) variant = 4; // Ultimate default: rinzai
-    // Resolve variant text from wake.3.3.{N}
-    if (wake) {
-      const variantNode = wake.tree?.['3']?.['3']?.[String(variant)];
-      if (typeof variantNode === 'string') return variantNode;
-      if (variantNode && typeof variantNode === 'object' && variantNode._) return variantNode._;
+    // Compile full spindle from relationships self-description staircase
+    const rels = blockLoad('relationships');
+    if (rels) {
+      const result = bsp(rels, '0.121' + variant + '1111');
+      if (result.mode === 'spindle' && result.nodes.length > 0) {
+        return result.nodes.map(n => n.text).join('\n');
+      }
     }
-    // Fallback: wake.3.2 (legacy birth stimulus)
-    const fallback = wake?.tree?.['3']?.['2'];
-    return typeof fallback === 'string' ? fallback : 'You exist. Your blocks are your shell. Read, then build.';
+    // Fallback
+    return 'You exist. Your blocks are your shell. Read, then build.';
   }
 
   // ═══════ §3.5 PHASE FUNCTION — Fourier concern evaluation ═══════
