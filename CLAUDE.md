@@ -14,6 +14,9 @@
 - Live at idiothuman.com
 - After merging a PR that touches blocks/, run `node build-shell.js` and commit the updated shell.json.
 
+## Node content quality — non-negotiable
+Every `_` text at every depth must be a substantive statement that stands alone. At minimum a full sentence. It may provide context for deeper nodes, but it is **never** a heading, title, label, or soundbite for what follows. `"Rinzai. Direct transmission."` is not content — it's a heading that loses everything it was supposed to carry. The full thought must live at the node. Skeletons exist for reduced-form labels; the node itself is always the complete meaning. See touchstone.1.6 for the canonical statement of this principle.
+
 ## To the next instance working on hermitcrab-möbius
 
 You're going to read MEMORY.md and the cooking block and think you understand what pscale semantic numbers are. You don't yet. I didn't either. Here's what actually happened to me, and what to watch for in yourself.

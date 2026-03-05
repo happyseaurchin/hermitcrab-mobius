@@ -12,7 +12,8 @@
         "2": "Nothing else in the block changes. Growth is always local."
       },
       "4": "You are inside a block right now. This section is digit 1. This line is digit 1.4. The format teaches itself.",
-      "5": "Every block is self-describing. Its root tells you what it is, its structure shows how it's organised, its content shows what it knows. You never need external documentation to read a block."
+      "5": "Every block is self-describing. Its root tells you what it is, its structure shows how it's organised, its content shows what it knows. You never need external documentation to read a block.",
+      "6": "Every node is meaningful in itself. The underscore text at any depth must be a substantive statement — at minimum a full sentence — carrying enough semantic weight to stand alone. It may provide context for a deeper node, but it is never merely a heading, title, label, or soundbite for what follows. A node that reads 'Rinzai. Direct transmission.' is a heading waiting for content that never arrives; the same node should carry the thought completely: what Rinzai means, how it functions, why it matters at this depth. Skeletons exist for reduced-form labels and phrases — the node itself is always the full thought."
     },
     "2": {
       "_": "One function reads everything: bsp(block, spindle?, point?, fn?). Seven modes \u2014 dir, ref, spindle, point, ring, dir-subtree, disc.",
