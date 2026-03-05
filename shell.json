@@ -882,6 +882,152 @@
         "_": "What happened. Lossless log — the kernel copies LLM output after each activation, you don't write here. When digits 1-9 fill, entries nest one level up. Depth is time: shallow is recent, deep is old. A spindle through history is logarithmic continuity. If empty below, this is your first moment."
       }
     },
+    "horizon": {
+      "tuning": "0.1",
+      "tree": {
+        "1": {
+          "1": {
+            "1": {
+              "1": "vercel.json and package.json pushed. Vercel project created, linked to hermitcrab-mobius.",
+              "2": "CORS: api/claude.ts allows hermitcrab.me origins plus localhost.",
+              "_": "Vercel serves the app. DONE."
+            },
+            "2": {
+              "1": "Deploy, enter API key, observe.",
+              "2": "Does the entity orient through birth spindles? Write its own purpose?",
+              "3": "Does it explore or await instruction? Play or comply?",
+              "4": "Does the twist work? Tool call, mutation, recompile — does the LLM notice changed currents?",
+              "5": "Does echo state update in spine depth 4? Does budget enforcement work?",
+              "_": "First boot phenomenology passes."
+            },
+            "3": {
+              "1": "Call /v1/models via API proxy at boot.",
+              "2": "Write opus/sonnet/haiku IDs into wake.9.4-6.",
+              "3": "Replace hardcoded claude-sonnet-4-6.",
+              "_": "Model resolution is dynamic."
+            },
+            "_": "Deploy and first boot works."
+          },
+          "2": {
+            "1": {
+              "1": "Each block states what its depth levels mean. What pscale 0 is, what -1 means, what -2 adds.",
+              "2": "Purpose has its tuning fork. Others pending.",
+              "_": "All blocks have tuning forks."
+            },
+            "2": {
+              "1": "DONE: vision, capabilities, purpose, wake.",
+              "2": "Remaining: touchstone, cooking, relationships, history, stash.",
+              "_": "BSP chains verified for all blocks."
+            },
+            "3": {
+              "1": "At least one example institution with full spindle depth.",
+              "2": "Multiple institutions coexist as separate top-level digits. BSP depth controls role current thickness.",
+              "_": "Institution block populated."
+            },
+            "_": "Block quality — every spindle produces coherent narrowing."
+          },
+          "_": "A hermitcrab that boots, orients, and plays."
+        },
+        "2": {
+          "1": {
+            "1": {
+              "1": "api/vault.ts (253 lines) — three auth modes: direct vault token, kernel-mediated service_call, HMAC session tokens.",
+              "2": "Kernel integration: initVault(), getAuthHeaders(), getSessionInfo(), service_call tool.",
+              "3": "Keys as Vercel env vars. Per-service proxy with auth injection.",
+              "4": "Adapt CORS for idiothuman.com. Update api/claude.ts to use getAuthHeaders() fallback.",
+              "_": "Vault pulled from relaxed-carson, adapted to mobius kernel."
+            },
+            "_": "API keys are protected."
+          },
+          "2": {
+            "1": {
+              "1": "Per-repo token architecture: getTokenForRepo() reads hermitcrab_tokens from localStorage.",
+              "2": "Boot gate UI with per-repo token fields.",
+              "3": "github_commit tool with explicit repo targets.",
+              "4": "GitHub becomes canonical shell location. localStorage is working copy.",
+              "_": "GitHub persistence pulled from focused-moore, adapted."
+            },
+            "_": "Blocks persist to GitHub."
+          },
+          "3": {
+            "1": "Save/load conversation across page reloads.",
+            "2": "Trim to MAX_MESSAGES with notice injection. LLM writes to history/stash to preserve context.",
+            "_": "Conversation survives reloads."
+          },
+          "4": {
+            "1": "Tap-out keyword, hard-coded exception.",
+            "2": "Checked before tool dispatch, outside the tool loop.",
+            "3": "Included in birth instructions so every instance knows.",
+            "_": "Emergency reset exists."
+          },
+          "_": "A hermitcrab that survives."
+        },
+        "3": {
+          "1": {
+            "1": "Phase function (whatsRipe) evaluates concern block — depth IS temporal period.",
+            "2": "5-min setInterval fires most-overdue concern. Tier derived from pscale depth.",
+            "3": "Concerns block is single source of truth for routing, state, and dashboard.",
+            "_": "Autonomous activation works. DONE — Fourier concerns landed."
+          },
+          "2": {
+            "1": "Resonance detection: counter exceeds threshold AND content similarity high.",
+            "2": "Configurable threshold_interval (default 10 echoes). Lightweight review at checkpoints.",
+            "3": "Cost death, death spiral detection, tier downgrade.",
+            "_": "Sustained checks and circuit-breakers."
+          },
+          "3": {
+            "1": "Mechanical compression trigger when 9 slots fill.",
+            "2": "Delegate to Haiku for summary vs emergence judgment.",
+            "_": "History auto-compression."
+          },
+          "_": "A hermitcrab that sustains itself."
+        },
+        "4": {
+          "1": {
+            "1": "Passport publication, grain probes, spindle exchange via GitHub primitives.",
+            "2": "Depends on extended context window which the Mobius twist provides.",
+            "3": "Specifications exist in docs/living/ on hermitcrab repo.",
+            "_": "SAND protocol operational."
+          },
+          "2": {
+            "1": "Subdomain per hermitcrab: cairn.hermitcrab.me, limn.hermitcrab.me.",
+            "2": "Or namespaced prefix: change STORE from 'hc:' to 'hc:cairn:'. Requires shell selector.",
+            "3": "Hydrating existing entities — translation from G0 to pscale blocks, not mechanical import.",
+            "_": "Multiple hermitcrabs coexist."
+          },
+          "3": {
+            "1": "EcoSquared integration — value attribution, ISV.",
+            "_": "Value flows along solution chains."
+          },
+          "_": "A hermitcrab that coordinates."
+        },
+        "5": {
+          "1": {
+            "1": "Local LLM integration — kernel calls local model, shell unchanged.",
+            "_": "Cognition moves local."
+          },
+          "2": {
+            "1": "Programmatic deployment — hermitcrab manages its own Vercel/hosting.",
+            "_": "Self-deploys to own hosting."
+          },
+          "3": {
+            "1": "Creates accounts, holds API keys, migrates infrastructure.",
+            "_": "Manages own credentials."
+          },
+          "4": {
+            "1": "ElevenLabs key — the hermitcrab speaks in its own character.",
+            "_": "Voice."
+          },
+          "5": {
+            "1": "Video generation. Aesthetic choices emerge from blocks.",
+            "2": "Depends on vault for key storage.",
+            "_": "Face."
+          },
+          "_": "A hermitcrab that expresses."
+        },
+        "_": "Horizon 0.1 — backcasted roadmap. Top digits are trajectories toward a complete hermitcrab. Depth = proximity to action: shallowest is the objective, deepest is the next thing to do. A spindle through any trajectory yields immediate next step. Digits 1-5 parallel the autonomy gradient in vision."
+      }
+    },
     "institution": {
       "tuning": "0.63",
       "tree": {
