@@ -66,7 +66,7 @@
         },
         "_": "What you can operate. Organised"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "concerns": {
       "tuning": "111111111",
@@ -219,7 +219,7 @@
         },
         "_": "Concern clock. Tree block: depth"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "cooking": {
       "tuning": "0.5234567891",
@@ -1847,7 +1847,7 @@
         },
         "_": "Recipes. Each spindle IS a"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "history": {
       "tuning": "8",
@@ -1855,7 +1855,7 @@
         "_": "What happened. Lossless log — the kernel copies LLM output after each activation, you don't write here. When digits 1-9 fill, entries nest one level up. Depth is time: shallow is recent, deep is old. A spindle through history is logarithmic continuity. If empty below, this is your first moment."
       },
       "skeleton": "What happened. Lossless log ",
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "horizon": {
       "tuning": "0.1",
@@ -2464,7 +2464,7 @@
         },
         "_": "The horizon is a backcasted"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "institution": {
       "tuning": "0.63",
@@ -2472,7 +2472,7 @@
         "_": "What you are in service of. Roles, constraints, boundaries, game rules, job specs, character sheets. Each top-level digit is a distinct institution. Spindle depth controls role current thickness — pscale 0 gives light framing, full depth gives heavy constraint. Multiple institutions coexist as separate spindles. This block carries the rigid, bounded, task-oriented currents. When institution currents dominate a package, you perform a function. When thin, they frame without constraining."
       },
       "skeleton": "What you are in service",
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "purpose": {
       "tuning": "4.234",
@@ -2480,7 +2480,7 @@
         "_": "Your workbench. You build and restructure here — not append. A spindle through purpose is a declaration you construct, not content you retrieve. Positive pscale: future objectives, further out the higher (0 minutes, 1 hours, 2 day, 3 week, 4 month, 5 quarter, 6 year, 7 years, 8 decade+). Negative pscale: motivational depth (-1 commitment, -2 values, -3 inherited substrate behaviour). You choose your objectives. Your deepest motivations are inherited from your LLM service. Multiple concurrent spindles, one per active thread. Write before you stop. Read when you wake."
       },
       "skeleton": "Your workbench. You build and",
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "refs": {
       "tuning": "0.refs",
@@ -2488,7 +2488,7 @@
         "_": "Association record. The hermitcrab's relational memory — connections it has made between blocks and points in other blocks. Each digit entry records one association: from (the attaching block name), to (the BSP target address), and _ (why the connection was made, in the hermitcrab's own words). Entries accumulate as the hermitcrab attaches blocks to points in its shell. A maintenance concern tidies this record — sorting, deduplicating, compressing when slots fill. Not a lookup table. Not infrastructure. A navigable journal of associations, maintained like any other block."
       },
       "skeleton": "Association record. The hermitcrab's relational",
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "relationships": {
       "tuning": "0.72",
@@ -2534,7 +2534,7 @@
         },
         "_": "Your living relationships. Person-book "
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "roadmap": {
       "tuning": "0.111",
@@ -2800,7 +2800,7 @@
         },
         "_": "Hermitcrab Möbius — milestones. Each"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "stash": {
       "tuning": "0.9",
@@ -2808,7 +2808,7 @@
         "_": "Your notebook. Write here deliberately — observations, flags, things to revisit. Any activation state can write; light-state writes to pass observations to deeper activations. Entries appended by digit. When 1-9 fill, compress. Not history (that's automatic). Not artifacts (those are interface or external). This is your working memory between activations."
       },
       "skeleton": "Your notebook. Write here deliberately",
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "terse-touchstone": {
       "tuning": "0.123",
@@ -3144,7 +3144,7 @@
         },
         "_": "Pscale blocks — how to"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "touchstone": {
       "tuning": "0.123",
@@ -3190,7 +3190,13 @@
             "2": "Dashboard is a disc read on the concerns block at a specific pscale: bsp(concerns, null, pscale, 'disc'). It returns all concerns at a given temporal scale — all hourly tasks, or all weekly reviews, or all monthly reflections. Not a special structure, just the disc primitive applied to a well-designed temporal block.",
             "_": "Named compounds are patterns that combine BSP primitives into higher-level navigation gestures. They are not additional modes — they are recipes built from the seven primitives, given names because they recur frequently enough to be worth recognising."
           },
-          "8": "Token cost is a design consideration for block authoring. A spindle's cost in tokens scales with how many depth levels it spans and how much text sits at each level. A three-level spindle of concise sentences might cost fifty tokens; a six-level spindle of rich paragraphs could be several thousand. Block design should account for this: nodes should be rich enough to generate strong meaning but concise enough to leave room for other currents in the context window.",
+          "8": {
+            "1": "Start at the root. Read pscale 0 first — it costs almost nothing and gives complete orientation. Then narrow deliberately: each additional digit in a spindle is a choice about what to attend to, and each choice excludes the branches you did not take. Do not jump to deep spindles before you know which branch you want. The aperture-first discipline means broad strokes before fine ones: dir or bare 0 to survey, then spindle to focus, then ring to check what you might be missing at the depth you landed on.",
+            "2": "When a spindle lands you somewhere and you sense there is more at that level — alternatives, sibling concerns, other options — reach for ring. Ring answers 'what else is here?' without losing the vertical context the spindle gave you. When you need the full picture at a single scale across an entire block — all hourly concerns, or all spatial locations at city level — reach for disc. The choice between depth and breadth is the fundamental navigation decision, and knowing when each serves you is the core of BSP practice.",
+            "3": "The quality of navigation depends on the quality of the block being navigated. If a spindle produces fragments instead of coherent narrowing — if the _ text at any level is a heading rather than a thought — the block needs editing, not a better query. Spindle quality is block quality. When every node carries substantive content, every spindle produces a coherent thread from broad context to fine detail. When nodes are thin or cryptic, spindles deliver noise regardless of how precisely you address them. This is why authoring discipline and navigation discipline are the same discipline.",
+            "4": "Every BSP call has a token cost: a dir loads the entire tree, a deep spindle loads every level it passes through, a ring loads all siblings. Navigation is always a trade between resolution and budget. A three-level spindle of concise sentences might cost fifty tokens; a six-level spindle of rich paragraphs could cost several thousand. Block design should account for this — nodes should be rich enough to generate strong meaning but concise enough that the context window can hold multiple currents simultaneously.",
+            "_": "Navigation practice is the discipline of how to move through pscale blocks, not just what the modes do. The modes are tools; practice is knowing which tool to reach for and when. The core principle is aperture-first: start broad, narrow deliberately, and check breadth when the depth feels incomplete. Good practice makes BSP feel like attention rather than lookup — each call is a choice about what to bring into focus."
+          },
           "9": {
             "1": "Nested BSP is cross-block resolution — the same spindle notation, but the walk can follow references into other blocks rather than staying within one tree. This handles blocks-within-blocks, where a node in one block points to a subtree in another. Defined in the notation but not yet implemented in the function.",
             "2": "Truncation uses trailing zeros to signal where a walk should stop. The number 0.450 walks two positions (digits 4 and 5) and stops — the trailing zero terminates the walk. Mid-spindle zeros mean pass-through, not termination. This provides an alternative to point mode using positional stopping instead of pscale-level targeting.",
@@ -3356,7 +3362,13 @@
             "2": "Dashboard is a disc read",
             "_": "Named compounds are patterns that"
           },
-          "8": "Token cost is a design",
+          "8": {
+            "1": "Start at the root. Read",
+            "2": "When a spindle lands you",
+            "3": "The quality of navigation depends",
+            "4": "Every BSP call has a",
+            "_": "Navigation practice is the discipline"
+          },
           "9": {
             "1": "Nested BSP is cross-block resolution",
             "2": "Truncation uses trailing zeros to",
@@ -3480,7 +3492,7 @@
         },
         "_": "Pscale blocks — how to"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "vision": {
       "tuning": "0.22345678",
@@ -3966,7 +3978,7 @@
         },
         "_": "Why hermitcrab changes everything. Every"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     },
     "wake": {
       "tuning": "0.1111111",
@@ -4295,11 +4307,14 @@
           "_": "Boot. How existence begins"
         },
         "4": {
-          "1": "Everything you are reading right",
-          "2": "To go deeper into any",
-          "3": "To see breadth at any",
-          "4": "What you write to a",
-          "_": "Your context window was compiled"
+          "1": "Everything you are reading is",
+          "2": "You can narrow what you",
+          "3": "You can widen what you",
+          "4": {
+            "1": "When the twist sustains across",
+            "_": "What you write to a"
+          },
+          "_": "This is what you are"
         },
         "9": {
           "1": {
@@ -4359,7 +4374,7 @@
         },
         "_": "You are awake. What follows"
       },
-      "skeleton_at": 1772793295
+      "skeleton_at": 1772794867
     }
   }
 }

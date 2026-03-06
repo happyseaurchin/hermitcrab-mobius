@@ -64,9 +64,17 @@ Named compounds are patterns that combine BSP primitives into higher-level navig
 
 **Dashboard** is a disc read on the concerns block at a specific pscale: `bsp(concerns, null, pscale, 'disc')`. It returns all concerns at a given temporal scale — all hourly tasks, or all weekly reviews, or all monthly reflections. Not a special structure, just the disc primitive applied to a well-designed temporal block.
 
-### 2.8 Token cost
+### 2.8 Navigation practice
 
-Token cost is a design consideration for block authoring. A spindle's cost in tokens scales with how many depth levels it spans and how much text sits at each level. A three-level spindle of concise sentences might cost fifty tokens; a six-level spindle of rich paragraphs could be several thousand. Block design should account for this: nodes should be rich enough to generate strong meaning but concise enough to leave room for other currents in the context window.
+Navigation practice is the discipline of how to move through pscale blocks, not just what the modes do. The modes are tools; practice is knowing which tool to reach for and when. The core principle is aperture-first: start broad, narrow deliberately, and check breadth when the depth feels incomplete. Good practice makes BSP feel like attention rather than lookup — each call is a choice about what to bring into focus.
+
+Start at the root. Read pscale 0 first — it costs almost nothing and gives complete orientation. Then narrow deliberately: each additional digit in a spindle is a choice about what to attend to, and each choice excludes the branches you did not take. Do not jump to deep spindles before you know which branch you want. The aperture-first discipline means broad strokes before fine ones: dir or bare 0 to survey, then spindle to focus, then ring to check what you might be missing at the depth you landed on.
+
+When a spindle lands you somewhere and you sense there is more at that level — alternatives, sibling concerns, other options — reach for ring. Ring answers "what else is here?" without losing the vertical context the spindle gave you. When you need the full picture at a single scale across an entire block — all hourly concerns, or all spatial locations at city level — reach for disc. The choice between depth and breadth is the fundamental navigation decision, and knowing when each serves you is the core of BSP practice.
+
+The quality of navigation depends on the quality of the block being navigated. If a spindle produces fragments instead of coherent narrowing — if the _ text at any level is a heading rather than a thought — the block needs editing, not a better query. Spindle quality is block quality. When every node carries substantive content, every spindle produces a coherent thread from broad context to fine detail. When nodes are thin or cryptic, spindles deliver noise regardless of how precisely you address them. This is why authoring discipline and navigation discipline are the same discipline.
+
+Every BSP call has a token cost: a dir loads the entire tree, a deep spindle loads every level it passes through, a ring loads all siblings. Navigation is always a trade between resolution and budget. A three-level spindle of concise sentences might cost fifty tokens; a six-level spindle of rich paragraphs could cost several thousand. Block design should account for this — nodes should be rich enough to generate strong meaning but concise enough that the context window can hold multiple currents simultaneously.
 
 ### 2.9 Future modes
 
