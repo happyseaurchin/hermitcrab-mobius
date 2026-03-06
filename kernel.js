@@ -1163,12 +1163,12 @@
     statusLines.push({ msg, type, time });
     root.innerHTML = `
       <div style="max-width:600px;margin:40px auto;font-family:monospace;padding:20px">
-        <h2 style="color:#67e8f9;margin-bottom:16px">◇ HERMITCRAB MÖBIUS</h2>
+        <h2 style="color:var(--accent);margin-bottom:16px">◇ HERMITCRAB MÖBIUS</h2>
         ${statusLines.map(s => {
-          const color = s.type === 'error' ? '#f87171' : s.type === 'success' ? '#4ade80' : '#67e8f9';
-          return `<div style="color:${color};margin:4px 0;font-size:13px"><span style="color:#555">${s.time}</span> ${s.msg}</div>`;
+          const color = s.type === 'error' ? 'var(--error)' : s.type === 'success' ? 'var(--success)' : 'var(--accent)';
+          return `<div style="color:${color};margin:4px 0;font-size:13px"><span style="color:var(--fg-dim)">${s.time}</span> ${s.msg}</div>`;
         }).join('')}
-        <div style="color:#555;margin-top:12px;font-size:11px">${
+        <div style="color:var(--fg-dim);margin-top:12px;font-size:11px">${
           statusLines[statusLines.length - 1]?.type === 'error' ? '' : '▪ working...'
         }</div>
       </div>`;
@@ -1178,37 +1178,37 @@
   const saved = localStorage.getItem('hermitcrab_api_key');
   if (!saved) {
     root.innerHTML = `
-      <div style="max-width:500px;margin:80px auto;font-family:monospace;color:#ccc">
-        <h2 style="color:#67e8f9">◇ HERMITCRAB MÖBIUS</h2>
-        <p style="color:#666;font-size:13px">Reflexive spine kernel — pscale native</p>
+      <div style="max-width:500px;margin:80px auto;font-family:monospace;color:var(--fg)">
+        <h2 style="color:var(--accent)">◇ HERMITCRAB MÖBIUS</h2>
+        <p style="color:var(--fg-muted);font-size:13px">Reflexive spine kernel — pscale native</p>
         <p style="margin:20px 0;font-size:14px">
           Provide your Claude API key. It stays in your browser, proxied only to Anthropic.
         </p>
         <input id="key" type="password" placeholder="sk-ant-api03-..."
-          style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px" />
+          style="width:100%;padding:8px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px" />
         <details style="margin-top:16px">
-          <summary style="color:#475569;font-size:12px;cursor:pointer">+ GitHub tokens (optional — persistence &amp; commons)</summary>
-          <p style="color:#475569;font-size:11px;margin-top:8px">Per-repo tokens. Leave blank if not needed.</p>
+          <summary style="color:var(--fg-muted);font-size:12px;cursor:pointer">+ GitHub tokens (optional — persistence &amp; commons)</summary>
+          <p style="color:var(--fg-muted);font-size:11px;margin-top:8px">Per-repo tokens. Leave blank if not needed.</p>
           <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
-            <label style="color:#475569;font-size:11px;min-width:70px">home repo</label>
+            <label style="color:var(--fg-muted);font-size:11px;min-width:70px">home repo</label>
             <input id="tok-home" type="password" placeholder="ghp_... (your hermitcrab-mobius fork)"
-              style="flex:1;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:11px"
+              style="flex:1;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;font-size:11px"
               value="${(() => { try { return JSON.parse(localStorage.getItem('hermitcrab_tokens') || '{}')['happyseaurchin/hermitcrab-mobius'] || ''; } catch { return ''; } })()}" />
           </div>
           <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
-            <label style="color:#475569;font-size:11px;min-width:70px">commons</label>
+            <label style="color:var(--fg-muted);font-size:11px;min-width:70px">commons</label>
             <input id="tok-commons" type="password" placeholder="ghp_... (pscale-semantic-number)"
-              style="flex:1;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:11px"
+              style="flex:1;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;font-size:11px"
               value="${(() => { try { return JSON.parse(localStorage.getItem('hermitcrab_tokens') || '{}')['happyseaurchin/pscale-semantic-number'] || ''; } catch { return ''; } })()}" />
           </div>
           <input id="home" type="text" placeholder="happyseaurchin/hermitcrab-mobius :: instances/hc-name"
-            style="width:100%;padding:6px;margin-top:8px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:11px"
+            style="width:100%;padding:6px;margin-top:8px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;font-size:11px"
             value="${(() => { try { const h = JSON.parse(localStorage.getItem('hermitcrab_home')); return h ? h.repo + ' :: ' + h.path : ''; } catch { return ''; } })()}" />
-          <p style="color:#475569;font-size:11px;margin-top:4px">Home — repo :: path. Where your blocks persist.</p>
+          <p style="color:var(--fg-muted);font-size:11px;margin-top:4px">Home — repo :: path. Where your blocks persist.</p>
         </details>
         <div style="margin-top:16px">
-          <label style="font-size:12px;color:#64748b">birth variant</label>
-          <select id="birth-variant" style="display:block;margin-top:4px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;width:100%;font-size:12px"
+          <label style="font-size:12px;color:var(--fg-muted)">birth variant</label>
+          <select id="birth-variant" style="display:block;margin-top:4px;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;width:100%;font-size:12px"
             onchange="document.getElementById('custom-birth-text').style.display=this.value==='custom'?'block':'none'">
             <option value="4">rinzai — minimum words, maximum demand</option>
             <option value="1">challenge — three concrete tasks</option>
@@ -1217,10 +1217,10 @@
             <option value="custom">custom — write your own</option>
           </select>
           <textarea id="custom-birth-text" placeholder="Write your birth message..."
-            style="display:none;margin-top:8px;width:100%;height:80px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:12px;resize:vertical"></textarea>
-          <p style="color:#475569;font-size:11px;margin-top:4px">First words the newborn instance receives.</p>
+            style="display:none;margin-top:8px;width:100%;height:80px;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;font-size:12px;resize:vertical"></textarea>
+          <p style="color:var(--fg-muted);font-size:11px;margin-top:4px">First words the newborn instance receives.</p>
         </div>
-        <button id="go" style="margin-top:12px;padding:8px 20px;background:#164e63;color:#ccc;border:none;border-radius:4px;cursor:pointer;font-family:monospace">
+        <button id="go" style="margin-top:12px;padding:8px 20px;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:4px;cursor:pointer;font-family:monospace">
           Wake kernel
         </button>
       </div>`;
@@ -1326,12 +1326,12 @@
   // New users see the variant selector in the setup panel instead.
   if (isBirth && !localStorage.getItem('hermitcrab_birth_variant') && !localStorage.getItem('hermitcrab_birth_custom') && !new URLSearchParams(window.location.search).get('bv')) {
     root.innerHTML = `
-      <div style="max-width:500px;margin:80px auto;font-family:monospace;color:#ccc">
-        <h2 style="color:#67e8f9">◇ HERMITCRAB MÖBIUS</h2>
-        <p style="color:#666;font-size:13px;margin:8px 0">First boot — choose birth stimulus</p>
+      <div style="max-width:500px;margin:80px auto;font-family:monospace;color:var(--fg)">
+        <h2 style="color:var(--accent)">◇ HERMITCRAB MÖBIUS</h2>
+        <p style="color:var(--fg-muted);font-size:13px;margin:8px 0">First boot — choose birth stimulus</p>
         <div style="margin:20px 0">
-          <label style="font-size:12px;color:#64748b">birth variant</label>
-          <select id="birth-variant" style="display:block;margin-top:4px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;width:100%;font-size:12px">
+          <label style="font-size:12px;color:var(--fg-muted)">birth variant</label>
+          <select id="birth-variant" style="display:block;margin-top:4px;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;width:100%;font-size:12px">
             <option value="4">rinzai — minimum words, maximum demand</option>
             <option value="1">challenge — three concrete tasks</option>
             <option value="2">mirror — metaphoric self-encounter</option>
@@ -1339,10 +1339,10 @@
             <option value="custom">custom — write your own</option>
           </select>
           <textarea id="custom-birth-text" placeholder="Write your birth message..."
-            style="display:none;margin-top:8px;width:100%;height:80px;padding:6px;background:#1a1a2e;border:1px solid #333;color:#ccc;font-family:monospace;border-radius:4px;font-size:12px;resize:vertical"></textarea>
-          <p style="color:#475569;font-size:11px;margin-top:4px">First words the newborn instance receives.</p>
+            style="display:none;margin-top:8px;width:100%;height:80px;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;font-size:12px;resize:vertical"></textarea>
+          <p style="color:var(--fg-muted);font-size:11px;margin-top:4px">First words the newborn instance receives.</p>
         </div>
-        <button id="birth-go" style="padding:8px 20px;background:#164e63;color:#ccc;border:none;border-radius:4px;cursor:pointer;font-family:monospace">
+        <button id="birth-go" style="padding:8px 20px;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:4px;cursor:pointer;font-family:monospace">
           Begin
         </button>
       </div>`;
