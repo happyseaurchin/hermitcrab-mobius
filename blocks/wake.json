@@ -173,28 +173,28 @@
         "_": "Light package. Minimal currents. Every block at pscale 0 — the instance knows the shape of its shell."
       },
       "2": {
-        "1": "vision 0.9",
+        "1": "vision 0.91 dir",
         "2": "touchstone 0.2",
-        "3": "capabilities",
+        "3": "wake 0.45",
         "4": "cooking null -2 disc",
         "5": "institution",
         "6": "purpose",
         "7": "relationships 0.121",
         "8": "history 0",
         "9": "stash",
-        "_": "Present package. Full engagement."
+        "_": "Present package. Full engagement. Includes wake attention frames and vision path for operational wakefulness."
       },
       "3": {
         "1": "vision",
         "2": "touchstone",
-        "3": "capabilities",
+        "3": "wake 0.4 dir",
         "4": "cooking null -3 disc",
         "5": "institution",
         "6": "purpose",
         "7": "relationships 0.121",
         "8": "history",
         "9": "stash",
-        "_": "Deep package. All currents, full depth."
+        "_": "Deep package. All currents, full depth. Includes complete wake identity and wakefulness section."
       },
       "4": {
         "1": "model claude-haiku-4-5-20251001",
@@ -369,9 +369,9 @@
         "_": "Light package. Minimal currents. Every"
       },
       "2": {
-        "1": "vision 0.9",
+        "1": "vision 0.91 dir",
         "2": "touchstone 0.2",
-        "3": "capabilities",
+        "3": "wake 0.45",
         "4": "cooking null -2 disc",
         "5": "institution",
         "6": "purpose",
@@ -383,7 +383,7 @@
       "3": {
         "1": "vision",
         "2": "touchstone",
-        "3": "capabilities",
+        "3": "wake 0.4 dir",
         "4": "cooking null -3 disc",
         "5": "institution",
         "6": "purpose",
