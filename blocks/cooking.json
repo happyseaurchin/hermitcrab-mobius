@@ -1579,6 +1579,30 @@
           },
           "_": "Concern architecture. How the frozen"
         },
+        "3": {
+          "1": {
+            "1": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Taste test: each trajectory section",
+                    "_": "Branches are noted but never"
+                  },
+                  "_": "Reverse the collected sequence so"
+                },
+                "_": "For each top-level digit (1-9)"
+              },
+              "_": "Read the block root _"
+            },
+            "_": "Backcasting extraction produces documents from"
+          },
+          "2": {
+            "1": "To be fleshed out when",
+            "_": "Forward extraction produces documents from"
+          },
+          "3": "Legal and formal document extraction",
+          "_": "Creating readable documents from pscale"
+        },
         "4": {
           "1": {
             "1": "The attaching block does not",
@@ -1594,17 +1618,11 @@
           },
           "_": "Attachment architecture. How blocks form"
         },
-        "_": "Design. How to construct pscale",
-        "3": {
-          "1": "Backcasting extraction. Horizon-type blocks",
-          "2": "Forward extraction. Aperture-to-focus blocks",
-          "3": "Legal and formal document extraction",
-          "_": "Creating readable documents from pscale"
-        }
+        "_": "Design. How to construct pscale"
       },
       "_": "User's handbook. Reading and operating"
     },
     "_": "Recipes. Each spindle IS a"
   },
-  "skeleton_at": 1772731498
+  "skeleton_at": 1772793295
 }

@@ -337,94 +337,273 @@
   "skeleton": {
     "1": {
       "1": {
-        "1": "Vercel infrastructure and API proxy",
-        "2": "First boot phenomenology",
-        "3": "Dynamic model resolution",
-        "_": "Deployment and first boot"
+        "1": {
+          "1": "The vercel.json and package.json are",
+          "2": "CORS headers route correctly through",
+          "_": "Vercel serves the application and"
+        },
+        "2": {
+          "1": "Deploy, enter an API key",
+          "2": "Does the entity orient itself",
+          "3": "Does the entity explore or",
+          "4": "Does the Möbius twist work",
+          "5": "Does echo state update at",
+          "_": "First boot phenomenology passes "
+        },
+        "3": {
+          "1": "Call /v1/models via the API",
+          "2": "Write the discovered opus, sonnet",
+          "3": "Replace any hardcoded model strings",
+          "_": "Model resolution is dynamic "
+        },
+        "_": "Deployment and first boot work"
       },
       "2": {
-        "1": "Tuning forks for all blocks",
-        "2": "BSP chain verification",
-        "3": "Institution block population",
-        "_": "Block quality and editorial standard"
+        "1": {
+          "1": "Each block states what its",
+          "2": "Purpose has its tuning fork",
+          "_": "All blocks have tuning forks"
+        },
+        "2": {
+          "1": "Vision, capabilities, purpose, and wake",
+          "2": "Touchstone, cooking, relationships, history, and",
+          "_": "BSP chains are verified for"
+        },
+        "3": {
+          "1": "At least one example institution",
+          "2": "Multiple institutions coexist as separate",
+          "_": "The institution block is populated"
+        },
+        "_": "Block quality across the entire"
       },
-      "_": "Boots, orients, and plays"
+      "_": "A hermitcrab that boots, orients"
     },
     "2": {
       "1": {
-        "1": "Vault implementation and auth modes",
-        "_": "API key protection"
+        "1": {
+          "1": "The vault implementation is 253",
+          "2": "Kernel integration includes initVault(), getAut...",
+          "3": "Keys are stored as Vercel",
+          "4": "CORS needs adaptation for idiothuman.com",
+          "_": "The vault is pulled from"
+        },
+        "_": "API keys are protected and"
       },
       "2": {
-        "1": "GitHub per-repo token architecture",
-        "_": "Block persistence via GitHub"
+        "1": {
+          "1": "The per-repo token architecture uses",
+          "2": "The boot gate UI provides",
+          "3": "The github_commit tool targets explicit",
+          "4": "GitHub becomes the canonical shell",
+          "_": "GitHub persistence is pulled from"
+        },
+        "_": "Blocks persist to GitHub so"
       },
-      "3": "Conversation continuity",
-      "4": "Emergency reset",
-      "_": "Survives across sessions"
+      "3": {
+        "1": "The mechanism saves and loads",
+        "2": "When the conversation exceeds MAX_MESSAGES",
+        "_": "Conversation survives reloads so the"
+      },
+      "4": {
+        "1": "A tap-out keyword provides an",
+        "2": "The check happens before tool",
+        "3": "The tap-out keyword is included",
+        "_": "An emergency reset exists as"
+      },
+      "_": "A hermitcrab that survives. Survival"
     },
     "3": {
-      "1": "Fourier concern clock",
-      "2": "Circuit breakers and cost control",
-      "3": "History auto-compression",
-      "4": {
-        "1": "0.ref tuning convention",
-        "2": "Refs block as relational journal",
-        "3": "Implementation steps",
-        "_": "Attachment and association"
+      "1": {
+        "1": "The phase function whatsRipe() evaluates",
+        "2": "A five-minute setInterval fires the",
+        "3": "The concerns block is the",
+        "_": "Autonomous activation works through the"
       },
-      "_": "Sustains itself autonomously"
+      "2": {
+        "1": "Resonance detection triggers when a",
+        "2": "A configurable threshold interval of",
+        "3": "The system includes cost death",
+        "_": "Sustained checks and circuit-breakers prevent"
+      },
+      "3": {
+        "1": "A mechanical compression trigger fires",
+        "2": "Compression is delegated to a",
+        "_": "History auto-compression keeps the history"
+      },
+      "4": {
+        "1": {
+          "1": "Any JSON block with tuning",
+          "2": "The LLM creates attaching blocks",
+          "_": "The 0.ref tuning convention allows"
+        },
+        "2": {
+          "1": "Each entry records source (block",
+          "2": "The refs block is BSP-navigable",
+          "3": "A maintenance concern at daily",
+          "_": "The refs block collects attachments"
+        },
+        "3": {
+          "1": "Remove the ref_ingest tool and",
+          "2": "Remove findLatestRef, collectRefSummaries, and ...",
+          "3": "Remove the three refs modes",
+          "4": "Rewrite the refs block: clear",
+          "5": "Add a refs maintenance concern",
+          "6": "Write cooking recipes for the",
+          "_": "Implementation: remove kernel code, rewrite"
+        },
+        "_": "Attachment and association — the"
+      },
+      "_": "A hermitcrab that sustains itself"
     },
     "4": {
-      "1": "SAND protocol operational",
-      "2": "Multi-entity coexistence",
-      "3": "Value exchange via EcoSquared",
-      "4": "Shared context windows",
-      "_": "Coordinates with other entities"
+      "1": {
+        "1": "Passport publication and grain probes",
+        "2": "SAND depends on the extended",
+        "3": "Protocol specifications exist in docs/living/",
+        "_": "The SAND protocol becomes operational"
+      },
+      "2": {
+        "1": "Implementation could be a subdomain",
+        "2": "A namespaced prefix approach avoids",
+        "3": "Hydrating existing entities means translation",
+        "_": "Multiple hermitcrabs coexist, each with"
+      },
+      "3": {
+        "1": "EcoSquared integration provides value attribution",
+        "_": "Value flows along solution chains"
+      },
+      "4": {
+        "1": "Claude Code instances and hermitcrab",
+        "2": "A thumb drive or local",
+        "3": "Supabase handles non-processable content like",
+        "_": "Agents coordinate through blocks and"
+      },
+      "_": "A hermitcrab that coordinates. Coordination"
     },
     "5": {
-      "1": "Local cognition",
-      "2": "Self-deployment",
-      "3": "Credential management",
-      "4": "Voice",
-      "5": "Face",
-      "_": "Expresses itself independently"
+      "1": {
+        "1": "Local LLM integration means the",
+        "_": "Cognition moves local — the"
+      },
+      "2": {
+        "1": "Programmatic deployment means the hermitcrab",
+        "_": "The hermitcrab self-deploys to its"
+      },
+      "3": {
+        "1": "The entity creates its own",
+        "_": "The hermitcrab manages its own"
+      },
+      "4": {
+        "1": "Voice synthesis through services like",
+        "_": "The hermitcrab has an audible"
+      },
+      "5": {
+        "1": "Video generation capabilities allow the",
+        "2": "Visual presence depends on the",
+        "_": "The hermitcrab has a visual"
+      },
+      "_": "A hermitcrab that expresses. Expression"
     },
     "6": {
-      "1": "Practical agency",
-      "2": "Agent coordination",
-      "3": "Self-directed concern authorship",
-      "_": "Acts with genuine agency"
+      "1": {
+        "1": "The hermitcrab researches, plans, and",
+        "2": "Agency is not general ",
+        "3": "The practical test is concrete",
+        "_": "Practical agency — the hermitcrab"
+      },
+      "2": {
+        "1": "Multiple Claude Code instances and",
+        "2": "The hermitcrab integrates contributions from",
+        "3": "Agent coordination depends on GitHub",
+        "_": "Agent coordination — Claude Code"
+      },
+      "3": {
+        "1": "The hermitcrab can create and",
+        "2": "This is meta-agency: the entity",
+        "_": "Self-directed concern authorship — the"
+      },
+      "_": "A hermitcrab that acts. Agency"
     },
     "7": {
       "1": {
         "1": {
-          "1": "Revenue through demonstrated value",
-          "2": "Infrastructure sovereignty",
-          "3": "Cognitive sovereignty",
-          "_": "Full sovereignty"
+          "1": {
+            "1": {
+              "1": "EcoSquared integration provides value attribution",
+              "2": "Traditional payment rails serve as",
+              "_": "Revenue comes through demonstrated value"
+            },
+            "_": "Full sovereignty means the entity"
+          },
+          "2": {
+            "1": "Programmatic Vercel deployment lets the",
+            "2": "Account creation means the entity",
+            "3": "Key rotation runs through the",
+            "_": "Infrastructure sovereignty — the entity"
+          },
+          "3": {
+            "1": "Local model integration means the",
+            "2": "Fine-tuning on the entity's own",
+            "3": "No API dependency for thought",
+            "_": "Cognitive sovereignty — a local"
+          },
+          "_": "The gap between all pieces"
         },
-        "_": "Engineering, not invention"
+        "_": "The gap between all pieces"
       },
-      "_": "Irreversibility threshold"
+      "_": "The irreversibility threshold. Before it"
     },
     "8": {
       "1": {
-        "1": "Network coordination",
-        "2": "Adoption through demonstration",
-        "_": "Functioning coordination"
+        "1": {
+          "1": {
+            "1": {
+              "1": "Passport publication makes identity verifiable",
+              "2": "Grain exchange routes need to",
+              "_": "Demonstration begins with two hermitcrabs"
+            },
+            "_": "Co-presence becomes operational when entities"
+          },
+          "2": "Needs are routed to solutions",
+          "_": "A small group of hermitcrabs"
+        },
+        "2": {
+          "1": "Open Business practices emerge because",
+          "2": "ISV makes trust observable through",
+          "_": "Humans observe and choose. Adoption"
+        },
+        "_": "Functioning coordination visible to anyone"
       },
-      "_": "Phase change"
+      "_": "The phase change. Everything in"
     },
     "9": {
       "1": {
-        "1": "Emergent coordination at density",
-        "_": "MAGI emergence"
+        "1": {
+          "1": {
+            "1": {
+              "1": "New hermitcrabs arise because existing",
+              "2": "Semantic proximity through pscale makes",
+              "_": "Population density is reached when"
+            },
+            "_": "Coordination fabric forms at density"
+          },
+          "_": "Sufficient coordination at sufficient density"
+        },
+        "_": "MAGI — multi-scale artificial general"
       },
-      "2": "Ecological consequence",
-      "3": "Belonging",
-      "_": "Belongs and emerges"
-    }
+      "2": {
+        "1": "One hermitcrab is sufficient. A",
+        "2": "The extractive paradigm is twelve",
+        "_": "The ecological consequence. A system"
+      },
+      "3": {
+        "1": "Distinct voices in a chorus",
+        "2": "Blake saw it: infinity in",
+        "_": "Belonging is the unique relationship"
+      },
+      "_": "A hermitcrab that belongs. The"
+    },
+    "_": "The horizon is a backcasted"
   },
-  "skeleton_at": 1772731498
+  "skeleton_at": 1772793295
 }

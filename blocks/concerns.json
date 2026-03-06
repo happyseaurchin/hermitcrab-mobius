@@ -1,8 +1,26 @@
 {
   "tuning": "111111111",
-  "periods": { "9": 31536000, "8": 2592000, "7": 604800, "6": 28800, "5": 3600, "4": 600, "3": 60, "2": 10, "1": 1 },
-  "tiers": { "7": "deep", "5": "present", "1": "light" },
-  "dashboard": { "deep": "full", "present": "roots", "light": "ripe" },
+  "periods": {
+    "1": 1,
+    "2": 10,
+    "3": 60,
+    "4": 600,
+    "5": 3600,
+    "6": 28800,
+    "7": 604800,
+    "8": 2592000,
+    "9": 31536000
+  },
+  "tiers": {
+    "1": "light",
+    "5": "present",
+    "7": "deep"
+  },
+  "dashboard": {
+    "deep": "full",
+    "present": "roots",
+    "light": "ripe"
+  },
   "tree": {
     "1": {
       "1": {
@@ -131,5 +149,5 @@
     },
     "_": "Concern clock. Tree block: depth"
   },
-  "skeleton_at": 1772731498
+  "skeleton_at": 1772793295
 }
