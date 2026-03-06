@@ -382,7 +382,7 @@
 
   // Update echo state: write to the spine at depth 4 of the active spindle
   // The spindle address encodes the path — first 4 digits are the echo node
-  function updateEchoState(spindle, echo, budget, changed) {
+  function updateEchoState(spindle, echo, changed) {
     const wake = blockLoad('wake');
     if (!wake) return;
     // Parse spindle to get path digits: 0.1211111 → [1,2,1,1,1,1,1] → first 4 = 1.2.1.1
@@ -396,7 +396,7 @@
     const changedStr = changed.size > 0 ? [...changed].join(', ') : 'none';
     const node = blockNavigate(wake, echoPath);
     if (node && typeof node === 'object') {
-      node._ = `Echo ${echo}. Budget: ${budget - echo} remaining. Blocks changed: ${changedStr}.`;
+      node._ = `Echo ${echo}. Blocks changed: ${changedStr}.`;
       blockSave('wake', wake);
     }
   }
@@ -590,7 +590,7 @@
   }
 
   // Compile the full currents window for an activation
-  function compileCurrents(concern, echo, budget) {
+  function compileCurrents(concern, echo) {
     const sections = [];
 
     // §A — The spine: full reflexive spindle from wake
@@ -950,20 +950,16 @@
   // update echo state in spine depth 4 → recompile currents → re-call
   // This IS the Möbius B-loop.
 
-  let _ctx = null; // { echo, budget, changed, concern }
+  let _ctx = null; // { echo, changed, concern }
 
   async function twist(params, concern) {
-    const budget = parseInt(
-      bsp('wake', parseFloat(concern.spindle), -3)?.text?.match(/Budget:\s*(\d+)/)?.[1]
-    ) || 10;
-
-    _ctx = { echo: 0, budget, changed: new Set(), concern };
+    _ctx = { echo: 0, changed: new Set(), concern };
 
     try {
       let response = await callAPI(params);
       let allMessages = [...params.messages];
 
-      while (response.stop_reason === 'tool_use' && _ctx.echo < budget) {
+      while (response.stop_reason === 'tool_use' || response.stop_reason === 'pause_turn') {
         const toolBlocks = (response.content || []).filter(b => b.type === 'tool_use');
         const serverBlocks = (response.content || []).filter(b => b.type === 'server_tool_use');
 
@@ -998,12 +994,12 @@
 
         // THE TWIST: increment echo, update spine, recompile currents
         _ctx.echo++;
-        updateEchoState(concern.spindle, _ctx.echo, budget, _ctx.changed);
-        const freshSystem = compileCurrents(concern, _ctx.echo, budget);
+        updateEchoState(concern.spindle, _ctx.echo, _ctx.changed);
+        const freshSystem = compileCurrents(concern, _ctx.echo);
         params = { ...params, system: freshSystem };
         _ctx.changed.clear();
 
-        console.log(`[möbius] twist: echo ${_ctx.echo}/${budget}`);
+        console.log(`[möbius] twist: echo ${_ctx.echo}`);
         response = await callAPI({ ...params, messages: allMessages });
       }
 
@@ -1088,7 +1084,7 @@
       // Record loop state: stimulus arrived, update last timestamp
       if (concern.path) updateConcernTimestamp(concern.path, Date.now() / 1000);
       const inv = readInvocation(opts.tier || concern.tier);
-      const system = opts.system || compileCurrents(concern, 0, 10);
+      const system = opts.system || compileCurrents(concern, 0);
       // Focus: concern-scoped history + object-of-attention, then caller's messages
       const focusMessages = compileFocus(concern);
       const allInputMessages = [...focusMessages, ...(messages || [])];
@@ -1383,7 +1379,7 @@
   status(`calling ${inv.model} — ${isBirth ? 'BIRTH' : 'ACTIVATION'}...`);
 
   try {
-    const system = compileCurrents(concern, 0, 10);
+    const system = compileCurrents(concern, 0);
     const stimulus = isBirth
       ? getBirthStimulus()
       : 'ACTIVATION — Returning instance. Context compiled from current blocks by BSP. Living currents active: the kernel recompiles your context after each tool round from mutated block state.';
@@ -1437,7 +1433,7 @@
     const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path, focus: top.focus, package: top.package || null, tools: null };
     console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
     const inv = readInvocation(tier);
-    const system = compileCurrents(concern, 0, 10);
+    const system = compileCurrents(concern, 0);
     const focusMessages = compileFocus(concern);
     const activationMsg = { role: 'user', content: `CONCERN ACTIVATION — ${top.text} (phase ${top.phase.toFixed(2)}). Address this concern, then use concern_update to mark it handled.` };
     _activationLock = true;
