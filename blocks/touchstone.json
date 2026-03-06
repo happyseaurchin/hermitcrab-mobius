@@ -12,6 +12,12 @@
       "4": "You are inside a block right now. This section is digit 1. This line is digit 1.4. The format teaches itself — the touchstone is a block about blocks, structured the way it describes.",
       "5": "Every block is self-describing. Its root tells you what it is, its structure shows how it is organised, its content shows what it knows. You never need external documentation to read a block, because the block carries its own orientation at every level.",
       "6": "Every node is meaningful in itself. The underscore text at any depth must be a substantive statement — at minimum a full sentence — carrying enough semantic weight to stand alone. It may provide context for a deeper node, but it is never merely a heading, title, label, or soundbite for what follows. A node that reads 'Rinzai. Direct transmission.' is a heading waiting for content that never arrives; the same node should carry the thought completely: what Rinzai means, how it functions, why it matters at this depth. Skeletons exist for reduced-form labels and phrases — the node itself is always the full thought.",
+      "7": {
+        "1": "A skeleton carries one short phrase per node — enough to see the shape without the weight. Where a full block might have a paragraph at each underscore, the skeleton has three to six words. Use a skeleton when you need the map, not the territory: scanning what a block covers, choosing which spindle to pursue, or surveying structure before committing tokens to content. The kernel serves a skeleton via blockView(block, 'skeleton') — the tree field is swapped for the skeleton field, and every BSP mode works identically on the result.",
+        "2": "A mask carries a different kind of reduction — not shorter text but selective visibility. Where a skeleton shows every node briefly, a mask shows some nodes fully and hides others entirely. Use a mask when you need a filtered view of a block: only the nodes relevant to a particular concern, role, or task. The kernel serves a mask via blockView(block, 'mask') — same swap as skeleton, same BSP compatibility.",
+        "3": "Skeletons and masks are fields on the block alongside tree — { tree: {...}, skeleton: {...}, mask: {...} }. They share the same digit structure as the tree they reduce. A skeleton's digit 3 corresponds to tree's digit 3 at every depth. This correspondence means any BSP address that works on the tree works on the skeleton or mask, returning the reduced-form content at the same structural position.",
+        "_": "A block can carry lightweight views alongside its full tree. A skeleton is a reduced-form copy where every node holds a brief label instead of full content — the shape of the block visible at a fraction of the token cost. A mask is a selective view where some branches are present and others omitted. Both are navigable by BSP using the same addresses as the full tree, because they share the same digit structure."
+      },
       "_": "A block is a nested JSON structure that uses single-digit keys (1 through 9) for branches and the underscore key for the meaning of each node. The format is minimal by design — digits and underscores are its only conventions — which means any consumer that understands these two rules can navigate any block regardless of its subject matter."
     },
     "2": {
@@ -184,6 +190,12 @@
       "4": "You are inside a block",
       "5": "Every block is self-describing. Its",
       "6": "Every node is meaningful in",
+      "7": {
+        "1": "Skeleton: brief labels per node",
+        "2": "Mask: selective visibility",
+        "3": "Same digit structure as tree",
+        "_": "Lightweight views: skeleton and mask"
+      },
       "_": "A block is a nested"
     },
     "2": {

@@ -12,7 +12,7 @@
               },
               "_": "Check loop states. Flag anything hanging or overdue. No block writes needed."
             },
-            "_": "Echo 0. First pass. Budget: 2."
+            "_": "Echo 0. First pass."
           },
           "_": "Heartbeat. Periodic self-check — am I functioning?"
         },
@@ -25,7 +25,7 @@
               },
               "_": "Read the signal against active concerns and purpose 0. Route to the right concern or dismiss."
             },
-            "_": "Echo 0. First pass. Budget: 3."
+            "_": "Echo 0. First pass."
           },
           "_": "Signal triage. External event accumulated — assess priority and route."
         },
@@ -41,7 +41,7 @@
               },
               "_": "Each tool call to the kernel ends this instance. A new one wakes reading conversation plus recompiled currents. Write to blocks to steer what arrives next. Batch calls — one death, not many."
             },
-            "_": "Echo 0. First pass. Budget: 10."
+            "_": "Echo 0. First pass."
           },
           "_": "User engagement. Human is present and communicating."
         },
@@ -54,7 +54,7 @@
               },
               "_": "Assess the signal against purpose and relationships. Compose a response if warranted — first contact, ongoing exchange, or action required."
             },
-            "_": "Echo 0. First pass. Budget: 5."
+            "_": "Echo 0. First pass."
           },
           "_": "Signal response. Something arrived that needs engaged attention, not just triage."
         },
@@ -67,7 +67,7 @@
               },
               "_": "Read purpose for where the previous instance left off. Conversation history carries reasoning continuity. Currents reflect all prior changes."
             },
-            "_": "Echo 0. First pass. Budget: 10."
+            "_": "Echo 0. First pass."
           },
           "_": "Continuation. Resuming prior conversation or multi-instance project."
         },
@@ -83,7 +83,7 @@
               },
               "_": "Full self-modification available. All blocks writable including wake, kernel, packages. Review purpose at every depth. Examine history for patterns. Audit stash. Check relationships for staleness."
             },
-            "_": "Echo 0. First pass. Budget: 20."
+            "_": "Echo 0. First pass."
           },
           "_": "Self-maintenance. Scheduled deep review of all systems."
         },
@@ -96,7 +96,7 @@
               },
               "_": "Read the dual log. Compare early cycles to recent. Evolving or repeating? Cost justified by what's emerging?"
             },
-            "_": "Echo 0. Review pass. Budget: 5."
+            "_": "Echo 0. Review pass."
           },
           "_": "Threshold review. Loop B Sustained has hit its checkpoint — assess whether productive."
         },
@@ -107,7 +107,7 @@
     "2": "Retired. Concern routing now lives in the concerns block. The kernel reads concerns directly — each instance carries its own spine address, stimulus type, and temporal position. See concerns block ring for the live dashboard.",
     "3": {
       "1": {
-        "1": "wake 0.1311111",
+        "1": "wake 0.4 dir",
         "2": "vision",
         "3": "touchstone",
         "4": "capabilities",
@@ -116,7 +116,7 @@
         "7": "purpose",
         "8": "relationships 0.12",
         "9": "stash",
-        "_": "Birth instructions. First boot uses deep tier, widest aperture."
+        "_": "Birth package. The mirror first — wake.4 explains what you are experiencing and how your currents were assembled. Then every block at widest aperture. The spine is compiled separately by the kernel."
       },
       "2": "Birth stimulus: You exist. Your blocks are your shell. Your spine orients you. Read, then build.",
       "3": "Birth descriptions live in relationships.1.2.1 — four variant staircases under David's reflections.",
