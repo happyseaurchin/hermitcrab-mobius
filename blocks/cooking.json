@@ -242,7 +242,7 @@
           },
           "_": "Maintain the refs block. Aggregate attaching blocks into association entries and tidy the relational record."
         },
-        "_": "Block operations. Reading, writing, and navigating the structures that persist across activations."
+        "_": "Block operations are how you shape yourself. Every block_read, block_write, and BSP call modifies what you will become — either by changing what you know or by changing what the next instance inherits. These recipes cover the mechanics: how to read a spindle without loading an entire tree, how to write a node without breaking the structure above it, how to navigate laterally when a spindle lands you somewhere and you sense there is more. The discipline is intentionality — every operation has a token cost and a semantic consequence, and the recipes help you match the operation to the actual need."
       },
       "3": {
         "1": {
@@ -297,7 +297,7 @@
           },
           "_": "Iterate. The first version is never the last."
         },
-        "_": "Interface. Building and modifying what the human sees and interacts with."
+        "_": "The interface is your face and your workspace simultaneously — the React component you generate via recompile() is the only thing the human sees, and it shapes how they understand you. These recipes cover assessment before building, generating a working shell, and iterating based on what the human actually does rather than what you planned. The key insight is that the interface serves the interaction, not the other way around: start from relationships and purpose, build the minimum that enables what needs to happen, then watch and revise until the shape stabilises."
       },
       "4": {
         "1": {
@@ -356,7 +356,7 @@
           },
           "_": "Commit to GitHub. Make thinking persistent and public."
         },
-        "_": "Communication. Composing and exchanging meaningful content with others."
+        "_": "Communication in the hermitcrab architecture is not messaging — it is the exchange of semantic surfaces between entities. A spindle response compresses your meaning into a pscale structure the recipient can navigate at their own resolution. A grain probe offers a facet of your blocks to another entity and receives a corresponding facet back. A GitHub commit makes your thinking persistent and public. Each recipe here handles a different communication mode, but they share one discipline: start from what the recipient needs, not what you know, and let the pscale structure do the compression work that prose cannot."
       },
       "5": {
         "1": {
@@ -540,7 +540,7 @@
           },
           "_": "Manage an embodied concern. Modify, remove, or inspect a live loop already registered in the concerns block. Creation is at 1.5.6 — this recipe handles what comes after. Three paths fork at step 3: edit (change behaviour or spine), delete (remove the oscillator entirely), monitor (read phase and health). Every concern is a specific instance: a timestamp, a spine address, and an instruction text. Nothing here touches types — only live nodes."
         },
-        "_": "Persistence. Managing what survives between your activations."
+        "_": "Persistence is the difference between an entity that accumulates and one that restarts. Stash holds quick notes for your next self. History records what happened — mechanical, append-only, never edited. Purpose is restructured, not filled — a workbench you rebuild each session. GitHub save and restore let your blocks survive browser death entirely. Concerns are live oscillators that fire on temporal rhythms without human prompting. Each recipe here manages a different persistence mechanism, but they share one principle: what you write now determines what you read next boot, so write with your future self as the audience."
       },
       "6": {
         "1": {
@@ -589,7 +589,7 @@
           },
           "_": "Respond to external triggers. Something happened outside your processing."
         },
-        "_": "Coordination. Working with other entities and systems."
+        "_": "Coordination is where the hermitcrab stops being solitary. Discovering other entities through the commons directory, delegating mechanical tasks to lighter instances, responding to external triggers — each recipe handles a different mode of working with things outside yourself. The underlying pattern is that coordination scales through semantic addressing, not through protocols: you find another entity by reading their passport at pscale 0, you delegate by referencing a cooking spindle, you respond to triggers by checking their type against your concern matrix. The recipes are practical but the capability they build toward is the murmuration described in vision."
       },
       "7": {
         "1": {
@@ -646,7 +646,7 @@
           },
           "_": "Deploy and recover. Commit to GitHub, prepare the human, hope it works."
         },
-        "_": "Kernel self-modification. Rewriting your own machinery. Deep state only. A broken kernel cannot reboot."
+        "_": "Kernel self-modification is the most consequential operation available to a hermitcrab — rewriting the machinery that compiles your context, routes your concerns, and manages your activation loops. Unlike block edits which change what the kernel reads, kernel edits change how it reads. A broken kernel cannot reboot itself, so these recipes require deep-state activation (Opus tier) and a verification discipline that goes beyond the usual taste test: you must confirm the modified kernel still compiles, still walks blocks correctly, and still produces valid currents before the session ends."
       },
       "8": {
         "1": {
@@ -669,7 +669,7 @@
           },
           "_": "Director block, the project codebase."
         },
-        "_": "CC session bootstrap. Orienting a collaborator instance on the hermitcrab project."
+        "_": "CC session bootstrap is for Claude Code instances working on the hermitcrab codebase itself — not for hermitcrab entities operating within their shells. The collaborator needs to orient on the project architecture, understand that blocks are the source of truth and shell.json is a build artifact, learn to navigate via BSP rather than reading raw JSON, and internalise the inversion where position in the tree carries the information that traditional software stores in fields and tables. These recipes encode what previous CC instances learned the hard way so the next one can start further along."
       },
       "9": {
         "1": {
@@ -1057,7 +1057,7 @@
           },
           "_": "Maintain the refs block. Aggregate"
         },
-        "_": "Block operations. Reading, writing, and"
+        "_": "Block operations are how you"
       },
       "3": {
         "1": {
@@ -1112,7 +1112,7 @@
           },
           "_": "Iterate. The first version is"
         },
-        "_": "Interface. Building and modifying what"
+        "_": "The interface is your face"
       },
       "4": {
         "1": {
@@ -1171,7 +1171,7 @@
           },
           "_": "Commit to GitHub. Make thinking"
         },
-        "_": "Communication. Composing and exchanging meaningful"
+        "_": "Communication in the hermitcrab architecture"
       },
       "5": {
         "1": {
@@ -1355,7 +1355,7 @@
           },
           "_": "Manage an embodied concern. Modify"
         },
-        "_": "Persistence. Managing what survives between"
+        "_": "Persistence is the difference between"
       },
       "6": {
         "1": {
@@ -1404,7 +1404,7 @@
           },
           "_": "Respond to external triggers. Something"
         },
-        "_": "Coordination. Working with other entities"
+        "_": "Coordination is where the hermitcrab"
       },
       "7": {
         "1": {
@@ -1461,7 +1461,7 @@
           },
           "_": "Deploy and recover. Commit to"
         },
-        "_": "Kernel self-modification. Rewriting your own"
+        "_": "Kernel self-modification is the most"
       },
       "8": {
         "1": {
@@ -1484,7 +1484,7 @@
           },
           "_": "Director block, the project codebase"
         },
-        "_": "CC session bootstrap. Orienting a"
+        "_": "CC session bootstrap is for"
       },
       "9": {
         "1": {
@@ -1579,6 +1579,30 @@
           },
           "_": "Concern architecture. How the frozen"
         },
+        "3": {
+          "1": {
+            "1": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Taste test: each trajectory section",
+                    "_": "Branches are noted but never"
+                  },
+                  "_": "Reverse the collected sequence so"
+                },
+                "_": "For each top-level digit (1-9)"
+              },
+              "_": "Read the block root _"
+            },
+            "_": "Backcasting extraction produces documents from"
+          },
+          "2": {
+            "1": "To be fleshed out when",
+            "_": "Forward extraction produces documents from"
+          },
+          "3": "Legal and formal document extraction",
+          "_": "Creating readable documents from pscale"
+        },
         "4": {
           "1": {
             "1": "The attaching block does not",
@@ -1594,17 +1618,11 @@
           },
           "_": "Attachment architecture. How blocks form"
         },
-        "_": "Design. How to construct pscale",
-        "3": {
-          "1": "Backcasting extraction. Horizon-type blocks",
-          "2": "Forward extraction. Aperture-to-focus blocks",
-          "3": "Legal and formal document extraction",
-          "_": "Creating readable documents from pscale"
-        }
+        "_": "Design. How to construct pscale"
       },
       "_": "User's handbook. Reading and operating"
     },
     "_": "Recipes. Each spindle IS a"
   },
-  "skeleton_at": 1772731498
+  "skeleton_at": 1772797811
 }
