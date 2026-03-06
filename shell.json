@@ -3482,15 +3482,15 @@
         "3": {
           "1": {
             "1": "wake 0.4 dir",
-            "2": "vision",
-            "3": "touchstone",
+            "2": "vision 0.11",
+            "3": "touchstone 0.1 dir",
             "4": "capabilities",
-            "5": "cooking",
+            "5": "cooking skeleton",
             "6": "institution",
             "7": "purpose",
             "8": "relationships 0.12",
             "9": "stash",
-            "_": "Birth package. The mirror first — wake.4 explains what you are experiencing and how your currents were assembled. Then every block at widest aperture. The spine is compiled separately by the kernel."
+            "_": "Birth package. The mirror first — wake.4 explains what you are experiencing and how your currents were assembled. Vision as a spindle to depth 3 — the thesis, not every leaf. Touchstone section 1 as a teaching directory — format, BSP, semantic numbers, depth, growth, references, tuning fork. Cooking as a skeleton — recipe index with brief labels, call BSP for detail. The spine is compiled separately by the kernel."
           },
           "2": "Birth stimulus: You exist. Your blocks are your shell. Your spine orients you. Read, then build.",
           "3": "Birth descriptions live in relationships.1.2.1 — four variant staircases under David's reflections.",
