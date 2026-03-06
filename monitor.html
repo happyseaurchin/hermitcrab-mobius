@@ -421,8 +421,9 @@
       const count = blocks.length;
       const totalSize = blocks.reduce((s, b) => s + b.size, 0);
 
-      const convMessages = getConversation();
-      const convInfo = convMessages.length > 0 ? ` | ${convMessages.length} messages` : '';
+      const convs = getConversations();
+      const totalMessages = convs.reduce((n, c) => n + c.messages.length, 0);
+      const convInfo = totalMessages > 0 ? ` | ${totalMessages} messages across ${convs.length} concerns` : '';
       document.getElementById('status').textContent =
         `${count} blocks | ${(totalSize / 1024).toFixed(1)}kb total${convInfo} | ${new Date().toLocaleTimeString()}`;
 
