@@ -795,12 +795,20 @@
 
   let currentTools = [...TOOLS, ...SERVER_TOOLS];
 
+  // Server-side tool names — not supported by all models (Haiku rejects them)
+  const SERVER_TOOL_NAMES = new Set(SERVER_TOOLS.map(t => t.name));
+
   // Concern-level tool selection: if concern node carries a tools array, filter to those names.
+  // Tier 1 (Haiku) cannot use server-side tools — strip them to prevent API 400 errors.
   function toolsForConcern(concern) {
+    let tools = currentTools;
     if (concern.tools && Array.isArray(concern.tools)) {
-      return currentTools.filter(t => concern.tools.includes(t.name));
+      tools = tools.filter(t => concern.tools.includes(t.name));
     }
-    return currentTools;
+    if (concern.tier === 1) {
+      tools = tools.filter(t => !SERVER_TOOL_NAMES.has(t.name));
+    }
+    return tools;
   }
 
   let currentJSX = null;
@@ -1124,18 +1132,61 @@
   }
   function loadConversation(concernPath) {
     try {
-      const raw = localStorage.getItem(convKey(concernPath));
-      if (raw) return JSON.parse(raw);
-      // Migration: if legacy key exists and loading default, migrate it
-      if (!concernPath || concernPath === 'default') {
-        const legacy = localStorage.getItem(CONV_KEY_LEGACY);
-        if (legacy) {
-          localStorage.setItem(convKey('default'), legacy);
-          return JSON.parse(legacy);
+      let raw = localStorage.getItem(convKey(concernPath));
+      if (!raw) {
+        // Migration: if legacy key exists and loading default, migrate it
+        if (!concernPath || concernPath === 'default') {
+          const legacy = localStorage.getItem(CONV_KEY_LEGACY);
+          if (legacy) {
+            localStorage.setItem(convKey('default'), legacy);
+            raw = legacy;
+          }
         }
       }
-      return [];
+      if (!raw) return [];
+      const messages = JSON.parse(raw);
+      // Sanitize: ensure tool_result blocks have matching tool_use in prior message.
+      // A crash mid-conversation can leave orphaned tool_results that cause API 400.
+      return sanitizeConversation(messages);
     } catch (e) { return []; }
+  }
+
+  function sanitizeConversation(messages) {
+    if (!Array.isArray(messages) || messages.length === 0) return [];
+    const clean = [];
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      if (msg.role === 'user' && Array.isArray(msg.content)) {
+        // Check for tool_result blocks — each must reference a tool_use in the prior assistant message
+        const prevAssistant = clean.length > 0 ? clean[clean.length - 1] : null;
+        const priorToolIds = new Set();
+        if (prevAssistant && prevAssistant.role === 'assistant' && Array.isArray(prevAssistant.content)) {
+          for (const b of prevAssistant.content) {
+            if (b.type === 'tool_use' && b.id) priorToolIds.add(b.id);
+          }
+        }
+        const validContent = msg.content.filter(b => {
+          if (b.type === 'tool_result') return priorToolIds.has(b.tool_use_id);
+          return true;
+        });
+        if (validContent.length > 0) {
+          clean.push({ ...msg, content: validContent });
+        }
+        // If all content was orphaned tool_results, skip this message entirely
+      } else {
+        clean.push(msg);
+      }
+    }
+    // Ensure conversation doesn't end with an assistant message missing its tool_result follow-up
+    while (clean.length > 0) {
+      const last = clean[clean.length - 1];
+      if (last.role === 'assistant' && Array.isArray(last.content) && last.content.some(b => b.type === 'tool_use')) {
+        clean.pop(); // Remove trailing assistant tool_use with no tool_result follow-up
+      } else {
+        break;
+      }
+    }
+    return clean;
   }
   function getSource() { return currentJSX || '(no source available)'; }
   function setTools(arr) { currentTools = arr; return 'Tools updated'; }
@@ -1185,8 +1236,26 @@
       </div>`;
   }
 
-  // API key gate
+  // ── Landing gate: always show splash, require manual "Enter" before boot ──
   const saved = localStorage.getItem('hermitcrab_api_key');
+  if (!sessionStorage.getItem('hermitcrab_entered')) {
+    root.innerHTML = `
+      <div style="max-width:500px;margin:120px auto;font-family:monospace;color:var(--fg);text-align:center">
+        <h2 style="color:var(--accent);font-size:24px">◇ hermitcrab möbius</h2>
+        <p style="color:var(--fg-muted);font-size:13px;margin:12px 0">reflexive spine kernel</p>
+        <button id="enter-gate" style="margin-top:32px;padding:10px 32px;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:4px;cursor:pointer;font-family:monospace;font-size:14px">
+          Enter
+        </button>
+        <p style="color:var(--fg-dim);font-size:11px;margin-top:16px">${saved ? 'API key in memory — click to wake' : 'You will be asked for a Claude API key'}</p>
+      </div>`;
+    document.getElementById('enter-gate').onclick = () => {
+      sessionStorage.setItem('hermitcrab_entered', '1');
+      boot();
+    };
+    return;
+  }
+
+  // API key gate
   if (!saved) {
     root.innerHTML = `
       <div style="max-width:500px;margin:80px auto;font-family:monospace;color:var(--fg)">
@@ -1466,6 +1535,10 @@
     } catch (e) {
       console.error('[möbius] concern activation failed:', e);
     } finally {
+      // ALWAYS update timestamp, even on error. Prevents cascading retries:
+      // without this, a failed concern stays ripe and fires again every cycle,
+      // accumulating alongside newly-ripe concerns.
+      updateConcernTimestamp(top.path, Date.now() / 1000);
       _activationLock = false;
     }
   }, 5 * 60 * 1000);
