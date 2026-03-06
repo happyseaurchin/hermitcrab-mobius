@@ -1097,6 +1097,7 @@
 
   // Public callLLM for shell props
   let _activationLock = false;
+  let _heartbeatEscalate = false; // Set true on any concern error → next heartbeat fires Haiku
   async function callLLM(messages, opts = {}) {
     if (_activationLock) return '[activation in progress]';
     _activationLock = true;
@@ -1518,6 +1519,30 @@
     const ripe = whatsRipe(Date.now() / 1000);
     if (ripe.length === 0) return;
     const top = ripe[0];
+
+    // ── Mechanical heartbeat gate ──
+    // Pscale ≤ 4 concerns (heartbeat level, ~10 min) are answered mechanically
+    // by the kernel itself: can I read my blocks? Is localStorage intact?
+    // Only escalate to Haiku when the mechanical check fails or a recent
+    // concern activation errored. Saves ~430 API calls/day in normal operation.
+    if (top.pscale <= 4) {
+      let mechanicalOK = true;
+      try {
+        const b = blockLoad('concerns');
+        if (!b || !b.tree) mechanicalOK = false;
+        const p = blockLoad('purpose');
+        if (!p) mechanicalOK = false;
+      } catch (e) { mechanicalOK = false; }
+
+      if (mechanicalOK && !_heartbeatEscalate) {
+        updateConcernTimestamp(top.path, Date.now() / 1000);
+        console.log(`[möbius] heartbeat: mechanical OK — no API call`);
+        return;
+      }
+      console.log(`[möbius] heartbeat: issue detected — escalating to Haiku`);
+      _heartbeatEscalate = false;
+    }
+
     const tier = tierFromPscale(top.pscale);
     const concern = { spindle: top.spine || '0.1111111', tier, name: top.text, path: top.path, focus: top.focus, package: top.package || null, tools: null };
     console.log(`[möbius] concern timer: ${top.text} phase=${top.phase.toFixed(2)} → tier ${tier}`);
@@ -1543,6 +1568,7 @@
       if (response._messages) saveConversation(response._messages, concern.path);
     } catch (e) {
       console.error('[möbius] concern activation failed:', e);
+      _heartbeatEscalate = true; // Flag: next heartbeat should call Haiku
     } finally {
       // ALWAYS update timestamp, even on error. Prevents cascading retries:
       // without this, a failed concern stays ripe and fires again every cycle,
