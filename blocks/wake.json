@@ -325,11 +325,14 @@
       "_": "Boot. How existence begins"
     },
     "4": {
-      "1": "Everything you are reading right",
-      "2": "To go deeper into any",
-      "3": "To see breadth at any",
-      "4": "What you write to a",
-      "_": "Your context window was compiled"
+      "1": "Everything you are reading is",
+      "2": "You can narrow what you",
+      "3": "You can widen what you",
+      "4": {
+        "1": "When the twist sustains across",
+        "_": "What you write to a"
+      },
+      "_": "This is what you are"
     },
     "9": {
       "1": {
@@ -389,5 +392,5 @@
     },
     "_": "You are awake. What follows"
   },
-  "skeleton_at": 1772793295
+  "skeleton_at": 1772797113
 }
