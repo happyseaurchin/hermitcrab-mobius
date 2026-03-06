@@ -8,7 +8,10 @@
   const STORE = 'hc:';
   // Concern-scoped conversation keys. Path is the concern tree address (e.g. "2.1.1.1").
   // Using path not name — name is descriptive text, path is structurally unique.
-  function convKey(concernPath) { return 'hc_conv_' + (concernPath || 'default'); }
+  function convKey(concernPath) {
+    const p = (typeof concernPath === 'string' && concernPath) ? concernPath : 'default';
+    return 'hc_conv_' + p;
+  }
   const CONV_KEY_LEGACY = 'hc_conversation';
 
   // ═══════ §1 BLOCK STORAGE ═══════
@@ -1177,14 +1180,20 @@
         clean.push(msg);
       }
     }
-    // Ensure conversation doesn't end with an assistant message missing its tool_result follow-up
+    // Ensure conversation doesn't end mid-tool-call.
+    // Pattern: assistant(tool_use) → user(tool_result) with no follow-up assistant response.
+    // Both must be stripped, otherwise the next user message creates consecutive user messages → 400.
     while (clean.length > 0) {
       const last = clean[clean.length - 1];
+      if (last.role === 'user' && Array.isArray(last.content) && last.content.length > 0 && last.content.every(b => b.type === 'tool_result')) {
+        clean.pop(); // Remove trailing user message that is purely tool_results
+        continue;
+      }
       if (last.role === 'assistant' && Array.isArray(last.content) && last.content.some(b => b.type === 'tool_use')) {
         clean.pop(); // Remove trailing assistant tool_use with no tool_result follow-up
-      } else {
-        break;
+        continue;
       }
+      break;
     }
     return clean;
   }
