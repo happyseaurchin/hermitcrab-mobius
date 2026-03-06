@@ -536,6 +536,10 @@
 
   function parseInstruction(instr) {
     const parts = instr.trim().split(/\s+/);
+    // "block skeleton" → compile skeleton view instead of tree
+    if (parts.length === 2 && parts[1] === 'skeleton') {
+      return { blockName: parts[0], spindle: undefined, point: undefined, fn: undefined, skeleton: true };
+    }
     const arg2 = parts.length > 1 ? parts[1] : undefined;
     const arg3 = parts.length > 2 ? parts[2] : undefined;
     const arg4 = parts.length > 3 ? parts[3] : undefined;
@@ -564,9 +568,16 @@
   }
 
   function executeInstruction(instr) {
-    const { blockName, spindle, point, fn } = parseInstruction(instr);
+    const parsed = parseInstruction(instr);
+    const { blockName, spindle, point, fn } = parsed;
     const block = blockLoad(blockName);
     if (!block) return '';
+    // Skeleton view: format block.skeleton instead of block.tree
+    if (parsed.skeleton) {
+      if (!block.skeleton) return `[${blockName} skeleton]\n(no skeleton)`;
+      const skBlock = { tree: block.skeleton };
+      return `[${blockName} skeleton]\n${formatBlockContent(skBlock)}`;
+    }
     const result = bsp(block, spindle, point, fn);
     if (result.mode === 'dir') {
       if (result.subtree) return `[${blockName} ${spindle} dir]\n${JSON.stringify(result.subtree, null, 2)}`;
