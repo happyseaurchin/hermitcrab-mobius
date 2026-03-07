@@ -51,6 +51,9 @@
             "dialogue": "none"
           }
         },
+        "3": {
+          "_": "History compression. When a history node fills digits 1-9, the kernel compresses entries via Haiku into a summary at the node's _, and the tree grows one level. Mechanical — triggered by overflow in autoSaveHistory, not by temporal phase. Follows the odometer model: entries 1-9 compress to a summary, the next batch starts at the sibling node. When all siblings at a depth fill, a new pscale wraps the tree into child 0 and the tuning fork grows to match the new depth."
+        },
         "_": "Block architecture. Weekly structural integrity."
       },
       "2": {
@@ -129,6 +132,7 @@
           "_": "Self-maintenance. Daily full review"
         },
         "2": "Association maintenance. Scan for attaching",
+        "3": "History compression. When a history node",
         "_": "Block architecture. Weekly structural integrity"
       },
       "2": "Threshold review. Weekly loop checkpoint",

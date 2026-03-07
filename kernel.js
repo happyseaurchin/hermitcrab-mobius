@@ -291,6 +291,191 @@
     return { needed: occupied >= 9, occupied };
   }
 
+  // ═══════ §2.6 HISTORY TREE — growth compression ═══════
+  // History is a growth tree (whole numbers, not 0.x decomposition).
+  // Entries fill digits 1-9 at the deepest active level.
+  // When a level fills, Haiku compresses 9 entries → _ summary.
+  // The summary goes to _ of the node containing the entries.
+  // Cascade: if compression seals a parent level, compress that too.
+  // Root overflow: wrap entire tree into child 0, grow tuning fork.
+  // Address odometer: 1-9 → compress to 10, next at 11.
+  // 11-19 → compress to 20, next at 21. Through 99 → compress to 100, next at 101.
+
+  function findHistoryWritePosition(block) {
+    // Walk the tree to find the active writing edge.
+    // The rightmost branch at each level leads to the active leaf.
+    // A node is "sealed" if it has _ AND all digits 1-9 occupied.
+    function isSealed(node) {
+      if (!node || typeof node !== 'object') return false;
+      if (!node._) return false;
+      for (let d = 1; d <= 9; d++) {
+        if (node[String(d)] === undefined) return false;
+      }
+      return true;
+    }
+
+    function walk(node, path) {
+      if (!node || typeof node !== 'object') return { path: path ? path + '.1' : '1' };
+
+      // Find the highest occupied digit (1-9)
+      let lastOccupied = 0;
+      for (let d = 9; d >= 1; d--) {
+        if (node[String(d)] !== undefined) { lastOccupied = d; break; }
+      }
+
+      if (lastOccupied === 0) {
+        // Empty node — write at digit 1
+        return { path: path ? path + '.1' : '1' };
+      }
+
+      const lastChild = node[String(lastOccupied)];
+
+      // If last child is a string (leaf/content), we're at the content level
+      if (typeof lastChild === 'string') {
+        if (lastOccupied < 9) {
+          return { path: path ? path + '.' + (lastOccupied + 1) : String(lastOccupied + 1) };
+        }
+        // All 9 full at content level — needs compression
+        return { full: true, path: path || '' };
+      }
+
+      // Last child is a branch
+      if (isSealed(lastChild)) {
+        // Sealed branch — check for next sibling
+        if (lastOccupied < 9) {
+          // Start new branch at next digit, descend to match depth of sealed siblings
+          const nextDigit = String(lastOccupied + 1);
+          let newPath = path ? path + '.' + nextDigit : nextDigit;
+          // Descend to the content level (match sealed branch depth)
+          let depth = 0;
+          let probe = lastChild;
+          while (probe && typeof probe === 'object') {
+            let hasDigitChild = false;
+            for (let d = 1; d <= 9; d++) {
+              if (probe[String(d)] !== undefined) { probe = probe[String(d)]; hasDigitChild = true; break; }
+            }
+            if (!hasDigitChild) break;
+            depth++;
+          }
+          for (let i = 1; i < depth; i++) newPath += '.1';
+          return { path: newPath };
+        }
+        // All 9 sealed — this level needs compression
+        return { full: true, path: path || '' };
+      }
+
+      // Branch is open (not sealed) — recurse into it
+      const childPath = path ? path + '.' + lastOccupied : String(lastOccupied);
+      return walk(lastChild, childPath);
+    }
+
+    return walk(block.tree, '');
+  }
+
+  async function compressHistoryNode(block, path) {
+    // Compress 9 entries at `path` via Haiku → write summary to _ at that node.
+    // Then check if the parent level is now full → cascade.
+    // On root overflow → wrap tree into child 0, grow tuning fork.
+    const node = path ? blockNavigate(block, path) : block.tree;
+    if (!node || typeof node !== 'object') return;
+
+    // Gather entries
+    const entries = [];
+    for (let d = 1; d <= 9; d++) {
+      const child = node[String(d)];
+      if (child === undefined) continue;
+      const text = typeof child === 'string' ? child : (child && child._) ? child._ : '(branch)';
+      entries.push(`${d}: ${text}`);
+    }
+
+    if (entries.length < 9) return; // Not full
+
+    // Call Haiku for compression
+    try {
+      const inv = readInvocation(1); // Tier 1 = Haiku
+      const res = await callAPI({
+        model: inv.model,
+        max_tokens: 2048,
+        system: 'You are a compression engine for a history log. Summarise these 9 entries into a single concise paragraph that preserves the essential arc and any important details. Return only the compressed text.',
+        messages: [{ role: 'user', content: entries.join('\n') }],
+      });
+      const summary = (res.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+      if (!summary) return;
+
+      // Write summary to _ at this node
+      if (path) {
+        blockWriteNode(block, path, summary);
+      } else {
+        if (typeof block.tree === 'string') block.tree = { _: summary };
+        else block.tree._ = summary;
+      }
+
+      console.log(`[möbius] history compression at ${path || 'root'}: ${summary.slice(0, 80)}...`);
+
+      // Check if parent level is now full → cascade
+      if (path) {
+        const parentKeys = path.split('.');
+        if (parentKeys.length > 1) {
+          const parentPath = parentKeys.slice(0, -1).join('.');
+          const parentNode = blockNavigate(block, parentPath);
+          if (parentNode && typeof parentNode === 'object') {
+            let parentFull = true;
+            for (let d = 1; d <= 9; d++) {
+              const sibling = parentNode[String(d)];
+              if (!sibling || typeof sibling !== 'object' || !sibling._) { parentFull = false; break; }
+              // Check all 9 children exist in sibling
+              let siblingSealed = true;
+              for (let dd = 1; dd <= 9; dd++) {
+                if (sibling[String(dd)] === undefined) { siblingSealed = false; break; }
+              }
+              if (!siblingSealed) { parentFull = false; break; }
+            }
+            if (parentFull) {
+              await compressHistoryNode(block, parentPath);
+            }
+          }
+        } else {
+          // Parent is root — check if root is full
+          let rootFull = true;
+          for (let d = 1; d <= 9; d++) {
+            const child = block.tree[String(d)];
+            if (!child || typeof child !== 'object' || !child._) { rootFull = false; break; }
+            let sealed = true;
+            for (let dd = 1; dd <= 9; dd++) {
+              if (child[String(dd)] === undefined) { sealed = false; break; }
+            }
+            if (!sealed) { rootFull = false; break; }
+          }
+          if (rootFull) {
+            await compressHistoryNode(block, '');
+          }
+        }
+      } else {
+        // We just compressed root — need to wrap into child 0
+        // Move entire tree content (digits 1-9 + _) under child 0
+        const wrapped = {};
+        for (const [k, v] of Object.entries(block.tree)) {
+          wrapped[k] = v;
+        }
+        // Clear root digits, keep only the new child 0
+        for (let d = 1; d <= 9; d++) {
+          delete block.tree[String(d)];
+        }
+        block.tree['0'] = wrapped;
+        block.tree._ = wrapped._ || '';
+
+        // Grow tuning fork: "8" → "88" → "888"
+        const currentTuning = String(block.tuning || '8');
+        const tuningDigit = currentTuning.split('.')[0][0] || '8';
+        block.tuning = tuningDigit.repeat(currentTuning.split('.')[0].length + 1);
+
+        console.log(`[möbius] history root overflow — tree wrapped to child 0, tuning now ${block.tuning}`);
+      }
+    } catch (e) {
+      console.error('[möbius] history compression failed:', e);
+    }
+  }
+
   // ═══════ §2.5 TOKEN RESOLUTION ═══════
   // Per-repo PAT lookup. Pattern from hermitcrab/claude/focused-moore.
   // hermitcrab_tokens = { "owner/repo": "ghp_...", ... }
@@ -1026,7 +1211,7 @@
       }
 
       // Auto-save to history
-      autoSaveHistory(response, _ctx.echo);
+      await autoSaveHistory(response, _ctx.echo);
       response._messages = allMessages;
       response._echo = _ctx.echo;
       return response;
@@ -1036,16 +1221,31 @@
     }
   }
 
-  function autoSaveHistory(response, echo) {
+  async function autoSaveHistory(response, echo) {
     try {
       const texts = (response.content || []).filter(b => b.type === 'text');
       if (texts.length === 0) return;
       const block = blockLoad('history');
       if (!block) return;
-      const slot = findUnoccupiedDigit(block, '');
-      if (slot.full) return;
-      const text = texts.map(b => b.text).join('\n');
-      blockWriteNode(block, slot.digit, `[${new Date().toISOString()} echo:${echo}] ${text}`);
+      const text = `[${new Date().toISOString()} echo:${echo}] ${texts.map(b => b.text).join('\n')}`;
+
+      // Find the active write position in the history tree
+      const pos = findHistoryWritePosition(block);
+
+      if (pos.full) {
+        // 10th entry attempt — compress the full node, then write
+        await compressHistoryNode(block, pos.path);
+        // After compression, find the new write position
+        const newPos = findHistoryWritePosition(block);
+        if (newPos.full) {
+          console.error('[möbius] history still full after compression');
+          return;
+        }
+        blockWriteNode(block, newPos.path, text);
+      } else {
+        blockWriteNode(block, pos.path, text);
+      }
+
       blockSave('history', block);
     } catch (e) { console.error('[möbius] history save failed:', e); }
   }

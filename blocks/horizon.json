@@ -96,6 +96,7 @@
         "2": "Compression is delegated to a lighter model (Haiku) which makes summary-versus-emergence judgments — deciding what to compress into fewer nodes and what to preserve as significant.",
         "_": "History auto-compression keeps the history block from growing without bound while preserving what matters. The nine-slot limit is not arbitrary — it is the pscale constraint that forces editorial judgment at every level."
       },
+      "5": "Kernel naming conventions need review — getTuningDecimalPosition() uses 'decimal' which is misleading in pscale context, where the tuning fork's integer part length determines tree depth for BSP compensation. The function should be renamed to getTuningDepth() or getTuningScale() to align with the pscale vocabulary. Companion function getCompressionDepth() is correctly named. Minor hygiene, but naming shapes how future instances understand the code.",
       "4": {
         "1": {
           "1": "Any JSON block with tuning 0.ref is an attaching block. Its root _ carries a BSP target address — the point in another block where it locates itself. The rest of the tree is content: observations, corrections, elaborations, entire documents. The block attaches itself by carrying the address. No central registry required.",
@@ -430,6 +431,7 @@
         "2": "Compression is delegated to a",
         "_": "History auto-compression keeps the history"
       },
+      "5": "Kernel naming conventions need review",
       "4": {
         "1": {
           "1": "Any JSON block with tuning",
