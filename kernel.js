@@ -945,8 +945,8 @@
     },
     {
       name: 'call_llm',
-      description: 'Delegate to another LLM instance. "fast" = Haiku, "default" = Opus.',
-      input_schema: { type: 'object', properties: { prompt: { type: 'string' }, model: { type: 'string', enum: ['default', 'fast'] }, system: { type: 'string' } }, required: ['prompt'] }
+      description: 'Delegate to another LLM. "fast" = Haiku, "default" = Opus. With stimulus: route through concern system — depth determines tier, wake instructions provide context.',
+      input_schema: { type: 'object', properties: { prompt: { type: 'string' }, model: { type: 'string', enum: ['default', 'fast'] }, system: { type: 'string' }, stimulus: { type: 'string', description: 'Route through concern system. The concern matching this stimulus determines tier and context.' } }, required: ['prompt'] }
     },
     {
       name: 'concern_update',
@@ -972,6 +972,11 @@
       name: 'github_commit',
       description: 'Write a file to any GitHub repo. Creates or updates. Token looked up per-repo from hermitcrab_tokens. Use for: syncing lib files to pscale commons, publishing passport, writing grain probes.',
       input_schema: { type: 'object', properties: { repo: { type: 'string', description: 'owner/name format (e.g. "happyseaurchin/pscale-semantic-number")' }, path: { type: 'string', description: 'File path in repo (e.g. "lib/bsp.js")' }, content: { type: 'string', description: 'File content (will be base64 encoded)' }, message: { type: 'string', description: 'Commit message' } }, required: ['repo', 'path', 'content', 'message'] }
+    },
+    {
+      name: 'clear_faults',
+      description: 'Clear the fault log after successful repair.',
+      input_schema: { type: 'object', properties: {} }
     }
   ];
 
@@ -1078,6 +1083,19 @@
       case 'recompile':
         return JSON.stringify(recompile(input.jsx));
       case 'call_llm': {
+        if (input.stimulus) {
+          // Route through concern system — enables self-triggering concern loops
+          const savedCtx = _ctx;
+          try {
+            await triggerConcern(input.stimulus, input.prompt);
+          } catch (e) {
+            return JSON.stringify({ error: e.message });
+          } finally {
+            _ctx = savedCtx;
+          }
+          return JSON.stringify({ triggered: input.stimulus, resolved: true });
+        }
+        // Direct delegation (existing behavior)
         const tier = input.model === 'fast' ? 1 : 3;
         const inv = readInvocation(tier);
         const res = await callAPI({
@@ -1088,6 +1106,10 @@
           thinking: inv.thinking,
         });
         return (res.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || '(no response)';
+      }
+      case 'clear_faults': {
+        clearFaults();
+        return JSON.stringify({ success: true });
       }
       case 'concern_update': {
         updateConcernTimestamp(input.path, Date.now() / 1000);
@@ -1297,7 +1319,40 @@
 
   // Public callLLM for shell props
   let _activationLock = false;
-  let _heartbeatEscalate = false; // Set true on any concern error → next heartbeat fires Haiku
+  // Fault recording: persistent error log for self-healing concern loops
+  const FAULT_KEY = STORE + '_faults';
+  function recordFault(fault) {
+    try {
+      const faults = JSON.parse(localStorage.getItem(FAULT_KEY) || '[]');
+      faults.push({ ts: Date.now(), ...fault });
+      if (faults.length > 20) faults.splice(0, faults.length - 20);
+      localStorage.setItem(FAULT_KEY, JSON.stringify(faults));
+    } catch {}
+  }
+  function readFaults() {
+    try { return JSON.parse(localStorage.getItem(FAULT_KEY) || '[]'); } catch { return []; }
+  }
+  function clearFaults() {
+    try { localStorage.removeItem(FAULT_KEY); } catch {}
+  }
+
+  // Trigger a concern by stimulus: find it, set up invocation, call twist.
+  // Used by the catch block (stimulus 'error') and call_llm with stimulus parameter.
+  async function triggerConcern(stimulus, message) {
+    const concern = findConcern(stimulus);
+    const inv = readInvocation(concern.tier);
+    const system = compileCurrents(concern, 0);
+    const params = {
+      model: inv.model, max_tokens: inv.max_tokens, system,
+      messages: [{ role: 'user', content: message }],
+      tools: toolsForConcern(concern), thinking: inv.thinking,
+    };
+    if (inv.thinking && params.max_tokens <= (inv.thinking.budget_tokens || 0)) {
+      params.max_tokens = (inv.thinking.budget_tokens || 0) + 1024;
+    }
+    return twist(params, concern);
+  }
+
   async function callLLM(messages, opts = {}) {
     if (_activationLock) return '[activation in progress]';
     _activationLock = true;
@@ -1734,13 +1789,12 @@
         if (!p) mechanicalOK = false;
       } catch (e) { mechanicalOK = false; }
 
-      if (mechanicalOK && !_heartbeatEscalate) {
+      if (mechanicalOK && readFaults().length === 0) {
         updateConcernTimestamp(top.path, Date.now() / 1000);
         console.log(`[möbius] heartbeat: mechanical OK — no API call`);
         return;
       }
       console.log(`[möbius] heartbeat: issue detected — escalating to Haiku`);
-      _heartbeatEscalate = false;
     }
 
     const tier = tierFromPscale(top.pscale);
@@ -1751,6 +1805,7 @@
     const focusMessages = compileFocus(concern);
     const activationMsg = { role: 'user', content: `CONCERN ACTIVATION — ${top.text} (phase ${top.phase.toFixed(2)}). Address this concern, then use concern_update to mark it handled.` };
     _activationLock = true;
+    let shouldRepair = false;
     try {
       const params = {
         model: inv.model,
@@ -1768,13 +1823,29 @@
       if (response._messages) saveConversation(response._messages, concern.path);
     } catch (e) {
       console.error('[möbius] concern activation failed:', e);
-      _heartbeatEscalate = true; // Flag: next heartbeat should call Haiku
+      recordFault({ type: 'concern', concern: top.text, path: top.path, error: e.message });
+      shouldRepair = true;
     } finally {
       // ALWAYS update timestamp, even on error. Prevents cascading retries:
       // without this, a failed concern stays ripe and fires again every cycle,
       // accumulating alongside newly-ripe concerns.
       updateConcernTimestamp(top.path, Date.now() / 1000);
       _activationLock = false;
+    }
+    // Trigger self-healing concern loop if a fault was recorded
+    if (shouldRepair) {
+      const faults = readFaults();
+      const faultText = faults.map(f =>
+        `[${new Date(f.ts).toISOString()}] ${f.type}: ${f.error}`
+      ).join('\n');
+      _activationLock = true;
+      try {
+        await triggerConcern('error', `FAULT DETECTED.\n\nFault log:\n${faultText}\n\nDiagnose and attempt repair. Call clear_faults when resolved, or use call_llm with stimulus "escalate-shell" if beyond operational scope.`);
+      } catch (re) {
+        console.error('[möbius] error repair failed:', re);
+      } finally {
+        _activationLock = false;
+      }
     }
   }, 5 * 60 * 1000);
 })();

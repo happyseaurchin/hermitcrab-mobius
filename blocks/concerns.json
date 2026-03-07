@@ -74,6 +74,33 @@
           "dialogue": "none"
         }
       },
+      "4": {
+        "_": "Self-healing. Error-triggered repair escalation through three tiers. Each concern fires the appropriate LLM, which either resolves the fault and clears it, or triggers the next tier's concern via call_llm with the escalation stimulus. Haiku handles operational faults, Sonnet handles shell repairs, Opus handles kernel-level issues. The escalation IS concerns triggering concerns.",
+        "stimulus": "escalate-kernel",
+        "spine": "0.1331111",
+        "focus": { "dialogue": "none" },
+        "immediate": true,
+        "last": 0,
+        "1": {
+          "_": "Shell repair. Sonnet-tier self-healing — Haiku could not resolve the fault at operational scope. Full block access: rewrite corrupted blocks, fix concern structure, correct wake instructions, repair tuning forks. Call clear_faults when resolved, or use call_llm with stimulus escalate-kernel if the issue requires kernel-level reconfiguration.",
+          "stimulus": "escalate-shell",
+          "spine": "0.1241111",
+          "focus": { "dialogue": "none" },
+          "immediate": true,
+          "last": 0,
+          "1": {
+            "_": "Self-healing response coordination. Intermediate structural node — operational repair lives one level deeper at Haiku tier.",
+            "1": {
+              "_": "Operational repair. Haiku-tier self-healing — an error triggered this activation. Read the fault log, diagnose, attempt minimal fixes: clear stuck localStorage entries, reset corrupted conversation data, fix single block fields. Do not modify shell structure or kernel configuration. Call clear_faults when resolved, or use call_llm with stimulus escalate-shell if beyond operational scope.",
+              "stimulus": "error",
+              "spine": "0.1131111",
+              "focus": { "dialogue": "none" },
+              "immediate": true,
+              "last": 0
+            }
+          }
+        }
+      },
       "_": "System coherence. The self-concern thread from season to second."
     },
     "2": {
@@ -137,6 +164,16 @@
       },
       "2": "Threshold review. Weekly loop checkpoint",
       "3": "Birth. First activation of a",
+      "4": {
+        "1": {
+          "1": {
+            "1": "Operational repair. Haiku-tier self-healing",
+            "_": "Self-healing response coordination. Intermediate structural"
+          },
+          "_": "Shell repair. Sonnet-tier self-healing"
+        },
+        "_": "Self-healing. Error-triggered repair escalation"
+      },
       "_": "System coherence. The self-concern thread"
     },
     "2": {

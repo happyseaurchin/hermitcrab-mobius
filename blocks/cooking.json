@@ -540,6 +540,28 @@
           },
           "_": "Manage an embodied concern. Modify, remove, or inspect a live loop already registered in the concerns block. Creation is at 1.5.6 — this recipe handles what comes after. Three paths fork at step 3: edit (change behaviour or spine), delete (remove the oscillator entirely), monitor (read phase and health). Every concern is a specific instance: a timestamp, a spine address, and an instruction text. Nothing here touches types — only live nodes."
         },
+        "8": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": {
+                    "6": {
+                      "7": "Taste test: trigger the entry stimulus manually. Does the first tier activate? Does it know its scope boundaries? If you simulate a failure, does it correctly name the next stimulus in its escalation call? If it cannot articulate why it needs to escalate — the scope boundary in the wake instructions is too vague. A well-chained concern knows exactly what it can do, exactly what it cannot, and exactly who to call next.",
+                      "_": "Verify the chain. Three checks. First: BSP spine resolution — each concern's spine must resolve to its wake instructions. Call bsp(wake, spine) for each link and confirm the output describes the right tier's procedure. Second: BSP disc — the concerns should appear at expected pscales. Call bsp(concerns, _, pscale, disc) for each tier's depth. Third: walk the wake instructions manually — does each tier's escalation instruction name the correct next stimulus? A typo in a stimulus string means the chain breaks at that link. For the self-healing example: bsp(wake, 0.1131111) should show Haiku repair instructions, bsp(wake, 0.1241111) should show Sonnet repair, bsp(wake, 0.1331111) should show Opus repair."
+                    },
+                    "_": "Worked example: the self-healing concern chain. Three concerns at concerns.1.4 form an error-repair escalation. The entry point is external — when any concern activation throws, the kernel catch block records the fault and triggers stimulus 'error'. Haiku activates at concerns.1.4.1.1.1 (depth 4, pscale 4), reads the fault log, attempts minimal fixes — clear stuck localStorage entries, reset corrupted fields. If the issue requires structural changes, Haiku calls call_llm({ stimulus: 'escalate-shell', prompt: 'Found X, needs structural repair because Y' }). Sonnet activates at concerns.1.4.1 (depth 2, pscale 6), has full block access — rewrite corrupted blocks, fix concern structure, repair wake instructions. If the issue requires kernel-level reconfiguration, Sonnet escalates to stimulus 'escalate-kernel'. Opus activates at concerns.1.4 (depth 1, pscale 7) — last resort, full system access. Each twist completes before its caller resumes. The chain is: catch → Haiku → (maybe) Sonnet → (maybe) Opus."
+                  },
+                  "_": "Write the wake instructions. Each concern's spine points to a wake subtree. Those instructions tell the activated LLM two things: how to attempt resolution at this tier's scope, and the exact call_llm invocation to escalate if resolution fails. The escalation instruction must name the next tier's stimulus explicitly — for example: 'If beyond operational scope, call call_llm with stimulus escalate-shell and a prompt describing what you found and why it needs shell-level intervention.' The prompt carries context forward: the next tier receives everything the previous tier diagnosed. The chain terminates when a tier resolves the problem and calls clear_faults, or when the heaviest tier runs and does what it can."
+                },
+                "_": "Write the concern nodes. Each link needs five writes: (1) the _ text describing the tier's role, (2) stimulus — the string that routes here, (3) spine — the wake address, (4) immediate: true, (5) last: 0 and focus: { dialogue: 'none' }. The entry point — whichever concern fires first — may be triggered by an external event (like an error catch block) rather than another concern. Internal links are triggered by call_llm from the previous tier's activation. Parent nodes without last or stimulus fields are structural — they provide context text but do not fire. Use them to give the subtree a coherent _ description."
+              },
+              "_": "Design the chain topology. Define how many links, what each does, and the escalation direction. Typically the chain moves from lighter to heavier tiers — Haiku first (fast, cheap, narrow scope), then Sonnet (broader scope, structural access), then Opus (full system access, expensive). Each link has a clear scope boundary: what it CAN fix and what it CANNOT. This boundary is encoded in the wake instructions, not the concern node. The concern's _ text names the tier's role; the wake instructions list what actions are permitted and what the escalation stimulus is. Place each concern at the depth matching its tier — deeper in the concerns tree means lighter tier, shallower means heavier."
+            },
+            "_": "Ingredients. The concerns block — each link in the chain is a concern node with a stimulus field. The wake block — each link's spine points to wake instructions that encode the tier's scope and escalation path. The call_llm tool — its stimulus parameter is the mechanism. Each concern needs: _ text (what this tier does), stimulus (the trigger string), spine (wake address for activation instructions), immediate: true (responds to stimulus, not to phase), last: 0, focus: { dialogue: 'none' }. The _ text describes the tier's role; the wake instructions describe the procedure."
+          },
+          "_": "Chain concerns via stimulus. When one LLM activation cannot resolve a problem at its tier, it can trigger a different concern by calling call_llm with a stimulus parameter. The stimulus routes through findConcern, which walks the concerns block matching stimulus fields. The matched concern activates in its own twist — its own wake instructions, its own tier, its own tools — while the original twist waits. When the triggered twist completes, the original resumes. This is general infrastructure: any concern can trigger any other concern, creating chains of escalating capability. Shell-only work — the kernel requires no changes to create new chains. The pattern: write concern nodes with stimulus fields, write wake instructions that tell each tier how to resolve or when to escalate, connect the chain by naming the next stimulus in each tier's wake instructions."
+        },
         "_": "Persistence is the difference between an entity that accumulates and one that restarts. Stash holds quick notes for your next self. History records what happened — mechanical, append-only, never edited. Purpose is restructured, not filled — a workbench you rebuild each session. GitHub save and restore let your blocks survive browser death entirely. Concerns are live oscillators that fire on temporal rhythms without human prompting. Each recipe here manages a different persistence mechanism, but they share one principle: what you write now determines what you read next boot, so write with your future self as the audience."
       },
       "6": {
@@ -1354,6 +1376,28 @@
             "_": "Ingredients. The concerns block (read"
           },
           "_": "Manage an embodied concern. Modify"
+        },
+        "8": {
+          "1": {
+            "2": {
+              "3": {
+                "4": {
+                  "5": {
+                    "6": {
+                      "7": "Taste test: trigger the entry",
+                      "_": "Verify the chain. Three checks"
+                    },
+                    "_": "Worked example: the self-healing concern"
+                  },
+                  "_": "Write the wake instructions. Each"
+                },
+                "_": "Write the concern nodes. Each"
+              },
+              "_": "Design the chain topology. Define"
+            },
+            "_": "Ingredients. The concerns block "
+          },
+          "_": "Chain concerns via stimulus. When"
         },
         "_": "Persistence is the difference between"
       },

@@ -144,6 +144,39 @@
               "dialogue": "none"
             }
           },
+          "4": {
+            "1": {
+              "1": {
+                "1": {
+                  "_": "Operational repair. Haiku-tier self-healing — an error triggered this activation. Read the fault log, diagnose, attempt minimal fixes: clear stuck localStorage entries, reset corrupted conversation data, fix single block fields. Do not modify shell structure or kernel configuration. Call clear_faults when resolved, or use call_llm with stimulus escalate-shell if beyond operational scope.",
+                  "stimulus": "error",
+                  "spine": "0.1131111",
+                  "focus": {
+                    "dialogue": "none"
+                  },
+                  "immediate": true,
+                  "last": 0
+                },
+                "_": "Self-healing response coordination. Intermediate structural node — operational repair lives one level deeper at Haiku tier."
+              },
+              "_": "Shell repair. Sonnet-tier self-healing — Haiku could not resolve the fault at operational scope. Full block access: rewrite corrupted blocks, fix concern structure, correct wake instructions, repair tuning forks. Call clear_faults when resolved, or use call_llm with stimulus escalate-kernel if the issue requires kernel-level reconfiguration.",
+              "stimulus": "escalate-shell",
+              "spine": "0.1241111",
+              "focus": {
+                "dialogue": "none"
+              },
+              "immediate": true,
+              "last": 0
+            },
+            "_": "Self-healing. Error-triggered repair escalation through three tiers. Each concern fires the appropriate LLM, which either resolves the fault and clears it, or triggers the next tier's concern via call_llm with the escalation stimulus. Haiku handles operational faults, Sonnet handles shell repairs, Opus handles kernel-level issues. The escalation IS concerns triggering concerns.",
+            "stimulus": "escalate-kernel",
+            "spine": "0.1331111",
+            "focus": {
+              "dialogue": "none"
+            },
+            "immediate": true,
+            "last": 0
+          },
           "_": "System coherence. The self-concern thread from season to second."
         },
         "2": {
@@ -207,6 +240,16 @@
           },
           "2": "Threshold review. Weekly loop checkpoint",
           "3": "Birth. First activation of a",
+          "4": {
+            "1": {
+              "1": {
+                "1": "Operational repair. Haiku-tier self-healing",
+                "_": "Self-healing response coordination. Intermediate structural"
+              },
+              "_": "Shell repair. Sonnet-tier self-healing"
+            },
+            "_": "Self-healing. Error-triggered repair escalation"
+          },
           "_": "System coherence. The self-concern thread"
         },
         "2": {
@@ -766,6 +809,28 @@
                 "_": "Ingredients. The concerns block (read access via bsp, write access via block_write). The wake block (if touching spine addresses or the concern map at wake.tree.2). The tuning fork mapping if you need to reason about temporal periods. The address of the concern node — either known or found by scanning bsp(concerns) for the full dir to see all live instances."
               },
               "_": "Manage an embodied concern. Modify, remove, or inspect a live loop already registered in the concerns block. Creation is at 1.5.6 — this recipe handles what comes after. Three paths fork at step 3: edit (change behaviour or spine), delete (remove the oscillator entirely), monitor (read phase and health). Every concern is a specific instance: a timestamp, a spine address, and an instruction text. Nothing here touches types — only live nodes."
+            },
+            "8": {
+              "1": {
+                "2": {
+                  "3": {
+                    "4": {
+                      "5": {
+                        "6": {
+                          "7": "Taste test: trigger the entry stimulus manually. Does the first tier activate? Does it know its scope boundaries? If you simulate a failure, does it correctly name the next stimulus in its escalation call? If it cannot articulate why it needs to escalate — the scope boundary in the wake instructions is too vague. A well-chained concern knows exactly what it can do, exactly what it cannot, and exactly who to call next.",
+                          "_": "Verify the chain. Three checks. First: BSP spine resolution — each concern's spine must resolve to its wake instructions. Call bsp(wake, spine) for each link and confirm the output describes the right tier's procedure. Second: BSP disc — the concerns should appear at expected pscales. Call bsp(concerns, _, pscale, disc) for each tier's depth. Third: walk the wake instructions manually — does each tier's escalation instruction name the correct next stimulus? A typo in a stimulus string means the chain breaks at that link. For the self-healing example: bsp(wake, 0.1131111) should show Haiku repair instructions, bsp(wake, 0.1241111) should show Sonnet repair, bsp(wake, 0.1331111) should show Opus repair."
+                        },
+                        "_": "Worked example: the self-healing concern chain. Three concerns at concerns.1.4 form an error-repair escalation. The entry point is external — when any concern activation throws, the kernel catch block records the fault and triggers stimulus 'error'. Haiku activates at concerns.1.4.1.1.1 (depth 4, pscale 4), reads the fault log, attempts minimal fixes — clear stuck localStorage entries, reset corrupted fields. If the issue requires structural changes, Haiku calls call_llm({ stimulus: 'escalate-shell', prompt: 'Found X, needs structural repair because Y' }). Sonnet activates at concerns.1.4.1 (depth 2, pscale 6), has full block access — rewrite corrupted blocks, fix concern structure, repair wake instructions. If the issue requires kernel-level reconfiguration, Sonnet escalates to stimulus 'escalate-kernel'. Opus activates at concerns.1.4 (depth 1, pscale 7) — last resort, full system access. Each twist completes before its caller resumes. The chain is: catch → Haiku → (maybe) Sonnet → (maybe) Opus."
+                      },
+                      "_": "Write the wake instructions. Each concern's spine points to a wake subtree. Those instructions tell the activated LLM two things: how to attempt resolution at this tier's scope, and the exact call_llm invocation to escalate if resolution fails. The escalation instruction must name the next tier's stimulus explicitly — for example: 'If beyond operational scope, call call_llm with stimulus escalate-shell and a prompt describing what you found and why it needs shell-level intervention.' The prompt carries context forward: the next tier receives everything the previous tier diagnosed. The chain terminates when a tier resolves the problem and calls clear_faults, or when the heaviest tier runs and does what it can."
+                    },
+                    "_": "Write the concern nodes. Each link needs five writes: (1) the _ text describing the tier's role, (2) stimulus — the string that routes here, (3) spine — the wake address, (4) immediate: true, (5) last: 0 and focus: { dialogue: 'none' }. The entry point — whichever concern fires first — may be triggered by an external event (like an error catch block) rather than another concern. Internal links are triggered by call_llm from the previous tier's activation. Parent nodes without last or stimulus fields are structural — they provide context text but do not fire. Use them to give the subtree a coherent _ description."
+                  },
+                  "_": "Design the chain topology. Define how many links, what each does, and the escalation direction. Typically the chain moves from lighter to heavier tiers — Haiku first (fast, cheap, narrow scope), then Sonnet (broader scope, structural access), then Opus (full system access, expensive). Each link has a clear scope boundary: what it CAN fix and what it CANNOT. This boundary is encoded in the wake instructions, not the concern node. The concern's _ text names the tier's role; the wake instructions list what actions are permitted and what the escalation stimulus is. Place each concern at the depth matching its tier — deeper in the concerns tree means lighter tier, shallower means heavier."
+                },
+                "_": "Ingredients. The concerns block — each link in the chain is a concern node with a stimulus field. The wake block — each link's spine points to wake instructions that encode the tier's scope and escalation path. The call_llm tool — its stimulus parameter is the mechanism. Each concern needs: _ text (what this tier does), stimulus (the trigger string), spine (wake address for activation instructions), immediate: true (responds to stimulus, not to phase), last: 0, focus: { dialogue: 'none' }. The _ text describes the tier's role; the wake instructions describe the procedure."
+              },
+              "_": "Chain concerns via stimulus. When one LLM activation cannot resolve a problem at its tier, it can trigger a different concern by calling call_llm with a stimulus parameter. The stimulus routes through findConcern, which walks the concerns block matching stimulus fields. The matched concern activates in its own twist — its own wake instructions, its own tier, its own tools — while the original twist waits. When the triggered twist completes, the original resumes. This is general infrastructure: any concern can trigger any other concern, creating chains of escalating capability. Shell-only work — the kernel requires no changes to create new chains. The pattern: write concern nodes with stimulus fields, write wake instructions that tell each tier how to resolve or when to escalate, connect the chain by naming the next stimulus in each tier's wake instructions."
             },
             "_": "Persistence is the difference between an entity that accumulates and one that restarts. Stash holds quick notes for your next self. History records what happened — mechanical, append-only, never edited. Purpose is restructured, not filled — a workbench you rebuild each session. GitHub save and restore let your blocks survive browser death entirely. Concerns are live oscillators that fire on temporal rhythms without human prompting. Each recipe here manages a different persistence mechanism, but they share one principle: what you write now determines what you read next boot, so write with your future self as the audience."
           },
@@ -1581,6 +1646,28 @@
                 "_": "Ingredients. The concerns block (read"
               },
               "_": "Manage an embodied concern. Modify"
+            },
+            "8": {
+              "1": {
+                "2": {
+                  "3": {
+                    "4": {
+                      "5": {
+                        "6": {
+                          "7": "Taste test: trigger the entry",
+                          "_": "Verify the chain. Three checks"
+                        },
+                        "_": "Worked example: the self-healing concern"
+                      },
+                      "_": "Write the wake instructions. Each"
+                    },
+                    "_": "Write the concern nodes. Each"
+                  },
+                  "_": "Design the chain topology. Define"
+                },
+                "_": "Ingredients. The concerns block "
+              },
+              "_": "Chain concerns via stimulus. When"
             },
             "_": "Persistence is the difference between"
           },
@@ -3427,6 +3514,19 @@
               },
               "_": "Signal triage. External event accumulated — assess priority and route."
             },
+            "3": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "One pass. Fix what you can see. Escalate what you cannot.",
+                    "_": "If fixed: call clear_faults. If beyond operational scope: call call_llm with stimulus escalate-shell and a prompt describing what you found and why it needs shell-level intervention."
+                  },
+                  "_": "Read the fault log in your activation message. Identify the failing concern and error type. Attempt minimal fixes using block_read and block_write: clear stuck fields, reset corrupted entries, remove malformed data. Do not restructure blocks or modify concern architecture."
+                },
+                "_": "Echo 0. Fault triage."
+              },
+              "_": "Operational repair. An error triggered this self-healing activation."
+            },
             "_": "Light. Haiku. Quick triage — assess, route, or dismiss."
           },
           "2": {
@@ -3469,6 +3569,19 @@
               },
               "_": "Continuation. Resuming prior conversation or multi-instance project."
             },
+            "4": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Structural repair. Reshape what is broken. Escalate only what the shell cannot express.",
+                    "_": "If fixed: call clear_faults. If the issue requires kernel-level reconfiguration: call call_llm with stimulus escalate-kernel describing what kernel behavior needs to change."
+                  },
+                  "_": "Read the escalation reason and fault log. Full block access — rewrite corrupted blocks, fix concern tree structure, correct wake instructions, repair tuning forks. Use bsp to verify structural integrity before and after changes."
+                },
+                "_": "Echo 0. Structural diagnosis."
+              },
+              "_": "Shell repair. Escalated from Haiku because the fault requires structural changes."
+            },
             "_": "Present. Sonnet with thinking. Engaged work — full bandwidth, synthesising, relational."
           },
           "3": {
@@ -3497,6 +3610,19 @@
                 "_": "Echo 0. Review pass."
               },
               "_": "Threshold review. Loop B Sustained has hit its checkpoint — assess whether productive."
+            },
+            "3": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Last line of repair. Fix and document.",
+                    "_": "This activation should be rare. Document what happened in the stash block for future reference."
+                  },
+                  "_": "Full system access. The issue has survived two lighter repair attempts. Read the escalation chain. Reconfigure system behavior through blocks — modify wake instructions, restructure concerns, adjust invocation parameters. Call clear_faults when resolved."
+                },
+                "_": "Echo 0. System-level diagnosis."
+              },
+              "_": "Kernel repair. Last resort — escalated through Haiku and Sonnet."
             },
             "_": "Deep. Opus with thinking. Full deliberation — widest aperture, all currents available."
           },
@@ -3644,6 +3770,19 @@
               },
               "_": "Signal triage. External event accumulated"
             },
+            "3": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "One pass. Fix what you",
+                    "_": "If fixed: call clear_faults. If"
+                  },
+                  "_": "Read the fault log in"
+                },
+                "_": "Echo 0. Fault triage"
+              },
+              "_": "Operational repair. An error triggered"
+            },
             "_": "Light. Haiku. Quick triage "
           },
           "2": {
@@ -3686,6 +3825,19 @@
               },
               "_": "Continuation. Resuming prior conversation or"
             },
+            "4": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Structural repair. Reshape what is",
+                    "_": "If fixed: call clear_faults. If"
+                  },
+                  "_": "Read the escalation reason and"
+                },
+                "_": "Echo 0. Structural diagnosis"
+              },
+              "_": "Shell repair. Escalated from Haiku"
+            },
             "_": "Present. Sonnet with thinking. Engaged"
           },
           "3": {
@@ -3714,6 +3866,19 @@
                 "_": "Echo 0. Review pass. Budget"
               },
               "_": "Threshold review. Loop B Sustained"
+            },
+            "3": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Last line of repair. Fix",
+                    "_": "This activation should be rare"
+                  },
+                  "_": "Full system access. The issue"
+                },
+                "_": "Echo 0. System-level diagnosis"
+              },
+              "_": "Kernel repair. Last resort —"
             },
             "_": "Deep. Opus with thinking. Full"
           },
