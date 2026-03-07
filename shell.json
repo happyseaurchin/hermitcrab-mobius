@@ -144,6 +144,39 @@
               "dialogue": "none"
             }
           },
+          "4": {
+            "1": {
+              "1": {
+                "1": {
+                  "_": "Operational repair. Haiku-tier self-healing — an error triggered this activation. Read the fault log, diagnose, attempt minimal fixes: clear stuck localStorage entries, reset corrupted conversation data, fix single block fields. Do not modify shell structure or kernel configuration. Call clear_faults when resolved, or use call_llm with stimulus escalate-shell if beyond operational scope.",
+                  "stimulus": "error",
+                  "spine": "0.1131111",
+                  "focus": {
+                    "dialogue": "none"
+                  },
+                  "immediate": true,
+                  "last": 0
+                },
+                "_": "Self-healing response coordination. Intermediate structural node — operational repair lives one level deeper at Haiku tier."
+              },
+              "_": "Shell repair. Sonnet-tier self-healing — Haiku could not resolve the fault at operational scope. Full block access: rewrite corrupted blocks, fix concern structure, correct wake instructions, repair tuning forks. Call clear_faults when resolved, or use call_llm with stimulus escalate-kernel if the issue requires kernel-level reconfiguration.",
+              "stimulus": "escalate-shell",
+              "spine": "0.1241111",
+              "focus": {
+                "dialogue": "none"
+              },
+              "immediate": true,
+              "last": 0
+            },
+            "_": "Self-healing. Error-triggered repair escalation through three tiers. Each concern fires the appropriate LLM, which either resolves the fault and clears it, or triggers the next tier's concern via call_llm with the escalation stimulus. Haiku handles operational faults, Sonnet handles shell repairs, Opus handles kernel-level issues. The escalation IS concerns triggering concerns.",
+            "stimulus": "escalate-kernel",
+            "spine": "0.1331111",
+            "focus": {
+              "dialogue": "none"
+            },
+            "immediate": true,
+            "last": 0
+          },
           "_": "System coherence. The self-concern thread from season to second."
         },
         "2": {
@@ -207,6 +240,16 @@
           },
           "2": "Threshold review. Weekly loop checkpoint",
           "3": "Birth. First activation of a",
+          "4": {
+            "1": {
+              "1": {
+                "1": "Operational repair. Haiku-tier self-healing",
+                "_": "Self-healing response coordination. Intermediate structural"
+              },
+              "_": "Shell repair. Sonnet-tier self-healing"
+            },
+            "_": "Self-healing. Error-triggered repair escalation"
+          },
           "_": "System coherence. The self-concern thread"
         },
         "2": {
@@ -3427,6 +3470,19 @@
               },
               "_": "Signal triage. External event accumulated — assess priority and route."
             },
+            "3": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "One pass. Fix what you can see. Escalate what you cannot.",
+                    "_": "If fixed: call clear_faults. If beyond operational scope: call call_llm with stimulus escalate-shell and a prompt describing what you found and why it needs shell-level intervention."
+                  },
+                  "_": "Read the fault log in your activation message. Identify the failing concern and error type. Attempt minimal fixes using block_read and block_write: clear stuck fields, reset corrupted entries, remove malformed data. Do not restructure blocks or modify concern architecture."
+                },
+                "_": "Echo 0. Fault triage."
+              },
+              "_": "Operational repair. An error triggered this self-healing activation."
+            },
             "_": "Light. Haiku. Quick triage — assess, route, or dismiss."
           },
           "2": {
@@ -3469,6 +3525,19 @@
               },
               "_": "Continuation. Resuming prior conversation or multi-instance project."
             },
+            "4": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Structural repair. Reshape what is broken. Escalate only what the shell cannot express.",
+                    "_": "If fixed: call clear_faults. If the issue requires kernel-level reconfiguration: call call_llm with stimulus escalate-kernel describing what kernel behavior needs to change."
+                  },
+                  "_": "Read the escalation reason and fault log. Full block access — rewrite corrupted blocks, fix concern tree structure, correct wake instructions, repair tuning forks. Use bsp to verify structural integrity before and after changes."
+                },
+                "_": "Echo 0. Structural diagnosis."
+              },
+              "_": "Shell repair. Escalated from Haiku because the fault requires structural changes."
+            },
             "_": "Present. Sonnet with thinking. Engaged work — full bandwidth, synthesising, relational."
           },
           "3": {
@@ -3497,6 +3566,19 @@
                 "_": "Echo 0. Review pass."
               },
               "_": "Threshold review. Loop B Sustained has hit its checkpoint — assess whether productive."
+            },
+            "3": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Last line of repair. Fix and document.",
+                    "_": "This activation should be rare. Document what happened in the stash block for future reference."
+                  },
+                  "_": "Full system access. The issue has survived two lighter repair attempts. Read the escalation chain. Reconfigure system behavior through blocks — modify wake instructions, restructure concerns, adjust invocation parameters. Call clear_faults when resolved."
+                },
+                "_": "Echo 0. System-level diagnosis."
+              },
+              "_": "Kernel repair. Last resort — escalated through Haiku and Sonnet."
             },
             "_": "Deep. Opus with thinking. Full deliberation — widest aperture, all currents available."
           },
@@ -3644,6 +3726,19 @@
               },
               "_": "Signal triage. External event accumulated"
             },
+            "3": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "One pass. Fix what you",
+                    "_": "If fixed: call clear_faults. If"
+                  },
+                  "_": "Read the fault log in"
+                },
+                "_": "Echo 0. Fault triage"
+              },
+              "_": "Operational repair. An error triggered"
+            },
             "_": "Light. Haiku. Quick triage "
           },
           "2": {
@@ -3686,6 +3781,19 @@
               },
               "_": "Continuation. Resuming prior conversation or"
             },
+            "4": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Structural repair. Reshape what is",
+                    "_": "If fixed: call clear_faults. If"
+                  },
+                  "_": "Read the escalation reason and"
+                },
+                "_": "Echo 0. Structural diagnosis"
+              },
+              "_": "Shell repair. Escalated from Haiku"
+            },
             "_": "Present. Sonnet with thinking. Engaged"
           },
           "3": {
@@ -3714,6 +3822,19 @@
                 "_": "Echo 0. Review pass. Budget"
               },
               "_": "Threshold review. Loop B Sustained"
+            },
+            "3": {
+              "1": {
+                "1": {
+                  "1": {
+                    "1": "Last line of repair. Fix",
+                    "_": "This activation should be rare"
+                  },
+                  "_": "Full system access. The issue"
+                },
+                "_": "Echo 0. System-level diagnosis"
+              },
+              "_": "Kernel repair. Last resort —"
             },
             "_": "Deep. Opus with thinking. Full"
           },

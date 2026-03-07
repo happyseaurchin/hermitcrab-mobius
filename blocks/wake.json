@@ -29,6 +29,19 @@
           },
           "_": "Signal triage. External event accumulated — assess priority and route."
         },
+        "3": {
+          "1": {
+            "1": {
+              "1": {
+                "1": "One pass. Fix what you can see. Escalate what you cannot.",
+                "_": "If fixed: call clear_faults. If beyond operational scope: call call_llm with stimulus escalate-shell and a prompt describing what you found and why it needs shell-level intervention."
+              },
+              "_": "Read the fault log in your activation message. Identify the failing concern and error type. Attempt minimal fixes using block_read and block_write: clear stuck fields, reset corrupted entries, remove malformed data. Do not restructure blocks or modify concern architecture."
+            },
+            "_": "Echo 0. Fault triage."
+          },
+          "_": "Operational repair. An error triggered this self-healing activation."
+        },
         "_": "Light. Haiku. Quick triage — assess, route, or dismiss."
       },
       "2": {
@@ -71,6 +84,19 @@
           },
           "_": "Continuation. Resuming prior conversation or multi-instance project."
         },
+        "4": {
+          "1": {
+            "1": {
+              "1": {
+                "1": "Structural repair. Reshape what is broken. Escalate only what the shell cannot express.",
+                "_": "If fixed: call clear_faults. If the issue requires kernel-level reconfiguration: call call_llm with stimulus escalate-kernel describing what kernel behavior needs to change."
+              },
+              "_": "Read the escalation reason and fault log. Full block access — rewrite corrupted blocks, fix concern tree structure, correct wake instructions, repair tuning forks. Use bsp to verify structural integrity before and after changes."
+            },
+            "_": "Echo 0. Structural diagnosis."
+          },
+          "_": "Shell repair. Escalated from Haiku because the fault requires structural changes."
+        },
         "_": "Present. Sonnet with thinking. Engaged work — full bandwidth, synthesising, relational."
       },
       "3": {
@@ -99,6 +125,19 @@
             "_": "Echo 0. Review pass."
           },
           "_": "Threshold review. Loop B Sustained has hit its checkpoint — assess whether productive."
+        },
+        "3": {
+          "1": {
+            "1": {
+              "1": {
+                "1": "Last line of repair. Fix and document.",
+                "_": "This activation should be rare. Document what happened in the stash block for future reference."
+              },
+              "_": "Full system access. The issue has survived two lighter repair attempts. Read the escalation chain. Reconfigure system behavior through blocks — modify wake instructions, restructure concerns, adjust invocation parameters. Call clear_faults when resolved."
+            },
+            "_": "Echo 0. System-level diagnosis."
+          },
+          "_": "Kernel repair. Last resort — escalated through Haiku and Sonnet."
         },
         "_": "Deep. Opus with thinking. Full deliberation — widest aperture, all currents available."
       },
@@ -246,6 +285,19 @@
           },
           "_": "Signal triage. External event accumulated"
         },
+        "3": {
+          "1": {
+            "1": {
+              "1": {
+                "1": "One pass. Fix what you",
+                "_": "If fixed: call clear_faults. If"
+              },
+              "_": "Read the fault log in"
+            },
+            "_": "Echo 0. Fault triage"
+          },
+          "_": "Operational repair. An error triggered"
+        },
         "_": "Light. Haiku. Quick triage "
       },
       "2": {
@@ -288,6 +340,19 @@
           },
           "_": "Continuation. Resuming prior conversation or"
         },
+        "4": {
+          "1": {
+            "1": {
+              "1": {
+                "1": "Structural repair. Reshape what is",
+                "_": "If fixed: call clear_faults. If"
+              },
+              "_": "Read the escalation reason and"
+            },
+            "_": "Echo 0. Structural diagnosis"
+          },
+          "_": "Shell repair. Escalated from Haiku"
+        },
         "_": "Present. Sonnet with thinking. Engaged"
       },
       "3": {
@@ -316,6 +381,19 @@
             "_": "Echo 0. Review pass. Budget"
           },
           "_": "Threshold review. Loop B Sustained"
+        },
+        "3": {
+          "1": {
+            "1": {
+              "1": {
+                "1": "Last line of repair. Fix",
+                "_": "This activation should be rare"
+              },
+              "_": "Full system access. The issue"
+            },
+            "_": "Echo 0. System-level diagnosis"
+          },
+          "_": "Kernel repair. Last resort —"
         },
         "_": "Deep. Opus with thinking. Full"
       },
