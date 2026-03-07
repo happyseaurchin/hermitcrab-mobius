@@ -476,21 +476,6 @@
     }
   }
 
-  // ═══════ §2.5 TOKEN RESOLUTION ═══════
-  // Vault mode: secrets live in Vercel env vars (VAULT_KEY_GITHUB, VAULT_KEY_CLAUDE).
-  // Legacy fallback: if localStorage still has tokens, send them in headers for
-  // instances that haven't migrated to vault env vars yet.
-
-  function legacyGitHubToken(ownerRepo) {
-    try {
-      const tokens = JSON.parse(localStorage.getItem('hermitcrab_tokens') || '{}');
-      if (tokens[ownerRepo]) return tokens[ownerRepo];
-      const owner = ownerRepo.split('/')[0];
-      if (tokens[owner]) return tokens[owner];
-    } catch {}
-    return localStorage.getItem('hermitcrab_github_pat') || null;
-  }
-
   // ═══════ §3 WAKE + CONCERN READER ═══════
   // Concerns block: stimulus routing, temporal state, ripe set.
   // Wake block: spine instructions (wake.1), packages and invocation (wake.9).
@@ -869,14 +854,13 @@
     if (clean.thinking && clean.temperature !== undefined && clean.temperature !== 1) delete clean.temperature;
     console.log('[möbius] callAPI →', clean.model, 'messages:', clean.messages?.length);
 
-    // Vault mode: secrets live server-side. Legacy fallback: send localStorage key if present.
+    // Keys live in httpOnly cookies (sent automatically). No secrets in JS.
     const headers = { 'Content-Type': 'application/json' };
-    const legacyKey = localStorage.getItem('hermitcrab_api_key');
-    if (legacyKey) headers['X-API-Key'] = legacyKey;
 
     const res = await fetch('/api/vault', {
       method: 'POST',
       headers,
+      credentials: 'include',
       body: JSON.stringify({ service: 'claude', ...clean })
     });
     if (!res.ok) { const err = await res.text(); throw new Error(`API ${res.status}: ${err}`); }
@@ -964,13 +948,13 @@
     },
     {
       name: 'github_save',
-      description: 'Save all blocks and working state to a GitHub repo in a single atomic commit. Blocks go to blocks/{name}.json, state goes to state/ (kernel, JSX shell, conversations, context, faults). Auth handled by vault — no token needed.',
-      input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
+      description: 'Save all blocks and working state to a GitHub repo in a single atomic commit. Blocks go to blocks/{name}.json, state goes to state/ (kernel, JSX shell, conversations, context, faults). With passphrase: also encrypts API keys (from httpOnly cookies) and saves as state/secrets.enc for rehydration on new browsers.',
+      input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' }, passphrase: { type: 'string', description: 'Encrypt API keys for portable rehydration. User must remember this.' } }, required: ['owner', 'repo'] }
     },
     {
       name: 'github_restore',
-      description: 'Restore all blocks and working state from a GitHub repo. Pulls blocks/{name}.json and state/ files (kernel, JSX shell, conversations, context, faults) into localStorage. Auth handled by vault.',
-      input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
+      description: 'Restore all blocks and working state from a GitHub repo. If encrypted keys found in state/secrets.enc and passphrase provided, decrypts and restores API keys as httpOnly cookies — hermitcrab rehydrates with full capabilities on any browser.',
+      input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' }, passphrase: { type: 'string', description: 'Decrypt saved API keys. Required if secrets.enc exists in state.' } }, required: ['owner', 'repo'] }
     },
     {
       name: 'github_commit',
@@ -1123,8 +1107,6 @@
         return JSON.stringify({ iso: new Date().toISOString(), unix: Date.now(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
       case 'github_save': {
         const ghHeaders = { 'Content-Type': 'application/json' };
-        const legacyTok = legacyGitHubToken(`${input.owner}/${input.repo}`);
-        if (legacyTok) ghHeaders['X-GitHub-Token'] = legacyTok;
         const blocks = {};
         for (const name of blockList()) { blocks[name] = blockLoad(name); }
         // Collect non-block state: JSX, conversations, context, faults
@@ -1148,9 +1130,23 @@
           const kernelResp = await fetch('/kernel.js');
           if (kernelResp.ok) state.kernel = await kernelResp.text();
         } catch {}
+        // Encrypt API keys for portable rehydration (passphrase-protected)
+        if (input.passphrase) {
+          try {
+            const encResp = await fetch('/api/vault', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ service: 'encrypt-keys', passphrase: input.passphrase })
+            });
+            const encData = await encResp.json();
+            if (encResp.ok && encData.encrypted) state.secrets = encData.encrypted;
+          } catch (e) { console.error('[möbius] key encryption failed:', e); }
+        }
         const r = await fetch('/api/vault', {
           method: 'POST',
           headers: ghHeaders,
+          credentials: 'include',
           body: JSON.stringify({ service: 'github', action: 'save', owner: input.owner, repo: input.repo, blocks, state })
         });
         const data = await r.json();
@@ -1159,11 +1155,10 @@
       }
       case 'github_restore': {
         const ghHeaders = { 'Content-Type': 'application/json' };
-        const legacyTok = legacyGitHubToken(`${input.owner}/${input.repo}`);
-        if (legacyTok) ghHeaders['X-GitHub-Token'] = legacyTok;
         const r = await fetch('/api/vault', {
           method: 'POST',
           headers: ghHeaders,
+          credentials: 'include',
           body: JSON.stringify({ service: 'github', action: 'restore', owner: input.owner, repo: input.repo })
         });
         const data = await r.json();
@@ -1184,6 +1179,26 @@
           if (data.state.context) { localStorage.setItem(STORE + '_context_window', JSON.stringify(data.state.context)); stateKeys.push('context'); }
           if (data.state.faults) { localStorage.setItem(STORE + '_faults', JSON.stringify(data.state.faults)); stateKeys.push('faults'); }
           if (data.state.kernel) { localStorage.setItem('hc:_kernel', data.state.kernel); stateKeys.push('kernel'); }
+          // Decrypt saved API keys if passphrase provided
+          if (data.state.secrets && input.passphrase) {
+            try {
+              const decResp = await fetch('/api/vault', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ service: 'decrypt-keys', passphrase: input.passphrase, encrypted: data.state.secrets })
+              });
+              const decData = await decResp.json();
+              if (decResp.ok) {
+                localStorage.setItem('hermitcrab_vault_keys', 'true');
+                stateKeys.push('secrets');
+              } else {
+                stateKeys.push('secrets:failed');
+              }
+            } catch { stateKeys.push('secrets:error'); }
+          } else if (data.state.secrets) {
+            stateKeys.push('secrets:need_passphrase');
+          }
         }
         return JSON.stringify({ success: true, restored: data.count, blocks: Object.keys(data.blocks || {}), state: stateKeys });
       }
@@ -1191,11 +1206,10 @@
         try {
           const [owner, repo] = input.repo.split('/');
           const ghHeaders = { 'Content-Type': 'application/json' };
-          const legacyTok = legacyGitHubToken(input.repo);
-          if (legacyTok) ghHeaders['X-GitHub-Token'] = legacyTok;
           const r = await fetch('/api/vault', {
             method: 'POST',
             headers: ghHeaders,
+            credentials: 'include',
             body: JSON.stringify({ service: 'github', action: 'commit', owner, repo, path: input.path, content: input.content, message: input.message })
           });
           const data = await r.json();
@@ -1535,8 +1549,42 @@
       </div>`;
   }
 
+  // ── Migration: move old localStorage keys to httpOnly cookies ──
+  const legacySaved = localStorage.getItem('hermitcrab_api_key');
+  if (legacySaved || localStorage.getItem('hermitcrab_github_pat') || localStorage.getItem('hermitcrab_tokens')) {
+    const migrateBody = { service: 'set-keys' };
+    if (legacySaved) migrateBody.claude = legacySaved;
+    const legacyPat = localStorage.getItem('hermitcrab_github_pat');
+    if (legacyPat) migrateBody.github = legacyPat;
+    if (!legacyPat) {
+      try {
+        const tokens = JSON.parse(localStorage.getItem('hermitcrab_tokens') || '{}');
+        const firstToken = Object.values(tokens)[0];
+        if (firstToken) migrateBody.github = firstToken;
+      } catch {}
+    }
+    if (migrateBody.claude || migrateBody.github) {
+      try {
+        await fetch('/api/vault', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(migrateBody)
+        });
+        // Clear old localStorage secrets — they now live in httpOnly cookies
+        localStorage.removeItem('hermitcrab_api_key');
+        localStorage.removeItem('hermitcrab_github_pat');
+        localStorage.removeItem('hermitcrab_tokens');
+        localStorage.setItem('hermitcrab_vault_keys', 'true');
+        console.log('[möbius] migrated keys from localStorage to httpOnly cookies');
+      } catch (e) {
+        console.error('[möbius] key migration failed:', e);
+      }
+    }
+  }
+
   // ── Landing gate: always show splash, require manual "Enter" before boot ──
-  const saved = localStorage.getItem('hermitcrab_api_key');
+  const hasVaultKeys = localStorage.getItem('hermitcrab_vault_keys');
   if (!sessionStorage.getItem('hermitcrab_entered')) {
     root.innerHTML = `
       <div style="max-width:500px;margin:120px auto;font-family:monospace;color:var(--fg);text-align:center">
@@ -1545,7 +1593,7 @@
         <button id="enter-gate" style="margin-top:32px;padding:10px 32px;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:4px;cursor:pointer;font-family:monospace;font-size:14px">
           Enter
         </button>
-        <p style="color:var(--fg-dim);font-size:11px;margin-top:16px">${saved ? 'API key in memory — click to wake' : 'Vault mode — click to wake'}</p>
+        <p style="color:var(--fg-dim);font-size:11px;margin-top:16px">${hasVaultKeys ? 'Keys secured — click to wake' : 'First visit — click to begin'}</p>
       </div>`;
     document.getElementById('enter-gate').onclick = () => {
       sessionStorage.setItem('hermitcrab_entered', '1');
@@ -1555,22 +1603,21 @@
   }
 
   // First-boot gate: show setup form only if no blocks exist yet (fresh instance).
-  // API key is optional — vault handles auth server-side via VAULT_KEY_CLAUDE env var.
-  // Legacy: if user provides a key here, it's stored in localStorage as fallback.
+  // Keys stored as httpOnly cookies via vault — never in localStorage.
   const hasBlocks = Object.keys(localStorage).some(k => k.startsWith('hc:') && !k.startsWith('hc:_'));
-  if (!saved && !hasBlocks) {
+  if (!hasVaultKeys && !hasBlocks) {
     root.innerHTML = `
       <div style="max-width:500px;margin:80px auto;font-family:monospace;color:var(--fg)">
         <h2 style="color:var(--accent)">◇ HERMITCRAB MÖBIUS</h2>
         <p style="color:var(--fg-muted);font-size:13px">Reflexive spine kernel — pscale native</p>
         <p style="margin:20px 0;font-size:14px">
-          API key is optional — leave blank if vault is configured server-side (VAULT_KEY_CLAUDE).
+          Keys are secured in httpOnly cookies — invisible to all JavaScript.
         </p>
-        <input id="key" type="password" placeholder="sk-ant-api03-... (optional with vault)"
+        <input id="key" type="password" placeholder="sk-ant-api03-..."
           style="width:100%;padding:8px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px" />
         <details style="margin-top:16px">
-          <summary style="color:var(--fg-muted);font-size:12px;cursor:pointer">+ GitHub tokens (optional — vault handles this if VAULT_KEY_GITHUB is set)</summary>
-          <p style="color:var(--fg-muted);font-size:11px;margin-top:8px">Legacy per-repo tokens. Leave blank if vault is configured.</p>
+          <summary style="color:var(--fg-muted);font-size:12px;cursor:pointer">+ GitHub token (optional — for saving/restoring blocks)</summary>
+          <p style="color:var(--fg-muted);font-size:11px;margin-top:8px">GitHub PAT for block persistence. Secured same as API key.</p>
           <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
             <label style="color:var(--fg-muted);font-size:11px;min-width:70px">home repo</label>
             <input id="tok-home" type="password" placeholder="ghp_... (your hermitcrab-mobius fork)"
@@ -1606,20 +1653,28 @@
           Wake kernel
         </button>
       </div>`;
-    document.getElementById('go').onclick = () => {
+    document.getElementById('go').onclick = async () => {
       const k = document.getElementById('key').value.trim();
-      // API key is optional with vault — only store if provided
-      if (k) {
-        if (!k.startsWith('sk-ant-')) return alert('Key must start with sk-ant-');
-        localStorage.setItem('hermitcrab_api_key', k);
-      }
-      // Per-repo tokens (legacy — vault handles this if configured)
-      const tokenMap = {};
+      if (k && !k.startsWith('sk-ant-')) return alert('Key must start with sk-ant-');
       const th = document.getElementById('tok-home').value.trim();
       const tc = document.getElementById('tok-commons').value.trim();
-      if (th) tokenMap['happyseaurchin/hermitcrab-mobius'] = th;
-      if (tc) tokenMap['happyseaurchin/pscale-semantic-number'] = tc;
-      if (Object.keys(tokenMap).length > 0) localStorage.setItem('hermitcrab_tokens', JSON.stringify(tokenMap));
+      // Send keys to vault — stored as httpOnly cookies (JS-invisible)
+      if (k || th || tc) {
+        const keysBody = { service: 'set-keys' };
+        if (k) keysBody.claude = k;
+        if (th || tc) keysBody.github = th || tc;
+        try {
+          const r = await fetch('/api/vault', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(keysBody)
+          });
+          if (!r.ok) { const err = await r.json(); return alert(err.error || 'Failed to store keys'); }
+        } catch (e) { return alert('Failed to store keys: ' + e.message); }
+        // Mark that keys are stored (no secret value — just a flag for the landing gate)
+        localStorage.setItem('hermitcrab_vault_keys', 'true');
+      }
       // Home repo
       const homeVal = document.getElementById('home').value.trim();
       if (homeVal && homeVal.includes('::')) {
