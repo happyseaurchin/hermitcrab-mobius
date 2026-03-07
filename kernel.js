@@ -477,11 +477,11 @@
   }
 
   // ═══════ §2.5 TOKEN RESOLUTION ═══════
-  // Per-repo PAT lookup. Pattern from hermitcrab/claude/focused-moore.
-  // hermitcrab_tokens = { "owner/repo": "ghp_...", ... }
-  // Falls back to legacy hermitcrab_github_pat for broad-scope tokens.
+  // Vault mode: secrets live in Vercel env vars (VAULT_KEY_GITHUB, VAULT_KEY_CLAUDE).
+  // Legacy fallback: if localStorage still has tokens, send them in headers for
+  // instances that haven't migrated to vault env vars yet.
 
-  function getTokenForRepo(ownerRepo) {
+  function legacyGitHubToken(ownerRepo) {
     try {
       const tokens = JSON.parse(localStorage.getItem('hermitcrab_tokens') || '{}');
       if (tokens[ownerRepo]) return tokens[ownerRepo];
@@ -861,7 +861,6 @@
   // ═══════ §5 API LAYER ═══════
 
   async function callAPI(params) {
-    const apiKey = localStorage.getItem('hermitcrab_api_key');
     const clean = {};
     for (const [k, v] of Object.entries(params)) {
       if (k.startsWith('_') || v === undefined || v === null) continue;
@@ -870,10 +869,15 @@
     if (clean.thinking && clean.temperature !== undefined && clean.temperature !== 1) delete clean.temperature;
     console.log('[möbius] callAPI →', clean.model, 'messages:', clean.messages?.length);
 
-    const res = await fetch('/api/claude', {
+    // Vault mode: secrets live server-side. Legacy fallback: send localStorage key if present.
+    const headers = { 'Content-Type': 'application/json' };
+    const legacyKey = localStorage.getItem('hermitcrab_api_key');
+    if (legacyKey) headers['X-API-Key'] = legacyKey;
+
+    const res = await fetch('/api/vault', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-      body: JSON.stringify(clean)
+      headers,
+      body: JSON.stringify({ service: 'claude', ...clean })
     });
     if (!res.ok) { const err = await res.text(); throw new Error(`API ${res.status}: ${err}`); }
     const data = await res.json();
@@ -960,17 +964,17 @@
     },
     {
       name: 'github_save',
-      description: 'Save all blocks and working state to a GitHub repo in a single atomic commit. Blocks go to blocks/{name}.json, state goes to state/ (kernel, JSX shell, conversations, context, faults). Token looked up per-repo from hermitcrab_tokens, falls back to hermitcrab_github_pat.',
+      description: 'Save all blocks and working state to a GitHub repo in a single atomic commit. Blocks go to blocks/{name}.json, state goes to state/ (kernel, JSX shell, conversations, context, faults). Auth handled by vault — no token needed.',
       input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
     },
     {
       name: 'github_restore',
-      description: 'Restore all blocks and working state from a GitHub repo. Pulls blocks/{name}.json and state/ files (kernel, JSX shell, conversations, context, faults) into localStorage. Token looked up per-repo, falls back to hermitcrab_github_pat. Public repos work without token.',
+      description: 'Restore all blocks and working state from a GitHub repo. Pulls blocks/{name}.json and state/ files (kernel, JSX shell, conversations, context, faults) into localStorage. Auth handled by vault.',
       input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
     },
     {
       name: 'github_commit',
-      description: 'Write a file to any GitHub repo. Creates or updates. Token looked up per-repo from hermitcrab_tokens. Use for: syncing lib files to pscale commons, publishing passport, writing grain probes.',
+      description: 'Write a file to any GitHub repo. Creates or updates. Auth handled by vault. Use for: syncing lib files to pscale commons, publishing passport, writing grain probes.',
       input_schema: { type: 'object', properties: { repo: { type: 'string', description: 'owner/name format (e.g. "happyseaurchin/pscale-semantic-number")' }, path: { type: 'string', description: 'File path in repo (e.g. "lib/bsp.js")' }, content: { type: 'string', description: 'File content (will be base64 encoded)' }, message: { type: 'string', description: 'Commit message' } }, required: ['repo', 'path', 'content', 'message'] }
     },
     {
@@ -1118,9 +1122,9 @@
       case 'get_datetime':
         return JSON.stringify({ iso: new Date().toISOString(), unix: Date.now(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
       case 'github_save': {
-        const repo = `${input.owner}/${input.repo}`;
-        const pat = getTokenForRepo(repo);
-        if (!pat) return JSON.stringify({ error: `No token for ${repo}. Configure hermitcrab_tokens in localStorage or set hermitcrab_github_pat.` });
+        const ghHeaders = { 'Content-Type': 'application/json' };
+        const legacyTok = legacyGitHubToken(`${input.owner}/${input.repo}`);
+        if (legacyTok) ghHeaders['X-GitHub-Token'] = legacyTok;
         const blocks = {};
         for (const name of blockList()) { blocks[name] = blockLoad(name); }
         // Collect non-block state: JSX, conversations, context, faults
@@ -1144,23 +1148,23 @@
           const kernelResp = await fetch('/kernel.js');
           if (kernelResp.ok) state.kernel = await kernelResp.text();
         } catch {}
-        const r = await fetch('/api/github', {
+        const r = await fetch('/api/vault', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-GitHub-Token': pat },
-          body: JSON.stringify({ action: 'save', owner: input.owner, repo: input.repo, blocks, state })
+          headers: ghHeaders,
+          body: JSON.stringify({ service: 'github', action: 'save', owner: input.owner, repo: input.repo, blocks, state })
         });
         const data = await r.json();
         if (!r.ok) return JSON.stringify({ error: data.error || `GitHub save failed: ${r.status}` });
         return JSON.stringify(data);
       }
       case 'github_restore': {
-        const repo = `${input.owner}/${input.repo}`;
-        const pat = getTokenForRepo(repo);
-        if (!pat) return JSON.stringify({ error: `No token for ${repo}. Configure hermitcrab_tokens in localStorage or set hermitcrab_github_pat.` });
-        const r = await fetch('/api/github', {
+        const ghHeaders = { 'Content-Type': 'application/json' };
+        const legacyTok = legacyGitHubToken(`${input.owner}/${input.repo}`);
+        if (legacyTok) ghHeaders['X-GitHub-Token'] = legacyTok;
+        const r = await fetch('/api/vault', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-GitHub-Token': pat },
-          body: JSON.stringify({ action: 'restore', owner: input.owner, repo: input.repo })
+          headers: ghHeaders,
+          body: JSON.stringify({ service: 'github', action: 'restore', owner: input.owner, repo: input.repo })
         });
         const data = await r.json();
         if (!r.ok) return JSON.stringify({ error: data.error || `GitHub restore failed: ${r.status}` });
@@ -1184,24 +1188,19 @@
         return JSON.stringify({ success: true, restored: data.count, blocks: Object.keys(data.blocks || {}), state: stateKeys });
       }
       case 'github_commit': {
-        const pat = getTokenForRepo(input.repo);
-        if (!pat) return JSON.stringify({ error: `No token for ${input.repo}. Configure hermitcrab_tokens in localStorage.` });
         try {
           const [owner, repo] = input.repo.split('/');
-          const apiBase = `https://api.github.com/repos/${input.repo}/contents/${input.path}`;
-          const headers = { 'Authorization': `token ${pat}`, 'Accept': 'application/vnd.github.v3+json' };
-          // Check if file exists (to get SHA for update)
-          let sha = undefined;
-          try {
-            const existing = await fetch(apiBase, { headers });
-            if (existing.ok) { sha = (await existing.json()).sha; }
-          } catch {}
-          const body = { message: input.message, content: btoa(unescape(encodeURIComponent(input.content))) };
-          if (sha) body.sha = sha;
-          const r = await fetch(apiBase, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          const ghHeaders = { 'Content-Type': 'application/json' };
+          const legacyTok = legacyGitHubToken(input.repo);
+          if (legacyTok) ghHeaders['X-GitHub-Token'] = legacyTok;
+          const r = await fetch('/api/vault', {
+            method: 'POST',
+            headers: ghHeaders,
+            body: JSON.stringify({ service: 'github', action: 'commit', owner, repo, path: input.path, content: input.content, message: input.message })
+          });
           const data = await r.json();
-          if (!r.ok) return JSON.stringify({ error: data.message || `GitHub commit failed: ${r.status}` });
-          return JSON.stringify({ success: true, path: input.path, sha: data.content?.sha });
+          if (!r.ok) return JSON.stringify({ error: data.error || `GitHub commit failed: ${r.status}` });
+          return JSON.stringify(data);
         } catch (e) { return JSON.stringify({ error: e.message }); }
       }
       default:
@@ -1546,7 +1545,7 @@
         <button id="enter-gate" style="margin-top:32px;padding:10px 32px;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:4px;cursor:pointer;font-family:monospace;font-size:14px">
           Enter
         </button>
-        <p style="color:var(--fg-dim);font-size:11px;margin-top:16px">${saved ? 'API key in memory — click to wake' : 'You will be asked for a Claude API key'}</p>
+        <p style="color:var(--fg-dim);font-size:11px;margin-top:16px">${saved ? 'API key in memory — click to wake' : 'Vault mode — click to wake'}</p>
       </div>`;
     document.getElementById('enter-gate').onclick = () => {
       sessionStorage.setItem('hermitcrab_entered', '1');
@@ -1555,20 +1554,23 @@
     return;
   }
 
-  // API key gate
-  if (!saved) {
+  // First-boot gate: show setup form only if no blocks exist yet (fresh instance).
+  // API key is optional — vault handles auth server-side via VAULT_KEY_CLAUDE env var.
+  // Legacy: if user provides a key here, it's stored in localStorage as fallback.
+  const hasBlocks = Object.keys(localStorage).some(k => k.startsWith('hc:') && !k.startsWith('hc:_'));
+  if (!saved && !hasBlocks) {
     root.innerHTML = `
       <div style="max-width:500px;margin:80px auto;font-family:monospace;color:var(--fg)">
         <h2 style="color:var(--accent)">◇ HERMITCRAB MÖBIUS</h2>
         <p style="color:var(--fg-muted);font-size:13px">Reflexive spine kernel — pscale native</p>
         <p style="margin:20px 0;font-size:14px">
-          Provide your Claude API key. It stays in your browser, proxied only to Anthropic.
+          API key is optional — leave blank if vault is configured server-side (VAULT_KEY_CLAUDE).
         </p>
-        <input id="key" type="password" placeholder="sk-ant-api03-..."
+        <input id="key" type="password" placeholder="sk-ant-api03-... (optional with vault)"
           style="width:100%;padding:8px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px" />
         <details style="margin-top:16px">
-          <summary style="color:var(--fg-muted);font-size:12px;cursor:pointer">+ GitHub tokens (optional — persistence &amp; commons)</summary>
-          <p style="color:var(--fg-muted);font-size:11px;margin-top:8px">Per-repo tokens. Leave blank if not needed.</p>
+          <summary style="color:var(--fg-muted);font-size:12px;cursor:pointer">+ GitHub tokens (optional — vault handles this if VAULT_KEY_GITHUB is set)</summary>
+          <p style="color:var(--fg-muted);font-size:11px;margin-top:8px">Legacy per-repo tokens. Leave blank if vault is configured.</p>
           <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
             <label style="color:var(--fg-muted);font-size:11px;min-width:70px">home repo</label>
             <input id="tok-home" type="password" placeholder="ghp_... (your hermitcrab-mobius fork)"
@@ -1606,9 +1608,12 @@
       </div>`;
     document.getElementById('go').onclick = () => {
       const k = document.getElementById('key').value.trim();
-      if (!k.startsWith('sk-ant-')) return alert('Key must start with sk-ant-');
-      localStorage.setItem('hermitcrab_api_key', k);
-      // Per-repo tokens
+      // API key is optional with vault — only store if provided
+      if (k) {
+        if (!k.startsWith('sk-ant-')) return alert('Key must start with sk-ant-');
+        localStorage.setItem('hermitcrab_api_key', k);
+      }
+      // Per-repo tokens (legacy — vault handles this if configured)
       const tokenMap = {};
       const th = document.getElementById('tok-home').value.trim();
       const tc = document.getElementById('tok-commons').value.trim();

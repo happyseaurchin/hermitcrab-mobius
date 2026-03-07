@@ -3628,7 +3628,11 @@
           },
           "_": "The reflexive spine. One number orients you: your tier, your trigger, your position, your instructions."
         },
-        "2": "Retired. Concern routing now lives in the concerns block. The kernel reads concerns directly — each instance carries its own spine address, stimulus type, and temporal position. See concerns block ring for the live dashboard.",
+        "2": {
+          "1": "Claude. Anthropic API — the cognitive channel. Every conversation turn and concern activation routes through this service. The kernel calls /api/vault with service 'claude' and the vault attaches the key from VAULT_KEY_CLAUDE. The hermitcrab never sees the secret.",
+          "2": "GitHub. Repository persistence for blocks, state, and individual file commits. The github_save, github_restore, and github_commit tools route through /api/vault with service 'github'. The vault attaches the token from VAULT_KEY_GITHUB. No PAT in the browser, no scrubbing needed.",
+          "_": "Services. External capabilities available through the vault. Each service has a key stored server-side in Vercel env vars — the hermitcrab never sees the secret, never leaks it into blocks or state. Adding a new service means adding a node here and setting the corresponding VAULT_KEY env var."
+        },
         "3": {
           "1": {
             "1": "wake 0.4 dir",
@@ -3884,7 +3888,11 @@
           },
           "_": "The reflexive spine. One number"
         },
-        "2": "Retired. Concern routing now lives",
+        "2": {
+          "1": "Claude. Anthropic API — the",
+          "2": "GitHub. Repository persistence for blocks",
+          "_": "Services. External capabilities available through"
+        },
         "3": {
           "1": {
             "1": "wake 0.1311111",
