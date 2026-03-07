@@ -129,6 +129,12 @@ async function handleGitHub(req: VercelRequest, res: VercelResponse) {
 
   const gh = ghFetch(token);
 
+  // ── WHOAMI ── (no owner/repo needed)
+  if (action === 'whoami') {
+    const user = await gh('/user');
+    return res.status(200).json({ login: (user as any).login });
+  }
+
   if (!owner || !repo) {
     return res.status(400).json({ error: 'owner and repo required' });
   }
@@ -269,7 +275,7 @@ async function handleGitHub(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  return res.status(400).json({ error: `Unknown GitHub action: ${action}. Use list, restore, save, or commit.` });
+  return res.status(400).json({ error: `Unknown GitHub action: ${action}. Use whoami, list, restore, save, or commit.` });
 }
 
 // ── Service: set-keys (stores as httpOnly cookies — JS-invisible) ──
