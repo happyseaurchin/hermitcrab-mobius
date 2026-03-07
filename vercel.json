@@ -8,5 +8,8 @@
         { "key": "Cache-Control", "value": "no-store" }
       ]
     }
+  ],
+  "rewrites": [
+    { "source": "/:name", "destination": "/index.html" }
   ]
 }

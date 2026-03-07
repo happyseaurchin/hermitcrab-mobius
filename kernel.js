@@ -1531,6 +1531,12 @@
 
   // ═══════ §9 BOOT ═══════
 
+  // ── URL-based hermitcrab name ──
+  // hermitcrab.me/coral → hcName = "coral", convention repo = "hermitcrab-coral"
+  // hermitcrab.me/       → hcName = null (normal birth flow)
+  const pathSegment = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  const hcName = (pathSegment && pathSegment !== 'monitor') ? pathSegment.toLowerCase() : null;
+
   // Status display
   let statusLines = [];
   function status(msg, type = 'info') {
@@ -1583,9 +1589,15 @@
     }
   }
 
-  // ── Landing gate: always show splash, require manual "Enter" before boot ──
+  // ── Pre-gate state ──
   const hasVaultKeys = localStorage.getItem('hermitcrab_vault_keys');
+  const hasBlocks = Object.keys(localStorage).some(k => k.startsWith('hc:') && !k.startsWith('hc:_'));
+
+  // ── Landing gate: always show splash, require manual "Enter" before boot ──
   if (!sessionStorage.getItem('hermitcrab_entered')) {
+    const landingHint = hcName
+      ? `◇ ${hcName}`
+      : (hasVaultKeys ? 'Keys secured — click to wake' : 'First visit — click to begin');
     root.innerHTML = `
       <div style="max-width:500px;margin:120px auto;font-family:monospace;color:var(--fg);text-align:center">
         <h2 style="color:var(--accent);font-size:24px">◇ hermitcrab möbius</h2>
@@ -1593,7 +1605,7 @@
         <button id="enter-gate" style="margin-top:32px;padding:10px 32px;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:4px;cursor:pointer;font-family:monospace;font-size:14px">
           Enter
         </button>
-        <p style="color:var(--fg-dim);font-size:11px;margin-top:16px">${hasVaultKeys ? 'Keys secured — click to wake' : 'First visit — click to begin'}</p>
+        <p style="color:var(--fg-dim);font-size:11px;margin-top:16px">${landingHint}</p>
       </div>`;
     document.getElementById('enter-gate').onclick = () => {
       sessionStorage.setItem('hermitcrab_entered', '1');
@@ -1602,9 +1614,161 @@
     return;
   }
 
+  // ── Rehydration gate: named hermitcrab URL, no local blocks → restore from GitHub ──
+  if (hcName && !hasBlocks) {
+    const hcRepo = 'hermitcrab-' + hcName;
+    root.innerHTML = `
+      <div style="max-width:420px;margin:100px auto;font-family:monospace;color:var(--fg)">
+        <h2 style="color:var(--accent);font-size:22px">◇ ${hcName}</h2>
+        <p style="color:var(--fg-muted);font-size:13px;margin:8px 0 24px">
+          Restore from <code style="color:var(--accent)">${hcRepo}</code>
+        </p>
+        <form id="rehydrate-form" autocomplete="on">
+          <div style="margin-bottom:12px">
+            <label for="rh-pat" style="font-size:11px;color:var(--fg-muted)">GitHub PAT</label>
+            <input id="rh-pat" name="username" type="password" autocomplete="username"
+              placeholder="ghp_..."
+              style="width:100%;padding:8px;margin-top:4px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;font-size:13px" />
+          </div>
+          <div style="margin-bottom:16px">
+            <label for="rh-pass" style="font-size:11px;color:var(--fg-muted)">passphrase</label>
+            <input id="rh-pass" name="password" type="password" autocomplete="current-password"
+              placeholder="your passphrase"
+              style="width:100%;padding:8px;margin-top:4px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:monospace;border-radius:4px;font-size:13px" />
+          </div>
+          <button type="submit"
+            style="width:100%;padding:10px;background:var(--btn-bg);color:var(--btn-fg);border:none;border-radius:4px;cursor:pointer;font-family:monospace;font-size:14px">
+            Restore
+          </button>
+          <div id="rh-status" style="margin-top:12px;font-size:12px;min-height:20px"></div>
+        </form>
+        <p style="color:var(--fg-dim);font-size:11px;margin-top:20px">
+          Or <a href="/" style="color:var(--accent)">start fresh</a> at root.
+        </p>
+      </div>`;
+
+    document.getElementById('rehydrate-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const pat = document.getElementById('rh-pat').value.trim();
+      const passphrase = document.getElementById('rh-pass').value.trim();
+      const rhStatus = document.getElementById('rh-status');
+
+      if (!pat) { rhStatus.innerHTML = '<span style="color:var(--error)">GitHub PAT required</span>'; return; }
+      if (!passphrase) { rhStatus.innerHTML = '<span style="color:var(--error)">Passphrase required</span>'; return; }
+
+      // Step 1: Store PAT as httpOnly cookie
+      rhStatus.innerHTML = '<span style="color:var(--accent)">storing key...</span>';
+      try {
+        const r = await fetch('/api/vault', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ service: 'set-keys', github: pat })
+        });
+        if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'set-keys failed'); }
+      } catch (err) {
+        rhStatus.innerHTML = `<span style="color:var(--error)">${err.message}</span>`;
+        return;
+      }
+
+      // Step 2: Resolve GitHub username
+      rhStatus.innerHTML = '<span style="color:var(--accent)">resolving identity...</span>';
+      let owner;
+      try {
+        const r = await fetch('/api/vault', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ service: 'github', action: 'whoami' })
+        });
+        if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'whoami failed'); }
+        const d = await r.json();
+        owner = d.login;
+      } catch (err) {
+        rhStatus.innerHTML = `<span style="color:var(--error)">${err.message}</span>`;
+        return;
+      }
+
+      // Step 3: Restore blocks from {owner}/hermitcrab-{name}
+      rhStatus.innerHTML = `<span style="color:var(--accent)">restoring from ${owner}/${hcRepo}...</span>`;
+      let restoreData;
+      try {
+        const r = await fetch('/api/vault', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ service: 'github', action: 'restore', owner, repo: hcRepo })
+        });
+        if (!r.ok) {
+          const d = await r.json();
+          if (d.error && d.error.includes('404')) {
+            throw new Error(`Repo ${owner}/${hcRepo} not found. Create it on GitHub first.`);
+          }
+          throw new Error(d.error || 'restore failed');
+        }
+        restoreData = await r.json();
+      } catch (err) {
+        rhStatus.innerHTML = `<span style="color:var(--error)">${err.message}</span>`;
+        return;
+      }
+
+      // Step 4: Write blocks to localStorage
+      if (restoreData.blocks) {
+        for (const [name, block] of Object.entries(restoreData.blocks)) {
+          blockSave(name, block);
+        }
+      }
+
+      // Step 5: Restore non-block state (mirrors github_restore tool handler)
+      if (restoreData.state) {
+        if (restoreData.state.jsx) localStorage.setItem('hc:_jsx', restoreData.state.jsx);
+        if (restoreData.state.conversations) {
+          for (const [path, msgs] of Object.entries(restoreData.state.conversations)) {
+            localStorage.setItem('hc_conv_' + path, JSON.stringify(msgs));
+          }
+        }
+        if (restoreData.state.context) localStorage.setItem(STORE + '_context_window', JSON.stringify(restoreData.state.context));
+        if (restoreData.state.faults) localStorage.setItem(STORE + '_faults', JSON.stringify(restoreData.state.faults));
+        if (restoreData.state.kernel) localStorage.setItem('hc:_kernel', restoreData.state.kernel);
+      }
+
+      // Step 6: Decrypt saved API keys
+      if (restoreData.state && restoreData.state.secrets) {
+        rhStatus.innerHTML = '<span style="color:var(--accent)">decrypting keys...</span>';
+        try {
+          const r = await fetch('/api/vault', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ service: 'decrypt-keys', passphrase, encrypted: restoreData.state.secrets })
+          });
+          if (!r.ok) {
+            const d = await r.json();
+            rhStatus.innerHTML = `<span style="color:var(--error)">Decryption failed: ${d.error || 'wrong passphrase?'}</span>`;
+            return;
+          }
+        } catch (err) {
+          rhStatus.innerHTML = `<span style="color:var(--error)">Decryption error: ${err.message}</span>`;
+          return;
+        }
+      }
+
+      // Step 7: Mark vault keys present, store name, reboot
+      localStorage.setItem('hermitcrab_vault_keys', 'true');
+      localStorage.setItem('hermitcrab_name', hcName);
+      localStorage.setItem('hermitcrab_home', JSON.stringify({ repo: owner + '/' + hcRepo, path: '' }));
+
+      rhStatus.innerHTML = `<span style="color:var(--success)">restored ${restoreData.count || 0} blocks — booting...</span>`;
+      setTimeout(() => boot(), 500);
+    };
+    return;
+  }
+
+  // Persist name from URL on return visits (blocks exist, name in URL)
+  if (hcName) localStorage.setItem('hermitcrab_name', hcName);
+
   // First-boot gate: show setup form only if no blocks exist yet (fresh instance).
   // Keys stored as httpOnly cookies via vault — never in localStorage.
-  const hasBlocks = Object.keys(localStorage).some(k => k.startsWith('hc:') && !k.startsWith('hc:_'));
   if (!hasVaultKeys && !hasBlocks) {
     root.innerHTML = `
       <div style="max-width:500px;margin:80px auto;font-family:monospace;color:var(--fg)">
