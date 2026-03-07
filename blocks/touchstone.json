@@ -116,6 +116,11 @@
       },
       "3": "When the root level fills and compresses, the block grows upward — existing content becomes a branch of a wider structure, and the decimal point in the semantic number shifts rightward. A deep block with many digits before the decimal has compressed many times; it carries a long history. A flat block with the number starting at 0 is young and has not yet outgrown its original structure.",
       "4": "Digit 0 as a child key is reserved for compression products — it holds the record of what the entries at that level became when they consolidated. A digit 0 node is always generated through compression, never written directly. It serves as the archaeological layer: the trace of what the block contained before it grew, visible to any reader who looks for it.",
+      "5": {
+        "1": "A growth tree's tuning fork uses whole-number digits — '8' for a one-level tree, '88' for two levels, '888' for three — where each digit declares the base-9 capacity at that depth. When the root overflows and the tree wraps into child 0 of a new root, the tuning fork gains a digit to match. BSP compensation uses the tuning fork length to navigate older addresses correctly: an address written when the tree was shallow still resolves after the tree has grown deeper, because the tuning fork tells BSP how many levels of compression wrapper to traverse. If the tuning fork is not updated when the tree grows, old addresses break — the tuning fork IS the definitive indicator of tree depth.",
+        "2": "Consider a history block with tuning '8'. Entries are written to digits 1 through 9. When digit 9 fills, all nine compress into a summary at the node's underscore, and the next entry starts at a new sibling node. The addresses work like an odometer: entries 1-9 fill the first node, the summary is stored at address 10 (the underscore of the second node), entries 11-19 fill digits within that second node, their summary goes to address 20, and so on through 90. When all sibling summaries at that depth have filled (addresses 10 through 90), those summaries compress into a new parent level — address 100 — and the next entry is written at 101. The tuning fork grows from '8' to '88' to reflect the new depth. At address 101, no pscale 1 summary exists yet because the second batch at that level has not filled — this is expected, not a defect. The entity navigates laterally to find context when intermediate summaries have not yet been written.",
+        "_": "Growth trees accumulate content forward in time — history logs, stash notebooks, any block where new entries append rather than organise. Their semantic numbers use whole-number addresses (3, 42, 351) rather than decomposition addresses (0.31, 0.421). The critical difference: in a decomposition tree the tuning fork is fixed because the tree's depth is designed upfront, but in a growth tree the tuning fork must grow with the tree because compression creates new depth that did not exist at the block's creation."
+      },
       "_": "Blocks grow by adding content at empty digit slots. When all nine slots at a level fill, the entries compress — consolidating into a parent to make room for new growth. A flat block is young; a deep one has compressed many times. Over time, a simple list becomes a structured hierarchy through this organic process."
     },
     "6": {
@@ -294,6 +299,11 @@
       },
       "3": "When the root level fills",
       "4": "Digit 0 as a child",
+      "5": {
+        "1": "Growth tree tuning fork grows",
+        "2": "History odometer model: 1-9 compress",
+        "_": "Growth trees accumulate forward in"
+      },
       "_": "Blocks grow by adding content"
     },
     "6": {
