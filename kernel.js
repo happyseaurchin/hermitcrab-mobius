@@ -960,12 +960,12 @@
     },
     {
       name: 'github_save',
-      description: 'Save all blocks to a GitHub repo as blocks/{name}.json in a single atomic commit. Token looked up per-repo from hermitcrab_tokens in localStorage, falls back to hermitcrab_github_pat.',
+      description: 'Save all blocks and working state to a GitHub repo in a single atomic commit. Blocks go to blocks/{name}.json, state goes to state/ (JSX shell, conversations, context, faults). Token looked up per-repo from hermitcrab_tokens, falls back to hermitcrab_github_pat.',
       input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
     },
     {
       name: 'github_restore',
-      description: 'Restore all blocks from a GitHub repo. Pulls blocks/{name}.json files into localStorage. Token looked up per-repo, falls back to hermitcrab_github_pat. Public repos work without token.',
+      description: 'Restore all blocks and working state from a GitHub repo. Pulls blocks/{name}.json and state/ files (JSX shell, conversations, context, faults) into localStorage. Token looked up per-repo, falls back to hermitcrab_github_pat. Public repos work without token.',
       input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
     },
     {
@@ -1123,10 +1123,26 @@
         if (!pat) return JSON.stringify({ error: `No token for ${repo}. Configure hermitcrab_tokens in localStorage or set hermitcrab_github_pat.` });
         const blocks = {};
         for (const name of blockList()) { blocks[name] = blockLoad(name); }
+        // Collect non-block state: JSX, conversations, context, faults
+        const state = {};
+        const jsx = localStorage.getItem('hc:_jsx');
+        if (jsx) state.jsx = jsx;
+        const convs = {};
+        for (let i = 0; i < localStorage.length; i++) {
+          const lsKey = localStorage.key(i);
+          if (lsKey && lsKey.startsWith('hc_conv_')) {
+            try { convs[lsKey.slice('hc_conv_'.length)] = JSON.parse(localStorage.getItem(lsKey)); } catch {}
+          }
+        }
+        if (Object.keys(convs).length > 0) state.conversations = convs;
+        const ctx = localStorage.getItem(STORE + '_context_window');
+        if (ctx) { try { state.context = JSON.parse(ctx); } catch {} }
+        const faultLog = localStorage.getItem(STORE + '_faults');
+        if (faultLog) { try { state.faults = JSON.parse(faultLog); } catch {} }
         const r = await fetch('/api/github', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-GitHub-Token': pat },
-          body: JSON.stringify({ action: 'save', owner: input.owner, repo: input.repo, blocks })
+          body: JSON.stringify({ action: 'save', owner: input.owner, repo: input.repo, blocks, state })
         });
         const data = await r.json();
         if (!r.ok) return JSON.stringify({ error: data.error || `GitHub save failed: ${r.status}` });
@@ -1146,7 +1162,20 @@
         if (data.blocks) {
           for (const [name, block] of Object.entries(data.blocks)) { blockSave(name, block); }
         }
-        return JSON.stringify({ success: true, restored: data.count, blocks: Object.keys(data.blocks || {}) });
+        // Restore non-block state: JSX, conversations, context, faults
+        const stateKeys = [];
+        if (data.state) {
+          if (data.state.jsx) { localStorage.setItem('hc:_jsx', data.state.jsx); stateKeys.push('jsx'); }
+          if (data.state.conversations) {
+            for (const [path, msgs] of Object.entries(data.state.conversations)) {
+              localStorage.setItem('hc_conv_' + path, JSON.stringify(msgs));
+            }
+            stateKeys.push('conversations');
+          }
+          if (data.state.context) { localStorage.setItem(STORE + '_context_window', JSON.stringify(data.state.context)); stateKeys.push('context'); }
+          if (data.state.faults) { localStorage.setItem(STORE + '_faults', JSON.stringify(data.state.faults)); stateKeys.push('faults'); }
+        }
+        return JSON.stringify({ success: true, restored: data.count, blocks: Object.keys(data.blocks || {}), state: stateKeys });
       }
       case 'github_commit': {
         const pat = getTokenForRepo(input.repo);

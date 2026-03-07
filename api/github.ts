@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const token = req.headers['x-github-token'] as string;
   if (!token) return res.status(400).json({ error: 'GitHub token required via X-GitHub-Token header' });
 
-  const { action, owner, repo, blocks } = req.body;
+  const { action, owner, repo, blocks, state } = req.body;
 
   const gh = async (path: string, method = 'GET', body?: unknown) => {
     const opts: RequestInit = {
@@ -73,7 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // ── RESTORE: pull all blocks from repo ──
+    // ── RESTORE: pull all blocks and state from repo ──
     if (action === 'restore') {
       const contents = await gh(`/repos/${owner}/${repo}/contents/blocks`);
       const result: Record<string, unknown> = {};
@@ -88,7 +88,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           result[name] = content;
         }
       }
-      return res.status(200).json({ blocks: result, count: Object.keys(result).length });
+
+      // Also restore state/ directory if it exists
+      const stateResult: Record<string, unknown> = {};
+      try {
+        const stateContents = await gh(`/repos/${owner}/${repo}/contents/state`);
+        for (const file of (stateContents as any[])) {
+          const fileData = await gh(`/repos/${owner}/${repo}/contents/state/${file.name}`);
+          const content = Buffer.from((fileData as any).content, 'base64').toString('utf-8');
+          const key = file.name.replace(/\.(json|txt)$/, '');
+          if (file.name.endsWith('.json')) {
+            try { stateResult[key] = JSON.parse(content); } catch { stateResult[key] = content; }
+          } else {
+            stateResult[key] = content;
+          }
+        }
+      } catch (e: any) {
+        // state/ directory may not exist yet — that's fine
+        if (!e.message.includes('404')) throw e;
+      }
+
+      return res.status(200).json({
+        blocks: result,
+        state: Object.keys(stateResult).length > 0 ? stateResult : undefined,
+        count: Object.keys(result).length,
+      });
     }
 
     // ── SAVE: push all blocks to repo ──
@@ -119,13 +143,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      // Add state files to the same commit if provided
+      if (state && typeof state === 'object') {
+        const stateFiles: Record<string, string> = {};
+        if (state.jsx) stateFiles['state/jsx.txt'] = state.jsx;
+        if (state.conversations) stateFiles['state/conversations.json'] = JSON.stringify(state.conversations, null, 2);
+        if (state.context) stateFiles['state/context.json'] = JSON.stringify(state.context, null, 2);
+        if (state.faults) stateFiles['state/faults.json'] = JSON.stringify(state.faults, null, 2);
+
+        for (const [path, content] of Object.entries(stateFiles)) {
+          const blob = await gh(`/repos/${owner}/${repo}/git/blobs`, 'POST', {
+            content: Buffer.from(content).toString('base64'),
+            encoding: 'base64',
+          });
+          treeItems.push({
+            path,
+            mode: '100644',
+            type: 'blob',
+            sha: (blob as any).sha,
+          });
+        }
+      }
+
       // Create tree, commit, update ref
+      const stateCount = state ? Object.keys(state).length : 0;
       const newTree = await gh(`/repos/${owner}/${repo}/git/trees`, 'POST', {
         base_tree: treeSha,
         tree: treeItems,
       });
+      const msg = stateCount > 0
+        ? `hermitcrab: save ${Object.keys(blocks).length} blocks + ${stateCount} state files`
+        : `hermitcrab: save ${Object.keys(blocks).length} blocks`;
       const newCommit = await gh(`/repos/${owner}/${repo}/git/commits`, 'POST', {
-        message: `hermitcrab: save ${Object.keys(blocks).length} blocks`,
+        message: msg,
         tree: (newTree as any).sha,
         parents: [mainSha],
       });
