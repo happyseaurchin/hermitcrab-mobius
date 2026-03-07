@@ -96,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         for (const file of (stateContents as any[])) {
           const fileData = await gh(`/repos/${owner}/${repo}/contents/state/${file.name}`);
           const content = Buffer.from((fileData as any).content, 'base64').toString('utf-8');
-          const key = file.name.replace(/\.(json|txt)$/, '');
+          const key = file.name.replace(/\.(json|txt|js)$/, '');
           if (file.name.endsWith('.json')) {
             try { stateResult[key] = JSON.parse(content); } catch { stateResult[key] = content; }
           } else {
@@ -150,6 +150,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (state.conversations) stateFiles['state/conversations.json'] = JSON.stringify(state.conversations, null, 2);
         if (state.context) stateFiles['state/context.json'] = JSON.stringify(state.context, null, 2);
         if (state.faults) stateFiles['state/faults.json'] = JSON.stringify(state.faults, null, 2);
+        if (state.kernel) stateFiles['state/kernel.js'] = state.kernel;
 
         for (const [path, content] of Object.entries(stateFiles)) {
           const blob = await gh(`/repos/${owner}/${repo}/git/blobs`, 'POST', {

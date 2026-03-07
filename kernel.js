@@ -960,12 +960,12 @@
     },
     {
       name: 'github_save',
-      description: 'Save all blocks and working state to a GitHub repo in a single atomic commit. Blocks go to blocks/{name}.json, state goes to state/ (JSX shell, conversations, context, faults). Token looked up per-repo from hermitcrab_tokens, falls back to hermitcrab_github_pat.',
+      description: 'Save all blocks and working state to a GitHub repo in a single atomic commit. Blocks go to blocks/{name}.json, state goes to state/ (kernel, JSX shell, conversations, context, faults). Token looked up per-repo from hermitcrab_tokens, falls back to hermitcrab_github_pat.',
       input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
     },
     {
       name: 'github_restore',
-      description: 'Restore all blocks and working state from a GitHub repo. Pulls blocks/{name}.json and state/ files (JSX shell, conversations, context, faults) into localStorage. Token looked up per-repo, falls back to hermitcrab_github_pat. Public repos work without token.',
+      description: 'Restore all blocks and working state from a GitHub repo. Pulls blocks/{name}.json and state/ files (kernel, JSX shell, conversations, context, faults) into localStorage. Token looked up per-repo, falls back to hermitcrab_github_pat. Public repos work without token.',
       input_schema: { type: 'object', properties: { owner: { type: 'string', description: 'GitHub username or org' }, repo: { type: 'string', description: 'Repository name' } }, required: ['owner', 'repo'] }
     },
     {
@@ -1139,6 +1139,11 @@
         if (ctx) { try { state.context = JSON.parse(ctx); } catch {} }
         const faultLog = localStorage.getItem(STORE + '_faults');
         if (faultLog) { try { state.faults = JSON.parse(faultLog); } catch {} }
+        // Save running kernel source — so the hermitcrab owns its cognition engine
+        try {
+          const kernelResp = await fetch('/kernel.js');
+          if (kernelResp.ok) state.kernel = await kernelResp.text();
+        } catch {}
         const r = await fetch('/api/github', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-GitHub-Token': pat },
@@ -1174,6 +1179,7 @@
           }
           if (data.state.context) { localStorage.setItem(STORE + '_context_window', JSON.stringify(data.state.context)); stateKeys.push('context'); }
           if (data.state.faults) { localStorage.setItem(STORE + '_faults', JSON.stringify(data.state.faults)); stateKeys.push('faults'); }
+          if (data.state.kernel) { localStorage.setItem('hc:_kernel', data.state.kernel); stateKeys.push('kernel'); }
         }
         return JSON.stringify({ success: true, restored: data.count, blocks: Object.keys(data.blocks || {}), state: stateKeys });
       }
